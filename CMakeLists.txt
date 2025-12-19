@@ -210,6 +210,7 @@ add_library(DatabaseServerLib
     src/resilience/resilient_database_connection.cpp
     # Gateway (Phase 3)
     src/gateway/query_protocol.cpp
+    src/gateway/gateway_server.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES
