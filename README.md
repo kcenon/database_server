@@ -88,6 +88,29 @@ cmake --build .
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container serialization |
 | `ENABLE_COVERAGE` | OFF | Enable code coverage |
 
+### Running Tests
+
+```bash
+# Build with tests enabled (default)
+cmake .. -DBUILD_TESTS=ON
+cmake --build .
+
+# Run all tests
+ctest --output-on-failure
+
+# Or run specific test executable directly
+./bin/query_protocol_test
+```
+
+**Current Test Coverage:**
+- Query Protocol Tests (45 tests)
+  - Query types and status code conversions
+  - Message header construction
+  - Auth token validation and expiration
+  - Query param value types
+  - Query request/response serialization
+  - Error handling for invalid inputs
+
 ## Configuration
 
 The server can be configured using a configuration file (default: `config.conf`):
@@ -155,6 +178,7 @@ pool.health_check_interval_ms=30000
   - [x] query_types.h: Query type and status code enums
   - [x] query_protocol.h: Request/response message structures
   - [x] Serialization using container_system
+  - [x] Unit tests for message validation (45 tests)
 - [x] Implement TCP Listener
   - [x] gateway_server: TCP server using network_system's messaging_server
   - [x] Client session management with authentication support
