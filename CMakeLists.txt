@@ -14,6 +14,7 @@ endif()
 #   database_server
 #     ├── common_system (Tier 0) [REQUIRED] - ILogger, Result<T>
 #     ├── thread_system (Tier 1) [REQUIRED] - Job scheduling
+#     ├── database_system (Tier 2) [REQUIRED] - Database interfaces
 #     ├── network_system (Tier 4) [REQUIRED] - TCP/QUIC server
 #     ├── monitoring_system (Tier 3) [OPTIONAL] - Metrics
 #     └── container_system (Tier 1) [OPTIONAL] - Serialization
@@ -46,6 +47,7 @@ option(ENABLE_COVERAGE "Enable code coverage" OFF)
 # Required dependencies
 option(BUILD_WITH_COMMON_SYSTEM "Build with common_system integration (REQUIRED)" ON)
 option(BUILD_WITH_THREAD_SYSTEM "Build with thread_system integration (REQUIRED)" ON)
+option(BUILD_WITH_DATABASE_SYSTEM "Build with database_system integration (REQUIRED)" ON)
 option(BUILD_WITH_NETWORK_SYSTEM "Build with network_system integration (REQUIRED)" ON)
 
 # Optional dependencies
@@ -135,6 +137,21 @@ else()
     message(FATAL_ERROR "thread_system not found! database_server requires thread_system.")
 endif()
 
+# database_system (REQUIRED)
+message(STATUS "Searching for database_system...")
+find_system_dependency(database_system)
+
+if(NOT database_system_FOUND AND TARGET DatabaseSystem)
+    set(database_system_FOUND TRUE)
+endif()
+
+if(database_system_FOUND)
+    message(STATUS "database_system integration enabled")
+    find_system_dependency_include(database_system)
+else()
+    message(FATAL_ERROR "database_system not found! database_server requires database_system.")
+endif()
+
 # network_system (REQUIRED)
 message(STATUS "Searching for network_system...")
 find_system_dependency(network_system)
@@ -183,8 +200,14 @@ endif()
 ##################################################
 
 add_library(DatabaseServerLib
+    # Core
     src/core/server_app.cpp
     src/core/server_config.cpp
+    # Pooling (Phase 2)
+    src/pooling/connection_pool.cpp
+    # Resilience (Phase 2)
+    src/resilience/connection_health_monitor.cpp
+    src/resilience/resilient_database_connection.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES
@@ -224,6 +247,16 @@ if(TARGET ThreadSystem)
     target_link_libraries(DatabaseServerLib PUBLIC ThreadSystem)
 elseif(TARGET thread_system)
     target_link_libraries(DatabaseServerLib PUBLIC thread_system)
+endif()
+
+# Add database_system include and link
+if(database_system_INCLUDE_DIR)
+    target_include_directories(DatabaseServerLib PUBLIC ${database_system_INCLUDE_DIR})
+endif()
+if(TARGET DatabaseSystem)
+    target_link_libraries(DatabaseServerLib PUBLIC DatabaseSystem)
+elseif(TARGET database_system)
+    target_link_libraries(DatabaseServerLib PUBLIC database_system)
 endif()
 
 # Add network_system include and link
@@ -329,6 +362,7 @@ message(STATUS "Dependency Chain:")
 message(STATUS "  database_server")
 message(STATUS "    ├── common_system (Tier 0): ${common_system_FOUND} [REQUIRED]")
 message(STATUS "    ├── thread_system (Tier 1): ${thread_system_FOUND} [REQUIRED]")
+message(STATUS "    ├── database_system (Tier 2): ${database_system_FOUND} [REQUIRED]")
 message(STATUS "    ├── network_system (Tier 4): ${network_system_FOUND} [REQUIRED]")
 message(STATUS "    ├── monitoring_system (Tier 3): ${BUILD_WITH_MONITORING_SYSTEM} [OPTIONAL]")
 message(STATUS "    └── container_system (Tier 1): ${BUILD_WITH_CONTAINER_SYSTEM} [OPTIONAL]")

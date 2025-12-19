@@ -1,0 +1,369 @@
+// BSD 3-Clause License
+//
+// Copyright (c) 2025, kcenon
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+/**
+ * @file connection_pool.h
+ * @brief High-performance connection pool with adaptive queue and priority scheduling
+ *
+ * Provides priority-based connection pool management with:
+ * - Adaptive job queue for optimal performance under varying load
+ * - Cancellation token for graceful shutdown
+ * - Enhanced metrics for performance monitoring
+ */
+
+#pragma once
+
+#include "connection_priority.h"
+#include "pool_metrics.h"
+
+#include <atomic>
+#include <chrono>
+#include <functional>
+#include <future>
+#include <memory>
+#include <thread>
+
+// Database system interfaces
+#include <kcenon/database/connection_pool.h>
+#include <kcenon/database/database_base.h>
+#include <kcenon/database/database_types.h>
+
+// Thread system integration
+#include <kcenon/thread/core/cancellation_token.h>
+#include <kcenon/thread/core/error_handling.h>
+#include <kcenon/thread/core/typed_thread_pool.h>
+#include <kcenon/thread/core/typed_thread_worker.h>
+#include <kcenon/thread/impl/typed_pool/adaptive_typed_job_queue.h>
+
+namespace database_server::pooling
+{
+
+/**
+ * @class connection_acquisition_job
+ * @brief Typed job for adaptive priority-based connection acquisition
+ *
+ * This job implements connection acquisition logic integrated with
+ * thread_system's adaptive_typed_job_queue for optimal performance
+ * under varying load conditions.
+ */
+class connection_acquisition_job
+	: public kcenon::thread::typed_job_t<connection_priority>
+{
+public:
+	using completion_callback = std::function<void(
+		kcenon::common::Result<std::shared_ptr<database::connection_wrapper>>)>;
+
+	/**
+	 * @brief Constructs a connection acquisition job
+	 * @param priority Priority level for this request
+	 * @param pool_ref Reference to the underlying connection pool
+	 * @param callback Callback to invoke with the result
+	 */
+	explicit connection_acquisition_job(
+		connection_priority priority,
+		std::shared_ptr<database::connection_pool_base> pool_ref,
+		completion_callback callback)
+		: kcenon::thread::typed_job_t<connection_priority>(
+			  priority, "connection_acquisition")
+		, pool_ref_(std::move(pool_ref))
+		, callback_(std::move(callback))
+	{
+	}
+
+	kcenon::common::VoidResult do_work() override
+	{
+		try
+		{
+			// Acquire connection from the underlying pool
+			auto result = pool_ref_->acquire_connection();
+
+			// Invoke callback with result
+			if (callback_)
+			{
+				callback_(std::move(result));
+			}
+
+			return kcenon::common::ok();
+		}
+		catch (const std::exception& e)
+		{
+			// On exception, invoke callback with error
+			if (callback_)
+			{
+				callback_(kcenon::common::error_info{
+					-599,
+					std::string("Exception in connection acquisition: ") + e.what(),
+					"connection_pool" });
+			}
+
+			return kcenon::common::error_info{
+				static_cast<int>(kcenon::thread::error_code::job_execution_failed),
+				std::string("Exception in connection_acquisition_job: ") + e.what(),
+				"connection_pool"
+			};
+		}
+	}
+
+private:
+	std::shared_ptr<database::connection_pool_base> pool_ref_;
+	completion_callback callback_;
+};
+
+/**
+ * @class connection_pool
+ * @brief High-performance connection pool with adaptive queue and cancellation support
+ *
+ * connection_pool provides priority-based connection pooling with:
+ * - **Adaptive Job Queue**: Automatically switches between mutex-based and lock-free
+ *   implementations based on runtime contention metrics (4x-7.7x performance improvement)
+ * - **Cancellation Token**: Graceful shutdown with cooperative cancellation
+ * - **Enhanced Metrics**: Detailed performance monitoring with queue-specific metrics
+ * - **Ultra-Low Latency**: Target < 100ns connection acquisition latency
+ * - **High Throughput**: Target > 1M ops/s (leveraging adaptive queue)
+ *
+ * ### Architecture
+ * 1. **Adaptive Queue Strategy**: Dynamically selects optimal queue implementation
+ *    - Low contention: Mutex-based queue (lower overhead)
+ *    - High contention: Lock-free queue (better scalability)
+ *    - Automatic evaluation and switching every 5 seconds
+ * 2. **Cooperative Cancellation**: Clean shutdown without forceful thread termination
+ * 3. **Performance Metrics**: Track queue strategy switches, contention ratios, latencies
+ *
+ * ### Priority Levels
+ * - CRITICAL: Time-critical operations that cannot be delayed
+ * - TRANSACTION: Active transactions requiring immediate response
+ * - NORMAL_QUERY: Standard database queries (default priority)
+ * - HEALTH_CHECK: Background health monitoring (lowest priority)
+ *
+ * ### Thread Safety
+ * All methods are thread-safe and can be called from multiple threads concurrently.
+ *
+ * ### Example Usage
+ * @code
+ * database::connection_pool_config config;
+ * config.min_connections = 5;
+ * config.max_connections = 50;
+ *
+ * auto factory = [&]() {
+ *     return std::make_unique<postgres_database>(config.connection_string);
+ * };
+ *
+ * database_server::pooling::connection_pool pool(
+ *     database::database_types::postgres,
+ *     config,
+ *     factory
+ * );
+ *
+ * if (!pool.initialize()) {
+ *     std::cerr << "Failed to initialize pool\n";
+ * }
+ *
+ * // Acquire connection with priority
+ * auto future = pool.acquire_connection(connection_priority::CRITICAL);
+ * auto result = future.get();
+ * if (result.is_ok()) {
+ *     auto conn = result.value();
+ *     conn->get()->execute_query("SELECT ...");
+ * }
+ * @endcode
+ */
+class connection_pool
+{
+public:
+	/**
+	 * @brief Constructs connection pool with adaptive queue
+	 * @param db_type Database type for this pool
+	 * @param config Pool configuration
+	 * @param factory Function to create new database connections
+	 * @param thread_count Number of worker threads (default: hardware_concurrency)
+	 * @param queue_strategy Initial queue strategy (default: FORCE_LEGACY)
+	 *
+	 * ### Queue Strategies
+	 * - AUTO_DETECT: Automatically choose best strategy based on initial load
+	 * - FORCE_LEGACY: Always use mutex-based queue (predictable latency)
+	 * - FORCE_LOCKFREE: Always use lock-free queue (high scalability)
+	 * - ADAPTIVE: Start with legacy, switch based on runtime metrics (recommended)
+	 */
+	connection_pool(
+		database::database_types db_type,
+		const database::connection_pool_config& config,
+		std::function<std::unique_ptr<database::database_base>()> factory,
+		size_t thread_count = std::thread::hardware_concurrency(),
+		kcenon::thread::adaptive_typed_job_queue_t<connection_priority>::queue_strategy
+			queue_strategy = kcenon::thread::adaptive_typed_job_queue_t<
+				connection_priority>::queue_strategy::FORCE_LEGACY);
+
+	/**
+	 * @brief Destructor - ensures graceful shutdown
+	 */
+	~connection_pool();
+
+	// Prevent copying and moving
+	connection_pool(const connection_pool&) = delete;
+	connection_pool& operator=(const connection_pool&) = delete;
+	connection_pool(connection_pool&&) = delete;
+	connection_pool& operator=(connection_pool&&) = delete;
+
+	/**
+	 * @brief Initializes the connection pool
+	 * @return true if initialization successful, false otherwise
+	 *
+	 * Must be called before acquiring connections.
+	 */
+	bool initialize();
+
+	/**
+	 * @brief Acquires a connection with specified priority
+	 * @param priority Priority level for this request (default: NORMAL_QUERY)
+	 * @return Future that resolves to Result<connection_wrapper>
+	 *
+	 * ### Thread Safety
+	 * Thread-safe, can be called from multiple threads concurrently.
+	 *
+	 * ### Performance
+	 * - Adaptive queue: Auto-selects best implementation (mutex or lock-free)
+	 * - Target latency: < 100ns scheduling + pool acquisition time
+	 * - Throughput: > 1M ops/s under high load
+	 */
+	std::future<kcenon::common::Result<std::shared_ptr<database::connection_wrapper>>>
+	acquire_connection(connection_priority priority = connection_priority::NORMAL_QUERY);
+
+	/**
+	 * @brief Returns a connection to the pool
+	 * @param connection Connection to return
+	 *
+	 * Always return connections after use to avoid resource leaks.
+	 */
+	void release_connection(std::shared_ptr<database::connection_wrapper> connection);
+
+	/**
+	 * @brief Schedules asynchronous health check
+	 *
+	 * Health checks run as low-priority background jobs.
+	 */
+	void schedule_health_check();
+
+	/**
+	 * @brief Gets the number of active connections
+	 * @return Number of active connections
+	 */
+	[[nodiscard]] size_t active_connections() const;
+
+	/**
+	 * @brief Gets the number of available connections
+	 * @return Number of available connections
+	 */
+	[[nodiscard]] size_t available_connections() const;
+
+	/**
+	 * @brief Gets connection pool statistics
+	 * @return Connection statistics
+	 */
+	[[nodiscard]] database::connection_stats get_stats() const;
+
+	/**
+	 * @brief Requests graceful shutdown via cancellation token
+	 *
+	 * Signals all pending operations to cancel cooperatively.
+	 * Does not block; call shutdown() to wait for completion.
+	 */
+	void request_shutdown();
+
+	/**
+	 * @brief Shuts down the connection pool
+	 *
+	 * Waits for pending operations to complete before shutting down.
+	 */
+	void shutdown();
+
+	/**
+	 * @brief Checks if shutdown was requested
+	 * @return true if shutdown requested, false otherwise
+	 */
+	[[nodiscard]] bool is_shutdown_requested() const;
+
+	/**
+	 * @brief Gets the current adaptive queue type in use
+	 * @return String describing current queue implementation
+	 */
+	[[nodiscard]] std::string get_current_queue_type() const;
+
+	/**
+	 * @brief Gets the number of queue strategy switches
+	 * @return Number of times the adaptive queue has switched implementation
+	 */
+	[[nodiscard]] uint64_t get_queue_switch_count() const;
+
+	/**
+	 * @brief Gets the contention ratio
+	 * @return Percentage of operations that experienced contention (0.0-100.0)
+	 */
+	[[nodiscard]] double get_contention_ratio() const;
+
+	/**
+	 * @brief Gets the average queue operation latency
+	 * @return Average latency in nanoseconds
+	 */
+	[[nodiscard]] double get_average_queue_latency_ns() const;
+
+	/**
+	 * @brief Gets performance metrics for this pool
+	 * @return Shared pointer to priority-aware metrics
+	 */
+	[[nodiscard]] std::shared_ptr<priority_metrics<connection_priority>> get_metrics()
+		const;
+
+private:
+	// Underlying connection pool (actual connection management)
+	std::shared_ptr<database::connection_pool> underlying_pool_;
+
+	// Adaptive job queue for priority-based scheduling
+	std::shared_ptr<kcenon::thread::adaptive_typed_job_queue_t<connection_priority>>
+		adaptive_queue_;
+
+	// Worker thread pool
+	std::shared_ptr<kcenon::thread::typed_thread_pool_t<connection_priority>>
+		worker_pool_;
+
+	// Cancellation token for graceful shutdown
+	kcenon::thread::cancellation_token shutdown_token_;
+
+	// Performance metrics with priority tracking
+	std::shared_ptr<priority_metrics<connection_priority>> metrics_;
+
+	// Thread count
+	size_t thread_count_;
+
+	// Shutdown flag
+	std::atomic<bool> shutdown_requested_;
+};
+
+} // namespace database_server::pooling
