@@ -1,0 +1,440 @@
+// BSD 3-Clause License
+//
+// Copyright (c) 2025, kcenon
+// All rights reserved.
+//
+// Redistribution and use in source and binary forms, with or without
+// modification, are permitted provided that the following conditions are met:
+//
+// 1. Redistributions of source code must retain the above copyright notice,
+//    this list of conditions and the following disclaimer.
+//
+// 2. Redistributions in binary form must reproduce the above copyright notice,
+//    this list of conditions and the following disclaimer in the documentation
+//    and/or other materials provided with the distribution.
+//
+// 3. Neither the name of the copyright holder nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+// AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+// IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+// ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+// LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+// CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+// SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+// INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+// CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+// ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+// POSSIBILITY OF SUCH DAMAGE.
+
+#include <kcenon/database_server/gateway/gateway_server.h>
+
+#include <network_system/core/messaging_server.h>
+#include <network_system/session/messaging_session.h>
+
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#include <container/core/container.h>
+#endif
+
+#include <chrono>
+
+namespace database_server::gateway
+{
+
+namespace
+{
+
+uint64_t current_timestamp_ms()
+{
+	return static_cast<uint64_t>(
+		std::chrono::duration_cast<std::chrono::milliseconds>(
+			std::chrono::system_clock::now().time_since_epoch())
+			.count());
+}
+
+std::string generate_session_id()
+{
+	static std::atomic<uint64_t> counter{0};
+	auto timestamp = current_timestamp_ms();
+	auto id = counter.fetch_add(1, std::memory_order_relaxed);
+	return "session_" + std::to_string(timestamp) + "_" + std::to_string(id);
+}
+
+} // namespace
+
+// ============================================================================
+// gateway_server
+// ============================================================================
+
+gateway_server::gateway_server(const gateway_config& config)
+	: config_(config)
+	, server_(std::make_shared<network_system::core::messaging_server>(config.server_id))
+{
+	// Set up network callbacks
+	server_->set_connection_callback(
+		[this](std::shared_ptr<network_system::session::messaging_session> session)
+		{
+			on_connection(session);
+		});
+
+	server_->set_disconnection_callback(
+		[this](const std::string& session_id)
+		{
+			on_disconnection(session_id);
+		});
+
+	server_->set_receive_callback(
+		[this](std::shared_ptr<network_system::session::messaging_session> session,
+			   const std::vector<uint8_t>& data)
+		{
+			on_message(session, data);
+		});
+
+	server_->set_error_callback(
+		[this](std::shared_ptr<network_system::session::messaging_session> session,
+			   std::error_code ec)
+		{
+			on_error(session, ec);
+		});
+}
+
+gateway_server::~gateway_server()
+{
+	if (running_)
+	{
+		stop();
+	}
+}
+
+kcenon::common::VoidResult gateway_server::start()
+{
+	if (running_.exchange(true))
+	{
+		return kcenon::common::error_info{
+			-1, "Server already running", "gateway_server"
+		};
+	}
+
+	auto result = server_->start_server(config_.port);
+	if (!result)
+	{
+		running_ = false;
+		return kcenon::common::error_info{
+			-2, "Failed to start network server", "gateway_server"
+		};
+	}
+
+	return kcenon::common::ok();
+}
+
+kcenon::common::VoidResult gateway_server::stop()
+{
+	if (!running_.exchange(false))
+	{
+		return kcenon::common::error_info{
+			-1, "Server not running", "gateway_server"
+		};
+	}
+
+	// Clear all sessions
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		sessions_.clear();
+	}
+
+	auto result = server_->stop_server();
+	if (!result)
+	{
+		return kcenon::common::error_info{
+			-2, "Failed to stop network server", "gateway_server"
+		};
+	}
+
+	return kcenon::common::ok();
+}
+
+void gateway_server::wait()
+{
+	server_->wait_for_stop();
+}
+
+bool gateway_server::is_running() const noexcept
+{
+	return running_;
+}
+
+void gateway_server::set_request_handler(request_handler_t handler)
+{
+	request_handler_ = std::move(handler);
+}
+
+void gateway_server::set_connection_callback(std::function<void(const client_session&)> callback)
+{
+	connection_callback_ = std::move(callback);
+}
+
+void gateway_server::set_disconnection_callback(std::function<void(const std::string&)> callback)
+{
+	disconnection_callback_ = std::move(callback);
+}
+
+size_t gateway_server::connection_count() const
+{
+	std::lock_guard<std::mutex> lock(sessions_mutex_);
+	return sessions_.size();
+}
+
+std::optional<client_session> gateway_server::get_session(const std::string& session_id) const
+{
+	std::lock_guard<std::mutex> lock(sessions_mutex_);
+	auto it = sessions_.find(session_id);
+	if (it != sessions_.end())
+	{
+		return it->second;
+	}
+	return std::nullopt;
+}
+
+bool gateway_server::disconnect_client(const std::string& session_id)
+{
+	std::lock_guard<std::mutex> lock(sessions_mutex_);
+	auto it = sessions_.find(session_id);
+	if (it == sessions_.end())
+	{
+		return false;
+	}
+
+	if (auto network_session = it->second.network_session.lock())
+	{
+		network_session->stop_session();
+	}
+
+	sessions_.erase(it);
+	return true;
+}
+
+const gateway_config& gateway_server::config() const noexcept
+{
+	return config_;
+}
+
+void gateway_server::on_connection(
+	std::shared_ptr<network_system::session::messaging_session> session)
+{
+	if (!session)
+	{
+		return;
+	}
+
+	auto session_id = generate_session_id();
+	auto now = current_timestamp_ms();
+
+	client_session client;
+	client.session_id = session_id;
+	client.connected_at = now;
+	client.last_activity = now;
+	client.authenticated = !config_.require_auth;
+	client.network_session = session;
+
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+
+		// Check max connections
+		if (sessions_.size() >= config_.max_connections)
+		{
+			// Reject connection
+			session->stop_session();
+			return;
+		}
+
+		sessions_[session_id] = client;
+	}
+
+	if (connection_callback_)
+	{
+		connection_callback_(client);
+	}
+}
+
+void gateway_server::on_disconnection(const std::string& session_id)
+{
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		sessions_.erase(session_id);
+	}
+
+	if (disconnection_callback_)
+	{
+		disconnection_callback_(session_id);
+	}
+}
+
+void gateway_server::on_message(
+	std::shared_ptr<network_system::session::messaging_session> session,
+	const std::vector<uint8_t>& data)
+{
+	if (!session || data.empty())
+	{
+		return;
+	}
+
+	// Find session by network session
+	std::string session_id;
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		for (const auto& [id, client] : sessions_)
+		{
+			if (auto ns = client.network_session.lock(); ns.get() == session.get())
+			{
+				session_id = id;
+				break;
+			}
+		}
+	}
+
+	if (session_id.empty())
+	{
+		return;
+	}
+
+	// Deserialize request
+	auto request_result = query_request::deserialize(data);
+	if (!request_result)
+	{
+		// Send error response
+		query_response error_response(0, status_code::invalid_query,
+									  "Failed to parse request: " +
+										  request_result.error().message);
+		send_response(session, error_response);
+		return;
+	}
+
+	// Update last activity
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		if (auto it = sessions_.find(session_id); it != sessions_.end())
+		{
+			it->second.last_activity = current_timestamp_ms();
+			it->second.requests_count++;
+		}
+	}
+
+	process_request(session_id, session, request_result.value());
+}
+
+void gateway_server::on_error(
+	std::shared_ptr<network_system::session::messaging_session> session,
+	std::error_code ec)
+{
+	(void)session;
+	(void)ec;
+	// Log error if logging is available
+}
+
+void gateway_server::process_request(
+	const std::string& session_id,
+	std::shared_ptr<network_system::session::messaging_session> network_session,
+	const query_request& request)
+{
+	// Handle ping request directly
+	if (request.type == query_type::ping)
+	{
+		query_response response(request.header.message_id);
+		response.header.correlation_id = request.header.correlation_id;
+		send_response(network_session, response);
+		return;
+	}
+
+	// Get client session
+	std::optional<client_session> client;
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		if (auto it = sessions_.find(session_id); it != sessions_.end())
+		{
+			client = it->second;
+		}
+	}
+
+	if (!client)
+	{
+		query_response error_response(request.header.message_id,
+									  status_code::error,
+									  "Session not found");
+		send_response(network_session, error_response);
+		return;
+	}
+
+	// Check authentication
+	if (config_.require_auth && !client->authenticated)
+	{
+		// Validate token
+		if (!request.token.is_valid())
+		{
+			query_response error_response(request.header.message_id,
+										  status_code::authentication_failed,
+										  "Invalid or expired token");
+			send_response(network_session, error_response);
+			return;
+		}
+
+		// Mark as authenticated
+		{
+			std::lock_guard<std::mutex> lock(sessions_mutex_);
+			if (auto it = sessions_.find(session_id); it != sessions_.end())
+			{
+				it->second.authenticated = true;
+				it->second.client_id = request.token.client_id;
+			}
+		}
+	}
+
+	// Validate request
+	if (!request.is_valid())
+	{
+		query_response error_response(request.header.message_id,
+									  status_code::invalid_query,
+									  "Invalid query request");
+		send_response(network_session, error_response);
+		return;
+	}
+
+	// Invoke request handler
+	if (request_handler_)
+	{
+		auto response = request_handler_(*client, request);
+		response.header.correlation_id = request.header.correlation_id;
+		send_response(network_session, response);
+	}
+	else
+	{
+		query_response error_response(request.header.message_id,
+									  status_code::error,
+									  "No request handler configured");
+		send_response(network_session, error_response);
+	}
+}
+
+void gateway_server::send_response(
+	std::shared_ptr<network_system::session::messaging_session> session,
+	const query_response& response)
+{
+	if (!session)
+	{
+		return;
+	}
+
+#ifdef BUILD_WITH_CONTAINER_SYSTEM
+	auto container = response.serialize();
+	if (container)
+	{
+		auto data = container->serialize_array();
+		session->send_packet(data);
+	}
+#else
+	(void)response;
+#endif
+}
+
+} // namespace database_server::gateway
