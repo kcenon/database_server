@@ -211,6 +211,7 @@ add_library(DatabaseServerLib
     # Gateway (Phase 3)
     src/gateway/query_protocol.cpp
     src/gateway/gateway_server.cpp
+    src/gateway/query_router.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES
