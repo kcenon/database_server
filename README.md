@@ -46,6 +46,7 @@ The Database Server is part of the kcenon unified system architecture evolution 
 
 - **common_system** (Tier 0) - Core utilities, Result<T>, logging interfaces
 - **thread_system** (Tier 1) - Job scheduling, thread pool management
+- **database_system** (Tier 2) - Database interfaces and types
 - **network_system** (Tier 4) - TCP/QUIC server implementation
 
 ### Optional
@@ -131,17 +132,23 @@ pool.health_check_interval_ms=30000
 
 ## Development Roadmap
 
-### Phase 1: Scaffolding & Dependency Setup (Current)
+### Phase 1: Scaffolding & Dependency Setup
 - [x] Create basic directory structure
 - [x] Configure CMakeLists.txt with dependencies
 - [x] Implement basic server_app interface
 - [x] Create main.cpp entry point
 - [x] Add configuration loading
 
-### Phase 2: Core Migration
-- [ ] Migrate connection_pool_v3 from database_system
-- [ ] Migrate connection_health_monitor
-- [ ] Update namespace to database_server::pooling
+### Phase 2: Core Migration (Current)
+- [x] Migrate connection_pool from database_system
+  - [x] connection_priority enum with 4 priority levels
+  - [x] pool_metrics with priority-specific tracking
+  - [x] connection_pool with adaptive job queue integration
+- [x] Migrate resilience logic from database_system
+  - [x] connection_health_monitor with heartbeat-based health tracking
+  - [x] resilient_database_connection with automatic reconnection
+- [x] Update namespace to database_server::pooling and database_server::resilience
+- [x] Add database_system as required dependency
 
 ### Phase 3: Network Gateway Implementation
 - [ ] Implement TCP/QUIC Listener
