@@ -1,0 +1,25 @@
+# Database Server Configuration Example
+# Copy this file to config.conf and modify as needed
+
+# Server identification
+name=database_server
+
+# Network settings
+network.host=0.0.0.0
+network.port=5432
+network.enable_tls=false
+# network.cert_file=/path/to/cert.pem
+# network.key_file=/path/to/key.pem
+network.max_connections=100
+network.connection_timeout_ms=30000
+
+# Logging
+logging.level=info
+# logging.log_file=/var/log/database_server.log
+logging.enable_console=true
+
+# Connection pool (Phase 2)
+pool.min_connections=5
+pool.max_connections=50
+pool.idle_timeout_ms=60000
+pool.health_check_interval_ms=30000
