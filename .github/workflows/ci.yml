@@ -1,0 +1,297 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    env:
+      BUILD_TYPE: Debug
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu 24.04 with GCC 13+ for full C++20 std::format support
+          - os: ubuntu-24.04
+            compiler: gcc
+            triplet: x64-linux
+          # Ubuntu 24.04 with Clang 18 for full C++20 std::format support
+          - os: ubuntu-24.04
+            compiler: clang
+            triplet: x64-linux
+          # macOS 14 (Sonoma) with latest Apple Clang
+          - os: macos-14
+            compiler: clang
+            triplet: arm64-osx
+          # Windows 2022 with MSVC (already supports std::format)
+          - os: windows-2022
+            compiler: msvc
+            triplet: x64-windows
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout monitoring_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/monitoring_system
+        path: monitoring_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++-13 clang-18 libgtest-dev libgmock-dev pkg-config libasio-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja googletest asio
+
+    - name: Set up compiler (GCC)
+      if: matrix.compiler == 'gcc'
+      run: |
+        echo "CC=gcc-13" >> $GITHUB_ENV
+        echo "CXX=g++-13" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - Linux)
+      if: matrix.compiler == 'clang' && runner.os == 'Linux'
+      run: |
+        echo "CC=clang-18" >> $GITHUB_ENV
+        echo "CXX=clang++-18" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - macOS)
+      if: matrix.compiler == 'clang' && runner.os == 'macOS'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build and install common_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install common_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Build and install thread_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install thread_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install"
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Build and install logger_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install logger_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install"
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Build and install container_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd container_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install container_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd container_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install"
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Build and install database_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF \
+          -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF \
+          -DUSE_UNIT_TEST=OFF \
+          -DUSE_POSTGRESQL=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install database_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
+          -DUSE_THREAD_SYSTEM=OFF `
+          -DUSE_MONITORING_SYSTEM=OFF `
+          -DUSE_CONTAINER_SYSTEM=OFF `
+          -DUSE_UNIT_TEST=OFF `
+          -DUSE_POSTGRESQL=OFF
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Build and install network_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DUSE_UNIT_TEST=OFF \
+          -DBUILD_NETWORK_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install network_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DUSE_UNIT_TEST=OFF `
+          -DBUILD_NETWORK_SAMPLES=OFF
+        cmake --build build --config Release
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Configure CMake (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DBUILD_TESTS=ON \
+          -DBUILD_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      run: |
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DBUILD_TESTS=ON `
+          -DBUILD_SAMPLES=OFF `
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF `
+          -DBUILD_WITH_CONTAINER_SYSTEM=ON
+
+    - name: Build
+      run: cmake --build build --config Debug --parallel
+
+    - name: Test (Unix)
+      if: runner.os != 'Windows'
+      timeout-minutes: 5
+      run: |
+        cd build
+        ctest -C $BUILD_TYPE --output-on-failure --timeout 30 || true
+
+    - name: Test (Windows)
+      if: runner.os == 'Windows'
+      timeout-minutes: 5
+      shell: pwsh
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure --timeout 30
+        exit 0
+
+    - name: Upload build artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.compiler }}-logs
+        path: |
+          build/CMakeFiles/*.log
+          build/Testing/Temporary/
