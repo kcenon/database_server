@@ -106,7 +106,7 @@ gateway_server::~gateway_server()
 {
 	if (running_)
 	{
-		stop();
+		(void)stop();
 	}
 }
 
