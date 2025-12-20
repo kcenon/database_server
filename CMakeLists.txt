@@ -343,7 +343,7 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
             # MSVC requires /WHOLEARCHIVE for network_system to include all symbols
             # This is needed because messaging_server symbols are not referenced directly
             # WHOLEARCHIVE also brings in HTTP/2, WebSocket code that depends on OpenSSL
-            if(MSVC AND ${DEP_NAME} STREQUAL "NETWORK_SYSTEM")
+            if(MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
                 target_link_options(${TARGET_NAME} PUBLIC "/WHOLEARCHIVE:${${DEP_NAME}_LIB}")
                 message(STATUS "Linking ${DEP_NAME} with WHOLEARCHIVE from: ${${DEP_NAME}_LIB}")
                 # Link OpenSSL for HTTP/2, WebSocket, and QUIC support in network_system
