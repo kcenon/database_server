@@ -191,7 +191,7 @@ void connection_pool::schedule_health_check()
 
 	// Create a low-priority health check job
 	auto job = std::make_unique<connection_acquisition_job>(
-		connection_priority::HEALTH_CHECK,
+		PRIORITY_HEALTH_CHECK,
 		underlying_pool_,
 		[this](
 			kcenon::common::Result<std::shared_ptr<database::connection_wrapper>> result) {

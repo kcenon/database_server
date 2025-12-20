@@ -35,64 +35,81 @@
  *
  * Defines priority levels that determine the order in which connection
  * requests are serviced by the connection pool.
+ *
+ * Note: Uses kcenon::thread::job_types as the underlying type to ensure
+ * compatibility with the thread_system template instantiations.
  */
 
 #pragma once
+
+#include <kcenon/thread/impl/typed_pool/job_types.h>
 
 namespace database_server::pooling
 {
 
 /**
- * @enum connection_priority
- * @brief Priority levels for connection acquisition requests
+ * @brief Type alias for connection priority using thread_system's job_types.
  *
- * These priority levels determine the order in which connection requests
- * are serviced by the connection pool. Higher priority requests are
- * processed first when multiple requests are pending.
+ * This allows the connection pool to use the pre-instantiated template classes
+ * from thread_system while maintaining semantic clarity in the API.
  *
- * ### Priority Order (Highest to Lowest)
- * 1. CRITICAL - Time-sensitive operations that cannot be delayed
- * 2. TRANSACTION - Active transactions requiring immediate response
- * 3. NORMAL_QUERY - Standard database queries (default priority)
- * 4. HEALTH_CHECK - Background health monitoring (lowest priority)
- *
- * ### Usage Example
- * @code
- * // Critical operation (e.g., payment processing)
- * auto result = pool.acquire_connection(connection_priority::CRITICAL);
- *
- * // Normal query (default)
- * auto result = pool.acquire_connection(connection_priority::NORMAL_QUERY);
- *
- * // Background health check
- * auto result = pool.acquire_connection(connection_priority::HEALTH_CHECK);
- * @endcode
+ * ### Priority Mapping
+ * - CRITICAL/TRANSACTION -> RealTime (highest priority)
+ * - NORMAL_QUERY -> Batch (default priority)
+ * - HEALTH_CHECK -> Background (lowest priority)
  */
-enum class connection_priority : int
-{
-	HEALTH_CHECK = 0, ///< Lowest priority - background maintenance
-	NORMAL_QUERY = 1, ///< Default priority - standard queries
-	TRANSACTION = 2,  ///< High priority - active transactions
-	CRITICAL = 3      ///< Highest priority - time-critical operations
-};
+using connection_priority = kcenon::thread::job_types;
 
 /**
- * @brief Converts connection_priority enum to string representation.
+ * @brief Priority level for time-critical operations.
+ *
+ * Use this for operations that cannot be delayed, such as:
+ * - Payment processing
+ * - Real-time data updates
+ * - Emergency queries
+ */
+inline constexpr connection_priority PRIORITY_CRITICAL = kcenon::thread::job_types::RealTime;
+
+/**
+ * @brief Priority level for active transactions.
+ *
+ * Use this for operations within an active transaction that need
+ * prompt response to avoid holding locks too long.
+ */
+inline constexpr connection_priority PRIORITY_TRANSACTION = kcenon::thread::job_types::RealTime;
+
+/**
+ * @brief Default priority level for standard queries.
+ *
+ * This is the default priority for most database operations.
+ */
+inline constexpr connection_priority PRIORITY_NORMAL_QUERY = kcenon::thread::job_types::Batch;
+
+/**
+ * @brief Lowest priority for background maintenance.
+ *
+ * Use this for health checks, statistics gathering, and other
+ * non-time-sensitive operations.
+ */
+inline constexpr connection_priority PRIORITY_HEALTH_CHECK = kcenon::thread::job_types::Background;
+
+/**
+ * @brief Converts connection_priority to string representation.
  * @param priority The priority level to convert.
  * @return String representation of the priority level.
+ *
+ * Uses the underlying job_types string conversion.
  */
-constexpr const char* to_string(connection_priority priority) noexcept
+inline const char* priority_to_string(connection_priority priority) noexcept
 {
 	switch (priority)
 	{
-	case connection_priority::HEALTH_CHECK:
-		return "HEALTH_CHECK";
-	case connection_priority::NORMAL_QUERY:
-		return "NORMAL_QUERY";
-	case connection_priority::TRANSACTION:
-		return "TRANSACTION";
-	case connection_priority::CRITICAL:
+	case kcenon::thread::job_types::RealTime:
 		return "CRITICAL";
+	case kcenon::thread::job_types::Batch:
+		return "NORMAL_QUERY";
+	case kcenon::thread::job_types::Background:
+		return "HEALTH_CHECK";
 	default:
 		return "UNKNOWN";
 	}
