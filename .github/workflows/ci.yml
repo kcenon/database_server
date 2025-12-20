@@ -278,8 +278,12 @@ jobs:
         # Build only the NetworkSystem library target
         cmake --build build --target NetworkSystem
         # Install headers and library manually
+        # Copy kcenon/network headers (actual implementation)
         New-Item -ItemType Directory -Force -Path "$prefix/include/kcenon/network"
         Copy-Item -Recurse -Force "include/kcenon/network/*" "$prefix/include/kcenon/network/"
+        # Copy network_system wrapper headers (for backward compatibility)
+        New-Item -ItemType Directory -Force -Path "$prefix/include/network_system"
+        Copy-Item -Recurse -Force "include/network_system/*" "$prefix/include/network_system/"
         New-Item -ItemType Directory -Force -Path "$prefix/lib"
         # Find and copy library from various possible locations
         Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
