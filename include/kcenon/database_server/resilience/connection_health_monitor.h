@@ -49,7 +49,7 @@
 #include <vector>
 
 // Database system interfaces
-#include <kcenon/database/core/database_backend.h>
+#include <database/core/database_backend.h>
 
 namespace database_server::resilience
 {

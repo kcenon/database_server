@@ -52,9 +52,9 @@
 #include <thread>
 
 // Database system interfaces
-#include <kcenon/database/connection_pool.h>
-#include <kcenon/database/database_base.h>
-#include <kcenon/database/database_types.h>
+#include <database/connection_pool.h>
+#include <database/database_base.h>
+#include <database/database_types.h>
 
 // Thread system integration
 #include <kcenon/thread/core/cancellation_token.h>

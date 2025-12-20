@@ -57,6 +57,13 @@
 #include <memory>
 #include <string>
 
+// Forward declarations
+namespace database_server::gateway
+{
+class gateway_server;
+struct gateway_config;
+} // namespace database_server::gateway
+
 namespace database_server
 {
 
@@ -189,6 +196,9 @@ private:
 
 	std::atomic<server_state> state_;
 	server_config config_;
+
+	// Network gateway
+	std::unique_ptr<gateway::gateway_server> gateway_;
 
 	// Signal handling
 	static server_app* instance_;

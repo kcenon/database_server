@@ -31,6 +31,8 @@
 
 #include <kcenon/database_server/server_app.h>
 
+#include <kcenon/database_server/gateway/gateway_server.h>
+
 #include <chrono>
 #include <csignal>
 #include <iostream>
@@ -101,7 +103,28 @@ bool server_app::do_initialize()
 	// Setup signal handlers
 	setup_signal_handlers();
 
-	// TODO (Phase 3): Initialize network listener
+	// Initialize gateway server
+	gateway::gateway_config gw_config;
+	gw_config.server_id = config_.name;
+	gw_config.port = config_.network.port;
+	gw_config.max_connections = config_.network.max_connections;
+	gw_config.idle_timeout_ms = config_.network.connection_timeout_ms;
+
+	gateway_ = std::make_unique<gateway::gateway_server>(gw_config);
+
+	// Set up connection callbacks for logging
+	gateway_->set_connection_callback(
+		[this](const gateway::client_session& session)
+		{
+			std::cout << "Client connected: " << session.session_id << std::endl;
+		});
+
+	gateway_->set_disconnection_callback(
+		[](const std::string& session_id)
+		{
+			std::cout << "Client disconnected: " << session_id << std::endl;
+		});
+
 	// TODO (Phase 2): Initialize connection pool
 
 	std::cout << "Server '" << config_.name << "' initialized" << std::endl;
@@ -121,7 +144,19 @@ int server_app::run()
 
 	state_ = server_state::starting;
 
-	// TODO (Phase 3): Start network listener
+	// Start gateway server
+	if (gateway_)
+	{
+		auto result = gateway_->start();
+		if (result.is_err())
+		{
+			std::cerr << "Failed to start gateway server: " << result.error().message
+					  << std::endl;
+			state_ = server_state::stopped;
+			return 1;
+		}
+	}
+
 	// TODO (Phase 2): Start connection pool health monitoring
 
 	state_ = server_state::running;
@@ -130,8 +165,6 @@ int server_app::run()
 	// Main event loop - wait for shutdown signal
 	while (state_ == server_state::running)
 	{
-		// Sleep to prevent busy waiting
-		// In Phase 3, this will be replaced with actual event processing
 		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 
@@ -150,8 +183,17 @@ void server_app::stop()
 
 	state_ = server_state::stopping;
 
-	// TODO (Phase 3): Stop accepting new connections
-	// TODO (Phase 3): Wait for active requests to complete
+	// Stop gateway server
+	if (gateway_)
+	{
+		auto result = gateway_->stop();
+		if (result.is_err())
+		{
+			std::cerr << "Warning: Failed to stop gateway server: " << result.error().message
+					  << std::endl;
+		}
+	}
+
 	// TODO (Phase 2): Close connection pool
 
 	std::cout << "Shutdown requested" << std::endl;
@@ -160,7 +202,9 @@ void server_app::stop()
 void server_app::do_cleanup()
 {
 	// TODO (Phase 2): Cleanup connection pool
-	// TODO (Phase 3): Cleanup network resources
+
+	// Cleanup gateway server
+	gateway_.reset();
 
 	if (instance_ == this)
 	{
