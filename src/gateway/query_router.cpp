@@ -263,59 +263,68 @@ query_response query_router::execute_select(const query_request& request)
 								  "Invalid database connection");
 		}
 
-		auto result = db->execute_query(request.sql);
+		// Use select_query for SELECT statements
+		auto db_result = db->select_query(request.sql);
 
 		query_response response(request.header.message_id);
 
-		if (result.is_ok())
+		if (!db_result.empty())
 		{
-			// Convert database result to response rows
-			auto& db_result = result.value();
-
-			// Add column metadata
-			for (const auto& col : db_result.columns())
+			// Extract column metadata from first row's keys
+			if (!db_result.empty())
 			{
-				column_metadata meta;
-				meta.name = col.name;
-				meta.type_name = col.type_name;
-				response.columns.push_back(std::move(meta));
+				for (const auto& [col_name, value] : db_result.front())
+				{
+					column_metadata meta;
+					meta.name = col_name;
+					// Determine type name from variant
+					std::visit(
+						[&meta](const auto& val)
+						{
+							using T = std::decay_t<decltype(val)>;
+							if constexpr (std::is_same_v<T, std::string>)
+								meta.type_name = "string";
+							else if constexpr (std::is_same_v<T, int64_t>)
+								meta.type_name = "integer";
+							else if constexpr (std::is_same_v<T, double>)
+								meta.type_name = "double";
+							else if constexpr (std::is_same_v<T, bool>)
+								meta.type_name = "boolean";
+							else
+								meta.type_name = "null";
+						},
+						value);
+					response.columns.push_back(std::move(meta));
+				}
 			}
 
-			// Add rows
-			for (const auto& db_row : db_result.rows())
+			// Convert rows
+			for (const auto& db_row : db_result)
 			{
 				result_row row;
-				for (size_t i = 0; i < db_row.size(); ++i)
+				for (const auto& [col_name, cell] : db_row)
 				{
-					const auto& cell = db_row[i];
-					if (cell.is_null())
-					{
-						row.cells.push_back(std::monostate{});
-					}
-					else if (cell.is_int())
-					{
-						row.cells.push_back(static_cast<int64_t>(cell.as_int()));
-					}
-					else if (cell.is_double())
-					{
-						row.cells.push_back(cell.as_double());
-					}
-					else if (cell.is_bool())
-					{
-						row.cells.push_back(cell.as_bool());
-					}
-					else
-					{
-						row.cells.push_back(cell.as_string());
-					}
+					std::visit(
+						[&row](const auto& val)
+						{
+							using T = std::decay_t<decltype(val)>;
+							if constexpr (std::is_same_v<T, std::nullptr_t>)
+								row.cells.push_back(std::monostate{});
+							else if constexpr (std::is_same_v<T, int64_t>)
+								row.cells.push_back(val);
+							else if constexpr (std::is_same_v<T, double>)
+								row.cells.push_back(val);
+							else if constexpr (std::is_same_v<T, bool>)
+								row.cells.push_back(val);
+							else if constexpr (std::is_same_v<T, std::string>)
+								row.cells.push_back(val);
+							else
+								row.cells.push_back(std::monostate{});
+						},
+						cell);
 				}
 				response.rows.push_back(std::move(row));
 			}
-		}
-		else
-		{
-			response = query_response(request.header.message_id, status_code::error,
-									  result.error().message);
 		}
 
 		pool->release_connection(connection);
@@ -377,19 +386,33 @@ query_response query_router::execute_modify(const query_request& request)
 								  "Invalid database connection");
 		}
 
-		auto result = db->execute_non_query(request.sql);
-
 		query_response response(request.header.message_id);
+		unsigned int affected_rows = 0;
 
-		if (result.is_ok())
+		// Use appropriate method based on query type
+		switch (request.type)
 		{
-			response.affected_rows = static_cast<uint64_t>(result.value());
+		case query_type::insert:
+			affected_rows = db->insert_query(request.sql);
+			break;
+		case query_type::update:
+			affected_rows = db->update_query(request.sql);
+			break;
+		case query_type::del:
+			affected_rows = db->delete_query(request.sql);
+			break;
+		default:
+			// Generic execute for other types
+			if (!db->execute_query(request.sql))
+			{
+				pool->release_connection(connection);
+				return query_response(request.header.message_id, status_code::error,
+									  "Query execution failed");
+			}
+			break;
 		}
-		else
-		{
-			response = query_response(request.header.message_id, status_code::error,
-									  result.error().message);
-		}
+
+		response.affected_rows = static_cast<uint64_t>(affected_rows);
 
 		pool->release_connection(connection);
 		return response;
