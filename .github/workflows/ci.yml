@@ -141,8 +141,9 @@ jobs:
       shell: pwsh
       run: |
         cd common_system
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
-        cmake --build build --config Release
+        # Use Debug build to match database_server build type
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Debug
         cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
 
     - name: Set Windows include paths
@@ -171,10 +172,11 @@ jobs:
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         # Set include path via environment variable for MSVC
         $env:CXXFLAGS = "/I`"$prefix/include`""
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
+        # Use Debug build to match database_server build type
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
-        cmake --build build --config Release
+        cmake --build build --config Debug
         cmake --install build --prefix "$prefix"
 
     - name: Build and install logger_system (Unix)
@@ -191,10 +193,11 @@ jobs:
       run: |
         cd logger_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
+        # Use Debug build to match database_server build type
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
-        cmake --build build --config Release
+        cmake --build build --config Debug
         cmake --install build --prefix "$prefix"
 
     - name: Build and install database_system (Unix)
@@ -218,7 +221,8 @@ jobs:
       run: |
         cd database_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
+        # Use Debug build to match database_server build type
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
@@ -229,7 +233,7 @@ jobs:
           -DUSE_POSTGRESQL=OFF `
           -DBUILD_DATABASE_SAMPLES=OFF
         # Build only the database library target (skip integration tests)
-        cmake --build build --config Release --target database
+        cmake --build build --config Debug --target database
         # Install headers and library manually to avoid install script errors
         New-Item -ItemType Directory -Force -Path "$prefix/include/database"
         Copy-Item -Recurse -Force "database/*" "$prefix/include/database/"
@@ -254,13 +258,14 @@ jobs:
       run: |
         cd network_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
+        # Use Debug build to match database_server build type
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DUSE_UNIT_TEST=OFF `
           -DBUILD_SAMPLES=OFF
         # Build only the NetworkSystem library target (skip tests that fail to link)
-        cmake --build build --config Release --target NetworkSystem
+        cmake --build build --config Debug --target NetworkSystem
         # Install headers and library manually
         New-Item -ItemType Directory -Force -Path "$prefix/include/kcenon/network"
         Copy-Item -Recurse -Force "include/kcenon/network/*" "$prefix/include/kcenon/network/"
