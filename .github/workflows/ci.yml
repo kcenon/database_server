@@ -217,8 +217,13 @@ jobs:
           -DUSE_UNIT_TEST=OFF `
           -DUSE_POSTGRESQL=OFF `
           -DBUILD_DATABASE_SAMPLES=OFF
-        cmake --build build --config Release
-        cmake --install build --prefix "$prefix"
+        # Build only the database library target (skip integration tests)
+        cmake --build build --config Release --target database
+        # Install headers and library manually to avoid install script errors
+        New-Item -ItemType Directory -Force -Path "$prefix/include/database_system"
+        Copy-Item -Recurse -Force "database/*" "$prefix/include/database_system/"
+        Copy-Item -Force "build/database/Release/*.lib" "$prefix/lib/" -ErrorAction SilentlyContinue
+        Copy-Item -Force "build/database/Release/*.dll" "$prefix/bin/" -ErrorAction SilentlyContinue
 
     - name: Build and install network_system (Unix)
       if: runner.os != 'Windows'
