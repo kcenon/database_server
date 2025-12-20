@@ -323,12 +323,19 @@ jobs:
       shell: pwsh
       run: |
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        # Add library search paths for CMake
+        # CRITICAL: common_system_INCLUDE_DIR must be set explicitly to ensure
+        # BUILD_WITH_COMMON_SYSTEM is defined. This makes database_server use
+        # kcenon::common::Result (same as NetworkSystem.lib), avoiding LNK2019
+        # symbol mismatch errors due to C++ name mangling differences.
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DCMAKE_LIBRARY_PATH="$prefix/lib" `
+          -Dcommon_system_INCLUDE_DIR="$prefix/include" `
+          -Dthread_system_INCLUDE_DIR="$prefix/include" `
+          -Ddatabase_system_INCLUDE_DIR="$prefix/include" `
+          -Dnetwork_system_INCLUDE_DIR="$prefix/include" `
           -DBUILD_TESTS=ON `
           -DBUILD_DATABASE_SAMPLES=OFF `
           -DBUILD_WITH_MONITORING_SYSTEM=OFF `
