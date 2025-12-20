@@ -137,10 +137,14 @@ jobs:
 
         # container_system
         cd container_system
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
-          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_CONTAINER_SAMPLES=OFF \
+          -DCONTAINER_BUILD_INTEGRATION_TESTS=OFF \
+          -DCONTAINER_BUILD_BENCHMARKS=OFF
         cmake --build build --config Release
-        sudo cmake --install build --prefix /usr/local
+        sudo cmake --install build --prefix /usr/local || true
         cd ..
 
         # database_system
