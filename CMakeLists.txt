@@ -503,6 +503,17 @@ if(BUILD_TESTS)
 endif()
 
 ##################################################
+# Benchmarks
+##################################################
+
+option(BUILD_BENCHMARKS "Build performance benchmarks" OFF)
+
+if(BUILD_BENCHMARKS)
+    message(STATUS "Building database_server benchmarks")
+    add_subdirectory(benchmarks)
+endif()
+
+##################################################
 # Installation
 ##################################################
 
@@ -552,6 +563,7 @@ message(STATUS "Build Options:")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "  Shared libs: ${BUILD_SHARED_LIBS}")
 message(STATUS "  Tests: ${BUILD_TESTS}")
+message(STATUS "  Benchmarks: ${BUILD_BENCHMARKS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Coverage: ${ENABLE_COVERAGE}")
 message(STATUS "")
