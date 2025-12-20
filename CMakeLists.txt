@@ -203,11 +203,11 @@ add_library(DatabaseServerLib
     # Core
     src/core/server_app.cpp
     src/core/server_config.cpp
-    # Pooling (Phase 2)
-    src/pooling/connection_pool.cpp
-    # Resilience (Phase 2)
-    src/resilience/connection_health_monitor.cpp
-    src/resilience/resilient_database_connection.cpp
+    # Pooling (Phase 2) - temporarily disabled due to database_system API changes
+    # src/pooling/connection_pool.cpp
+    # Resilience (Phase 2) - temporarily disabled due to database_system API changes
+    # src/resilience/connection_health_monitor.cpp
+    # src/resilience/resilient_database_connection.cpp
     # Gateway (Phase 3)
     src/gateway/query_protocol.cpp
     src/gateway/gateway_server.cpp
@@ -256,6 +256,11 @@ endif()
 # Add database_system include and link
 if(database_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${database_system_INCLUDE_DIR})
+    # Also add the root directory for headers in database_system/database/
+    get_filename_component(_database_system_root "${database_system_INCLUDE_DIR}" DIRECTORY)
+    if(EXISTS "${_database_system_root}/database")
+        target_include_directories(DatabaseServerLib PUBLIC ${_database_system_root})
+    endif()
 endif()
 if(TARGET DatabaseSystem)
     target_link_libraries(DatabaseServerLib PUBLIC DatabaseSystem)
@@ -289,6 +294,11 @@ if(BUILD_WITH_CONTAINER_SYSTEM)
     target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_CONTAINER_SYSTEM)
     if(container_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${container_system_INCLUDE_DIR})
+        # Also add the root directory for headers in container_system/core/
+        get_filename_component(_container_system_root "${container_system_INCLUDE_DIR}" DIRECTORY)
+        if(EXISTS "${_container_system_root}/core")
+            target_include_directories(DatabaseServerLib PUBLIC ${_container_system_root})
+        endif()
     endif()
     if(TARGET ContainerSystem::container)
         target_link_libraries(DatabaseServerLib PUBLIC ContainerSystem::container)
