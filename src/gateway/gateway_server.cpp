@@ -120,7 +120,7 @@ kcenon::common::VoidResult gateway_server::start()
 	}
 
 	auto result = server_->start_server(config_.port);
-	if (!result)
+	if (result.is_err())
 	{
 		running_ = false;
 		return kcenon::common::error_info{
@@ -147,7 +147,7 @@ kcenon::common::VoidResult gateway_server::stop()
 	}
 
 	auto result = server_->stop_server();
-	if (!result)
+	if (result.is_err())
 	{
 		return kcenon::common::error_info{
 			-2, "Failed to stop network server", "gateway_server"
