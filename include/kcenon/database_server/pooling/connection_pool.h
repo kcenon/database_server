@@ -187,7 +187,7 @@ private:
  * }
  *
  * // Acquire connection with priority
- * auto future = pool.acquire_connection(connection_priority::CRITICAL);
+ * auto future = pool.acquire_connection(PRIORITY_CRITICAL);
  * auto result = future.get();
  * if (result.is_ok()) {
  *     auto conn = result.value();
@@ -254,7 +254,7 @@ public:
 	 * - Throughput: > 1M ops/s under high load
 	 */
 	std::future<kcenon::common::Result<std::shared_ptr<database::connection_wrapper>>>
-	acquire_connection(connection_priority priority = connection_priority::NORMAL_QUERY);
+	acquire_connection(connection_priority priority = PRIORITY_NORMAL_QUERY);
 
 	/**
 	 * @brief Returns a connection to the pool

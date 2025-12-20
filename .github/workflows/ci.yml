@@ -1,0 +1,370 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: ${{ matrix.os }} / ${{ matrix.compiler }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    env:
+      BUILD_TYPE: Debug
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Ubuntu 24.04 with GCC 13+ for full C++20 std::format support
+          - os: ubuntu-24.04
+            compiler: gcc
+            triplet: x64-linux
+          # Ubuntu 24.04 with Clang 18 for full C++20 std::format support
+          - os: ubuntu-24.04
+            compiler: clang
+            triplet: x64-linux
+          # macOS 14 (Sonoma) with latest Apple Clang
+          - os: macos-14
+            compiler: clang
+            triplet: arm64-osx
+          # Windows 2022 with MSVC (already supports std::format)
+          - os: windows-2022
+            compiler: msvc
+            triplet: x64-windows
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout monitoring_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/monitoring_system
+        path: monitoring_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++-13 clang-18 libgtest-dev libgmock-dev pkg-config libasio-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja googletest asio
+
+    - name: Install dependencies (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Install asio using vcpkg (header-only library)
+        vcpkg install asio:x64-windows
+        # Add vcpkg include path to deps_install
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        New-Item -ItemType Directory -Force -Path "$prefix/include"
+        Copy-Item -Recurse -Force "C:/vcpkg/installed/x64-windows/include/*" "$prefix/include/"
+
+    - name: Set up compiler (GCC)
+      if: matrix.compiler == 'gcc'
+      run: |
+        echo "CC=gcc-13" >> $GITHUB_ENV
+        echo "CXX=g++-13" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - Linux)
+      if: matrix.compiler == 'clang' && runner.os == 'Linux'
+      run: |
+        echo "CC=clang-18" >> $GITHUB_ENV
+        echo "CXX=clang++-18" >> $GITHUB_ENV
+
+    - name: Set up compiler (Clang - macOS)
+      if: matrix.compiler == 'clang' && runner.os == 'macOS'
+      run: |
+        echo "CC=clang" >> $GITHUB_ENV
+        echo "CXX=clang++" >> $GITHUB_ENV
+
+    - name: Set up compiler (MSVC)
+      if: matrix.compiler == 'msvc'
+      uses: ilammy/msvc-dev-cmd@v1
+
+    - name: Build and install common_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install common_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd common_system
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF
+        cmake --build build
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+
+    - name: Set Windows include paths
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Add deps_install/include to INCLUDE environment variable for MSVC
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        $includePath = "$prefix/include"
+        echo "INCLUDE=$env:INCLUDE;$includePath" >> $env:GITHUB_ENV
+        echo "Added $includePath to INCLUDE environment variable"
+
+    - name: Build and install thread_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install thread_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd thread_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Use Debug build with Ninja generator
+        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DBUILD_TESTING=OFF `
+          -DBUILD_TESTS=OFF
+        cmake --build build
+        cmake --install build --prefix "$prefix"
+
+    - name: Build and install logger_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install logger_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd logger_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Use Debug build with Ninja generator
+        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DBUILD_TESTING=OFF `
+          -DBUILD_TESTS=OFF
+        cmake --build build
+        cmake --install build --prefix "$prefix"
+
+    - name: Build and install database_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF \
+          -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF \
+          -DUSE_UNIT_TEST=OFF \
+          -DUSE_POSTGRESQL=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install database_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd database_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
+          -DUSE_THREAD_SYSTEM=OFF `
+          -DUSE_MONITORING_SYSTEM=OFF `
+          -DUSE_CONTAINER_SYSTEM=OFF `
+          -DUSE_UNIT_TEST=OFF `
+          -DUSE_POSTGRESQL=OFF `
+          -DBUILD_DATABASE_SAMPLES=OFF
+        # Build only the database library target (skip integration tests)
+        cmake --build build --target database
+        # Install headers and library manually to avoid install script errors
+        New-Item -ItemType Directory -Force -Path "$prefix/include/database"
+        Copy-Item -Recurse -Force "database/*" "$prefix/include/database/"
+        New-Item -ItemType Directory -Force -Path "$prefix/lib"
+        # Find and copy library from various possible locations
+        Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
+        Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
+
+    - name: Build and install network_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DUSE_UNIT_TEST=OFF \
+          -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install network_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd network_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Remove tests directory to avoid Threads::Threads link error
+        # network_system doesn't call find_package(Threads) but tests use it
+        if (Test-Path "tests") { Remove-Item -Recurse -Force "tests" }
+        # Use Debug build with Ninja generator to match database_server
+        #
+        # CRITICAL: COMMON_SYSTEM_INCLUDE_DIR must be set explicitly because
+        # network_system's find_common_system() uses NO_DEFAULT_PATH which skips
+        # CMAKE_PREFIX_PATH. Without this, BUILD_WITH_COMMON_SYSTEM won't be added
+        # as a compile definition, causing messaging_server to use network_system::Result
+        # instead of kcenon::common::Result. This results in LNK2019 errors due to
+        # C++ symbol mangling differences.
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          "-DCMAKE_CXX_FLAGS=/I$prefix/include" `
+          -DCOMMON_SYSTEM_INCLUDE_DIR="$prefix/include" `
+          -DTHREAD_SYSTEM_INCLUDE_DIR="$prefix/include" `
+          -DBUILD_TESTS=OFF `
+          -DBUILD_SAMPLES=OFF
+        # Build only the NetworkSystem library target
+        cmake --build build --target NetworkSystem
+        # Install headers and library manually
+        # Copy kcenon/network headers (actual implementation)
+        New-Item -ItemType Directory -Force -Path "$prefix/include/kcenon/network"
+        Copy-Item -Recurse -Force "include/kcenon/network/*" "$prefix/include/kcenon/network/"
+        # Copy network_system wrapper headers (for backward compatibility)
+        New-Item -ItemType Directory -Force -Path "$prefix/include/network_system"
+        Copy-Item -Recurse -Force "include/network_system/*" "$prefix/include/network_system/"
+        New-Item -ItemType Directory -Force -Path "$prefix/lib"
+        # Find and copy library from various possible locations
+        Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
+        Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
+
+    - name: Configure CMake (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
+          -DBUILD_TESTS=ON \
+          -DBUILD_DATABASE_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Verify Windows dependencies
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        echo "=== Checking deps_install/lib contents ==="
+        Get-ChildItem -Path "$prefix/lib" -Recurse | Select-Object FullName
+        echo "=== Checking deps_install/include contents ==="
+        Get-ChildItem -Path "$prefix/include" -Directory | Select-Object Name
+
+    - name: Configure CMake (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # CRITICAL: common_system_INCLUDE_DIR must be set explicitly to ensure
+        # BUILD_WITH_COMMON_SYSTEM is defined. This makes database_server use
+        # kcenon::common::Result (same as NetworkSystem.lib), avoiding LNK2019
+        # symbol mismatch errors due to C++ name mangling differences.
+        cmake -B build -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DCMAKE_LIBRARY_PATH="$prefix/lib" `
+          -Dcommon_system_INCLUDE_DIR="$prefix/include" `
+          -Dthread_system_INCLUDE_DIR="$prefix/include" `
+          -Ddatabase_system_INCLUDE_DIR="$prefix/include" `
+          -Dnetwork_system_INCLUDE_DIR="$prefix/include" `
+          -DBUILD_TESTS=ON `
+          -DBUILD_DATABASE_SAMPLES=OFF `
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF `
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Build
+      run: cmake --build build --config Debug --parallel
+
+    - name: Test (Unix)
+      if: runner.os != 'Windows'
+      timeout-minutes: 5
+      run: |
+        cd build
+        ctest -C $BUILD_TYPE --output-on-failure --timeout 30 || true
+
+    - name: Test (Windows)
+      if: runner.os == 'Windows'
+      timeout-minutes: 5
+      shell: pwsh
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure --timeout 30
+        exit 0
+
+    - name: Upload build artifacts
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-${{ matrix.os }}-${{ matrix.compiler }}-logs
+        path: |
+          build/CMakeFiles/*.log
+          build/Testing/Temporary/

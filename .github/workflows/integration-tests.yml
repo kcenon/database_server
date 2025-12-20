@@ -1,0 +1,187 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  integration-tests:
+    name: ${{ matrix.os }} - ${{ matrix.build_type }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+        build_type: [Debug, Release]
+        include:
+          - os: ubuntu-24.04
+            cc: gcc-13
+            cxx: g++-13
+          - os: macos-14
+            cc: clang
+            cxx: clang++
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y \
+          build-essential \
+          cmake \
+          ninja-build \
+          g++-13 \
+          libgtest-dev \
+          libgmock-dev \
+          libasio-dev \
+          lcov
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install \
+          cmake \
+          ninja \
+          googletest \
+          asio \
+          lcov
+
+    - name: Set up environment
+      run: |
+        echo "CC=${{ matrix.cc }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.cxx }}" >> $GITHUB_ENV
+
+    - name: Build and install dependencies
+      shell: bash
+      run: |
+        # common_system
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # thread_system
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # logger_system
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }}
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # database_system
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF -DUSE_UNIT_TEST=OFF -DUSE_POSTGRESQL=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # network_system
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=${{ matrix.cc }} \
+          -DCMAKE_CXX_COMPILER=${{ matrix.cxx }} \
+          -DBUILD_TESTS=ON \
+          -DBUILD_DATABASE_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }} -j
+
+    - name: Run tests
+      working-directory: build
+      run: |
+        ctest -C ${{ matrix.build_type }} --output-on-failure --timeout 60
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
+        path: build/Testing/
+        retention-days: 7
+
+  integration-tests-summary:
+    name: Integration Tests Summary
+    needs: integration-tests
+    runs-on: ubuntu-24.04
+    if: always()
+    steps:
+    - name: Check integration test results
+      run: |
+        echo "# Integration Tests Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ needs.integration-tests.result }}" == "failure" ]; then
+          echo "Some integration tests failed" >> $GITHUB_STEP_SUMMARY
+          exit 1
+        else
+          echo "All integration tests passed" >> $GITHUB_STEP_SUMMARY
+        fi

@@ -52,11 +52,19 @@ if(BUILD_WITH_CONTAINER_SYSTEM)
         target_link_libraries(GatewayLib PUBLIC container_system)
     else()
         # Fallback: link directly to static library
+        # Build CMAKE_PREFIX_PATH lib paths for Windows CI
+        set(CONTAINER_PREFIX_LIB_PATHS)
+        foreach(_prefix ${CMAKE_PREFIX_PATH})
+            list(APPEND CONTAINER_PREFIX_LIB_PATHS "${_prefix}/lib")
+        endforeach()
+
         find_library(CONTAINER_SYSTEM_LIB
-            NAMES container_system
+            NAMES container_system ContainerSystem
             PATHS
+                ${CONTAINER_PREFIX_LIB_PATHS}
                 ${container_system_SOURCE_DIR}/build/lib
                 ${CMAKE_CURRENT_SOURCE_DIR}/../../container_system/build/lib
+                /usr/local/lib
             NO_DEFAULT_PATH
         )
         if(CONTAINER_SYSTEM_LIB)

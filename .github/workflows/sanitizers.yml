@@ -1,0 +1,175 @@
+name: Sanitizer Tests
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  sanitizer-tests:
+    name: ${{ matrix.sanitizer }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04]
+        sanitizer: [thread, address, undefined]
+        build_type: [Debug]
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang-18 libgtest-dev libgmock-dev libasio-dev
+
+    - name: Set up compiler
+      run: |
+        echo "CC=clang-18" >> $GITHUB_ENV
+        echo "CXX=clang++-18" >> $GITHUB_ENV
+
+    - name: Build and install dependencies
+      run: |
+        SANITIZER_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer -g"
+
+        # common_system
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # thread_system
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # logger_system
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # database_system
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF -DUSE_UNIT_TEST=OFF -DUSE_POSTGRESQL=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # network_system
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
+          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Configure CMake with ${{ matrix.sanitizer }} sanitizer
+      run: |
+        SANITIZER_FLAGS="-fsanitize=${{ matrix.sanitizer }} -fno-omit-frame-pointer -g"
+        cmake -B build -S . \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DCMAKE_C_COMPILER=clang-18 \
+          -DCMAKE_CXX_COMPILER=clang++-18 \
+          -DCMAKE_CXX_FLAGS="${SANITIZER_FLAGS}" \
+          -DCMAKE_C_FLAGS="${SANITIZER_FLAGS}" \
+          -DCMAKE_EXE_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DCMAKE_SHARED_LINKER_FLAGS="-fsanitize=${{ matrix.sanitizer }}" \
+          -DBUILD_TESTS=ON \
+          -DBUILD_DATABASE_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Build with ${{ matrix.sanitizer }} sanitizer
+      run: cmake --build build -j
+
+    - name: Run tests with ${{ matrix.sanitizer }} sanitizer
+      run: |
+        cd build
+        ctest --output-on-failure --verbose
+      env:
+        TSAN_OPTIONS: "halt_on_error=0 second_deadlock_stack=1"
+        ASAN_OPTIONS: "halt_on_error=0 detect_leaks=1"
+        UBSAN_OPTIONS: "halt_on_error=0 print_stacktrace=1"
+
+    - name: Upload sanitizer logs
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: sanitizer-logs-${{ matrix.sanitizer }}-${{ matrix.os }}
+        path: |
+          build/Testing/Temporary/LastTest.log
+          build/**/*.log
+        retention-days: 7
+
+  sanitizer-summary:
+    name: Sanitizer Test Summary
+    needs: sanitizer-tests
+    runs-on: ubuntu-24.04
+    if: always()
+
+    steps:
+    - name: Generate summary
+      run: |
+        echo "# Sanitizer Test Results" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Baseline Establishment" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "Sanitizer tests configured and running." >> $GITHUB_STEP_SUMMARY
+        echo "Warnings allowed for baseline establishment." >> $GITHUB_STEP_SUMMARY

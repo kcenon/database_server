@@ -56,19 +56,19 @@ pooling::connection_priority get_priority_for_query_type(query_type type)
 	switch (type)
 	{
 	case query_type::select:
-		return pooling::connection_priority::NORMAL_QUERY;
+		return pooling::PRIORITY_NORMAL_QUERY;
 	case query_type::insert:
 	case query_type::update:
 	case query_type::del:
-		return pooling::connection_priority::TRANSACTION;
+		return pooling::PRIORITY_TRANSACTION;
 	case query_type::execute:
-		return pooling::connection_priority::TRANSACTION;
+		return pooling::PRIORITY_TRANSACTION;
 	case query_type::batch:
-		return pooling::connection_priority::TRANSACTION;
+		return pooling::PRIORITY_TRANSACTION;
 	case query_type::ping:
-		return pooling::connection_priority::HEALTH_CHECK;
+		return pooling::PRIORITY_HEALTH_CHECK;
 	default:
-		return pooling::connection_priority::NORMAL_QUERY;
+		return pooling::PRIORITY_NORMAL_QUERY;
 	}
 }
 

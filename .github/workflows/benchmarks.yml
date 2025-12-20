@@ -1,0 +1,186 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+    paths:
+      - 'benchmarks/**'
+      - 'src/**'
+      - 'include/**'
+      - '.github/workflows/benchmarks.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'benchmarks/**'
+      - 'src/**'
+      - 'include/**'
+  workflow_dispatch:
+    inputs:
+      save_baseline:
+        description: 'Save as baseline'
+        required: false
+        default: 'false'
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  benchmark:
+    name: Run Performance Benchmarks
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, macos-14]
+        compiler: [clang]
+        build_type: [Release]
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies (Ubuntu)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build clang-18 libbenchmark-dev libgtest-dev libasio-dev
+
+    - name: Install dependencies (macOS)
+      if: runner.os == 'macOS'
+      run: |
+        brew install ninja google-benchmark googletest asio
+
+    - name: Set up compiler
+      run: |
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          echo "CC=clang-18" >> $GITHUB_ENV
+          echo "CXX=clang++-18" >> $GITHUB_ENV
+        else
+          echo "CC=clang" >> $GITHUB_ENV
+          echo "CXX=clang++" >> $GITHUB_ENV
+        fi
+
+    - name: Build and install dependencies
+      shell: bash
+      run: |
+        # common_system
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # thread_system
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # logger_system
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # database_system
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF -DUSE_UNIT_TEST=OFF -DUSE_POSTGRESQL=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # network_system
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX \
+          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Configure CMake
+      run: |
+        cmake -B build -S . \
+          -GNinja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+          -DBUILD_TESTS=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Build
+      run: cmake --build build --config ${{ matrix.build_type }} -j
+
+    - name: Check for benchmark executable
+      id: check_benchmark
+      run: |
+        if [ -f "build/bin/database_server_benchmarks" ]; then
+          echo "has_benchmarks=true" >> $GITHUB_OUTPUT
+        else
+          echo "has_benchmarks=false" >> $GITHUB_OUTPUT
+          echo "No benchmark executable found - benchmarks not yet implemented"
+        fi
+
+    - name: Generate summary
+      run: |
+        echo "# Benchmark Status" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**OS**: ${{ matrix.os }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Compiler**: ${{ matrix.compiler }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Build Type**: ${{ matrix.build_type }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ "${{ steps.check_benchmark.outputs.has_benchmarks }}" == "true" ]; then
+          echo "Benchmark executable found and ready to run." >> $GITHUB_STEP_SUMMARY
+        else
+          echo "Benchmarks not yet implemented. Build successful." >> $GITHUB_STEP_SUMMARY
+        fi

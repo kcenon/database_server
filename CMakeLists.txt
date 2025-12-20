@@ -103,6 +103,30 @@ include(FindSystemDependency)
 
 find_package(Threads REQUIRED)
 
+# Add standard library paths for installed dependencies (CI environment)
+# This ensures find_library can locate libraries installed to /usr/local
+if(UNIX)
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+    link_directories("/usr/local/lib")
+
+    # Also add standard include paths for installed headers
+    include_directories("/usr/local/include")
+endif()
+
+# Windows: Use CMAKE_PREFIX_PATH for library search (set by CI via -DCMAKE_PREFIX_PATH)
+if(WIN32 AND CMAKE_PREFIX_PATH)
+    foreach(_prefix ${CMAKE_PREFIX_PATH})
+        if(EXISTS "${_prefix}/lib")
+            link_directories("${_prefix}/lib")
+            message(STATUS "Added Windows library path: ${_prefix}/lib")
+        endif()
+        if(EXISTS "${_prefix}/include")
+            include_directories("${_prefix}/include")
+            message(STATUS "Added Windows include path: ${_prefix}/include")
+        endif()
+    endforeach()
+endif()
+
 ##################################################
 # Dependency Detection
 ##################################################
@@ -221,8 +245,8 @@ add_library(DatabaseServerLib
     # Core
     src/core/server_app.cpp
     src/core/server_config.cpp
-    # Pooling (Phase 2) - temporarily disabled due to database_system API changes
-    # src/pooling/connection_pool.cpp
+    # Pooling (Phase 2)
+    src/pooling/connection_pool.cpp
     # Resilience (Phase 2) - temporarily disabled due to database_system API changes
     # src/resilience/connection_health_monitor.cpp
     # src/resilience/resilient_database_connection.cpp
@@ -254,25 +278,106 @@ target_link_libraries(DatabaseServerLib
         Threads::Threads
 )
 
-# Add common_system include and link
+##################################################
+# Helper function for robust library linking
+# This function handles both CMake target and installed library scenarios
+##################################################
+function(link_system_dependency TARGET_NAME DEP_NAME)
+    set(TARGET_NAMES ${ARGN})
+    set(LINKED FALSE)
+
+    # First try CMake targets
+    foreach(target_name ${TARGET_NAMES})
+        if(TARGET ${target_name})
+            target_link_libraries(${TARGET_NAME} PUBLIC ${target_name})
+            message(STATUS "Linking ${DEP_NAME} via CMake target: ${target_name}")
+            set(LINKED TRUE)
+            break()
+        endif()
+    endforeach()
+
+    # If no target found, search in sibling project build directories first
+    if(NOT LINKED)
+        # Convert DEP_NAME to lowercase for directory search
+        string(TOLOWER ${DEP_NAME} DEP_NAME_LOWER)
+        string(REPLACE "_" "_" DEP_DIR_NAME ${DEP_NAME_LOWER})
+
+        # Build list of sibling project paths
+        set(SIBLING_PATHS
+            "${CMAKE_SOURCE_DIR}/../${DEP_DIR_NAME}/build/lib"
+            "${CMAKE_SOURCE_DIR}/../${DEP_DIR_NAME}/build"
+            "${CMAKE_SOURCE_DIR}/${DEP_DIR_NAME}/build/lib"
+            "${CMAKE_SOURCE_DIR}/${DEP_DIR_NAME}/build"
+        )
+
+        # Add CMAKE_PREFIX_PATH paths for Windows CI
+        set(PREFIX_LIB_PATHS)
+        foreach(_prefix ${CMAKE_PREFIX_PATH})
+            list(APPEND PREFIX_LIB_PATHS "${_prefix}/lib")
+        endforeach()
+
+        find_library(${DEP_NAME}_LIB
+            NAMES ${TARGET_NAMES}
+            PATHS
+                ${PREFIX_LIB_PATHS}
+                ${SIBLING_PATHS}
+                /usr/local/lib
+                /usr/lib
+                /opt/homebrew/lib
+            NO_DEFAULT_PATH
+            NO_CMAKE_SYSTEM_PATH
+        )
+
+        # Exclude macOS system frameworks (avoid matching Network.framework etc.)
+        if(${DEP_NAME}_LIB)
+            string(FIND "${${DEP_NAME}_LIB}" ".framework" FRAMEWORK_IDX)
+            string(FIND "${${DEP_NAME}_LIB}" "/System/" SYSTEM_IDX)
+            string(FIND "${${DEP_NAME}_LIB}" "Xcode.app" XCODE_IDX)
+            if(FRAMEWORK_IDX GREATER -1 OR SYSTEM_IDX GREATER -1 OR XCODE_IDX GREATER -1)
+                message(STATUS "Skipping system library: ${${DEP_NAME}_LIB}")
+                unset(${DEP_NAME}_LIB CACHE)
+            endif()
+        endif()
+
+        if(${DEP_NAME}_LIB)
+            # MSVC requires /WHOLEARCHIVE for network_system to include all symbols
+            # This is needed because messaging_server symbols are not referenced directly
+            # WHOLEARCHIVE also brings in HTTP/2, WebSocket code that depends on OpenSSL
+            if(MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
+                target_link_options(${TARGET_NAME} PUBLIC "/WHOLEARCHIVE:${${DEP_NAME}_LIB}")
+                message(STATUS "Linking ${DEP_NAME} with WHOLEARCHIVE from: ${${DEP_NAME}_LIB}")
+                # Link OpenSSL for HTTP/2, WebSocket, and QUIC support in network_system
+                find_package(OpenSSL QUIET)
+                if(OPENSSL_FOUND)
+                    target_link_libraries(${TARGET_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+                    message(STATUS "Linking OpenSSL for WHOLEARCHIVE network_system support")
+                endif()
+            else()
+                target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
+                message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
+            endif()
+            set(LINKED TRUE)
+        else()
+            message(WARNING "${DEP_NAME} library not found - linking may fail. Searched: ${TARGET_NAMES}")
+        endif()
+    endif()
+endfunction()
+
+# Add common_system include (header-only library, no linking needed)
 if(common_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${common_system_INCLUDE_DIR})
+    # Define BUILD_WITH_COMMON_SYSTEM so network_system headers use kcenon::common::Result
+    # This ensures VoidResult type matches between network_system and database_server
+    target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_COMMON_SYSTEM)
 endif()
-if(TARGET common_system)
-    target_link_libraries(DatabaseServerLib PUBLIC common_system)
-endif()
+# common_system is header-only, so no library linking is needed
 
-# Add thread_system include and link
+# Add thread_system include
 if(thread_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${thread_system_INCLUDE_DIR})
 endif()
-if(TARGET ThreadSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC ThreadSystem)
-elseif(TARGET thread_system)
-    target_link_libraries(DatabaseServerLib PUBLIC thread_system)
-endif()
 
-# Add database_system include and link
+# Add database_system include
 if(database_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${database_system_INCLUDE_DIR})
     # Also add the root directory for headers in database_system/database/
@@ -281,20 +386,61 @@ if(database_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${_database_system_root})
     endif()
 endif()
-if(TARGET DatabaseSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC DatabaseSystem)
-elseif(TARGET database_system)
-    target_link_libraries(DatabaseServerLib PUBLIC database_system)
-endif()
 
-# Add network_system include and link
+# Add network_system include
 if(network_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${network_system_INCLUDE_DIR})
 endif()
-if(TARGET NetworkSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC NetworkSystem)
-elseif(TARGET network_system)
-    target_link_libraries(DatabaseServerLib PUBLIC network_system)
+
+##################################################
+# Link Libraries (Order matters for static linking!)
+#
+# For static libraries, the linker resolves symbols in order.
+# Libraries that DEPEND on others must come BEFORE the libraries they depend on.
+#
+# Dependency chain:
+#   DatabaseServerLib -> network_system -> thread_system
+#   DatabaseServerLib -> database_system -> thread_system (optional)
+#   All systems -> logger_system
+#
+# Therefore, correct order is:
+#   1. network_system (depends on thread_system)
+#   2. database_system
+#   3. thread_system (depended upon by network_system)
+#   4. logger_system (depended upon by all)
+##################################################
+
+# 1. Link network_system first (it depends on thread_system)
+link_system_dependency(DatabaseServerLib NETWORK_SYSTEM NetworkSystem network_system messaging_system network)
+
+# 2. Link database_system
+link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database_system database)
+
+# 3. Link thread_system (network_system depends on it, so it must come after)
+link_system_dependency(DatabaseServerLib THREAD_SYSTEM ThreadSystem thread_system utilities)
+
+# 4. Link logger_system as transitive dependency (required by network_system and database_system)
+# Build CMAKE_PREFIX_PATH lib paths for Windows CI
+set(LOGGER_PREFIX_LIB_PATHS)
+foreach(_prefix ${CMAKE_PREFIX_PATH})
+    list(APPEND LOGGER_PREFIX_LIB_PATHS "${_prefix}/lib")
+endforeach()
+
+find_library(LOGGER_SYSTEM_LIB
+    NAMES LoggerSystem logger_system logger
+    PATHS
+        ${LOGGER_PREFIX_LIB_PATHS}
+        "${CMAKE_SOURCE_DIR}/../logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../logger_system/build"
+        "${CMAKE_SOURCE_DIR}/logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/logger_system/build"
+        /usr/local/lib
+        /usr/lib
+        /opt/homebrew/lib
+)
+if(LOGGER_SYSTEM_LIB)
+    target_link_libraries(DatabaseServerLib PUBLIC ${LOGGER_SYSTEM_LIB})
+    message(STATUS "Linking logger_system from: ${LOGGER_SYSTEM_LIB}")
 endif()
 
 # Add ASIO include directory (required for network_system headers)
@@ -325,11 +471,7 @@ if(BUILD_WITH_CONTAINER_SYSTEM)
             target_include_directories(DatabaseServerLib PUBLIC ${_container_system_root})
         endif()
     endif()
-    if(TARGET ContainerSystem::container)
-        target_link_libraries(DatabaseServerLib PUBLIC ContainerSystem::container)
-    elseif(TARGET container_system)
-        target_link_libraries(DatabaseServerLib PUBLIC container_system)
-    endif()
+    link_system_dependency(DatabaseServerLib CONTAINER_SYSTEM container_system ContainerSystem container)
 endif()
 
 ##################################################

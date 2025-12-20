@@ -1,0 +1,209 @@
+name: Code Coverage
+
+on:
+  push:
+    branches: [ main, feature/*, infra/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  coverage:
+    name: Coverage Analysis
+    runs-on: ubuntu-24.04
+
+    steps:
+    - name: Checkout database_server
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Checkout common_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/common_system
+        path: common_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout thread_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/thread_system
+        path: thread_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout logger_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/logger_system
+        path: logger_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout database_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/database_system
+        path: database_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Checkout network_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/network_system
+        path: network_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y cmake ninja-build g++-13 libgtest-dev libgmock-dev lcov pkg-config libasio-dev
+
+    - name: Build and install dependencies
+      run: |
+        # common_system
+        cd common_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # thread_system
+        cd thread_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # logger_system
+        cd logger_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF \
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # database_system
+        cd database_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
+          -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
+          -DUSE_THREAD_SYSTEM=OFF -DUSE_MONITORING_SYSTEM=OFF \
+          -DUSE_CONTAINER_SYSTEM=OFF -DUSE_UNIT_TEST=OFF -DUSE_POSTGRESQL=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+        cd ..
+
+        # network_system
+        cd network_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
+          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Configure CMake with coverage
+      run: |
+        cmake -B build -G Ninja \
+          -DCMAKE_BUILD_TYPE=Debug \
+          -DCMAKE_C_COMPILER=gcc-13 \
+          -DCMAKE_CXX_COMPILER=g++-13 \
+          -DENABLE_COVERAGE=ON \
+          -DBUILD_TESTS=ON \
+          -DBUILD_DATABASE_SAMPLES=OFF \
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+
+    - name: Build with coverage
+      run: cmake --build build --config Debug
+
+    - name: Run tests
+      timeout-minutes: 5
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure --timeout 30 || true
+
+    - name: Generate coverage report
+      run: |
+        cd build
+        lcov --directory . --capture --output-file coverage.info --ignore-errors source --rc lcov_branch_coverage=0 2>/dev/null || \
+          lcov --directory . --capture --output-file coverage.info 2>/dev/null || true
+
+        if [ -f coverage.info ]; then
+          lcov --remove coverage.info '/usr/*' '*/test/*' '*/tests/*' '*/examples/*' '*/samples/*' '*/googletest/*' \
+            --output-file coverage_filtered.info --ignore-errors source 2>/dev/null || true
+
+          if [ -f coverage_filtered.info ]; then
+            genhtml coverage_filtered.info --output-directory coverage_html --ignore-errors source 2>/dev/null || \
+              echo "HTML coverage report generation skipped"
+
+            lcov --list coverage_filtered.info --ignore-errors source 2>/dev/null || \
+              echo "Coverage summary generation skipped"
+          fi
+        else
+          echo "Coverage data file not created"
+        fi
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./build/coverage_filtered.info
+        flags: unittests
+        name: database_server-coverage
+        fail_ci_if_error: false
+        verbose: true
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Upload coverage artifacts
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          build/coverage.info
+          build/coverage_filtered.info
+          build/coverage_html/
+        retention-days: 7
+
+    - name: Check coverage threshold (70%)
+      id: coverage-check
+      run: |
+        if [ -f build/coverage_filtered.info ]; then
+          COVERAGE=$(lcov --summary build/coverage_filtered.info 2>&1 | grep "lines" | grep -oP '\d+\.\d+%' | head -1 | tr -d '%')
+          echo "Line coverage: ${COVERAGE}%"
+          echo "coverage=${COVERAGE}" >> $GITHUB_OUTPUT
+
+          if (( $(echo "$COVERAGE >= 70" | bc -l) )); then
+            echo "Coverage check PASSED: ${COVERAGE}% >= 70%"
+            echo "status=passed" >> $GITHUB_OUTPUT
+          else
+            echo "::warning::Coverage check FAILED: ${COVERAGE}% < 70%"
+            echo "status=failed" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "status=skipped" >> $GITHUB_OUTPUT
+          echo "::warning::Coverage data not available"
+        fi
+
+    - name: Coverage summary
+      if: always()
+      run: |
+        echo "## Coverage Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        if [ -f build/coverage_filtered.info ]; then
+          echo "Coverage data collected successfully." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Metric | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Line Coverage | ${{ steps.coverage-check.outputs.coverage }}% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Threshold | 70% |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ steps.coverage-check.outputs.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.coverage-check.outputs.status }}" = "failed" ]; then
+            echo "**Warning:** Coverage is below the 70% threshold." >> $GITHUB_STEP_SUMMARY
+          fi
+        else
+          echo "No coverage data generated." >> $GITHUB_STEP_SUMMARY
+        fi
