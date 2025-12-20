@@ -30,6 +30,7 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #include <kcenon/database_server/gateway/gateway_server.h>
+#include <kcenon/database_server/gateway/auth_middleware.h>
 
 #include <network_system/core/messaging_server.h>
 #include <network_system/session/messaging_session.h>
@@ -71,6 +72,7 @@ std::string generate_session_id()
 gateway_server::gateway_server(const gateway_config& config)
 	: config_(config)
 	, server_(std::make_shared<network_system::core::messaging_server>(config.server_id))
+	, auth_middleware_(std::make_unique<auth_middleware>(config.auth, config.rate_limit))
 {
 	// Set up network callbacks
 	server_->set_connection_callback(
@@ -220,6 +222,28 @@ const gateway_config& gateway_server::config() const noexcept
 	return config_;
 }
 
+auth_middleware& gateway_server::get_auth_middleware() noexcept
+{
+	return *auth_middleware_;
+}
+
+const auth_middleware& gateway_server::get_auth_middleware() const noexcept
+{
+	return *auth_middleware_;
+}
+
+void gateway_server::set_token_validator(std::shared_ptr<auth_validator> validator)
+{
+	// Recreate auth middleware with new validator
+	auth_middleware_ = std::make_unique<auth_middleware>(
+		config_.auth, config_.rate_limit, std::move(validator));
+}
+
+void gateway_server::set_audit_callback(audit_callback_t callback)
+{
+	auth_middleware_->set_audit_callback(std::move(callback));
+}
+
 void gateway_server::on_connection(
 	std::shared_ptr<network_system::session::messaging_session> session)
 {
@@ -252,6 +276,9 @@ void gateway_server::on_connection(
 		sessions_[session_id] = client;
 	}
 
+	// Notify auth middleware of session creation
+	auth_middleware_->on_session_created(session_id, "");
+
 	if (connection_callback_)
 	{
 		connection_callback_(client);
@@ -264,6 +291,9 @@ void gateway_server::on_disconnection(const std::string& session_id)
 		std::lock_guard<std::mutex> lock(sessions_mutex_);
 		sessions_.erase(session_id);
 	}
+
+	// Notify auth middleware of session destruction
+	auth_middleware_->on_session_destroyed(session_id);
 
 	if (disconnection_callback_)
 	{
@@ -366,15 +396,15 @@ void gateway_server::process_request(
 		return;
 	}
 
-	// Check authentication
+	// Check authentication and rate limiting using middleware
 	if (config_.require_auth && !client->authenticated)
 	{
-		// Validate token
-		if (!request.token.is_valid())
+		auto auth_result = auth_middleware_->check(session_id, request.token);
+		if (!auth_result.success)
 		{
 			query_response error_response(request.header.message_id,
-										  status_code::authentication_failed,
-										  "Invalid or expired token");
+										  auth_result.code,
+										  auth_result.message);
 			send_response(network_session, error_response);
 			return;
 		}
@@ -385,8 +415,20 @@ void gateway_server::process_request(
 			if (auto it = sessions_.find(session_id); it != sessions_.end())
 			{
 				it->second.authenticated = true;
-				it->second.client_id = request.token.client_id;
+				it->second.client_id = auth_result.client_id;
 			}
+		}
+	}
+	else if (config_.require_auth)
+	{
+		// Already authenticated, but still check rate limit
+		if (!auth_middleware_->check_rate_limit(client->client_id))
+		{
+			query_response error_response(request.header.message_id,
+										  status_code::rate_limited,
+										  "Rate limit exceeded");
+			send_response(network_session, error_response);
+			return;
 		}
 	}
 

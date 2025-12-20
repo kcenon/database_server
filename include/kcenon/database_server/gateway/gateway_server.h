@@ -44,6 +44,7 @@
 
 #pragma once
 
+#include "auth_middleware.h"
 #include "query_protocol.h"
 #include "query_types.h"
 
@@ -82,6 +83,9 @@ struct gateway_config
 	uint32_t max_connections = 1000;       ///< Maximum concurrent connections
 	uint32_t idle_timeout_ms = 300000;     ///< Idle connection timeout (5 min)
 	bool require_auth = true;              ///< Require authentication
+
+	auth_config auth;                      ///< Authentication configuration
+	rate_limit_config rate_limit;          ///< Rate limiting configuration
 };
 
 /**
@@ -233,6 +237,30 @@ public:
 	 */
 	[[nodiscard]] const gateway_config& config() const noexcept;
 
+	/**
+	 * @brief Get authentication middleware
+	 * @return Reference to auth middleware
+	 */
+	[[nodiscard]] auth_middleware& get_auth_middleware() noexcept;
+
+	/**
+	 * @brief Get authentication middleware (const)
+	 * @return Const reference to auth middleware
+	 */
+	[[nodiscard]] const auth_middleware& get_auth_middleware() const noexcept;
+
+	/**
+	 * @brief Set custom token validator
+	 * @param validator Custom validator implementation
+	 */
+	void set_token_validator(std::shared_ptr<auth_validator> validator);
+
+	/**
+	 * @brief Set audit callback for auth events
+	 * @param callback Function to call for each auth event
+	 */
+	void set_audit_callback(audit_callback_t callback);
+
 private:
 	/**
 	 * @brief Handle new client connection
@@ -272,6 +300,7 @@ private:
 private:
 	gateway_config config_;
 	std::shared_ptr<network_system::core::messaging_server> server_;
+	std::unique_ptr<auth_middleware> auth_middleware_;
 
 	mutable std::mutex sessions_mutex_;
 	std::unordered_map<std::string, client_session> sessions_;
