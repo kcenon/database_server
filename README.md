@@ -215,6 +215,39 @@ rate_limit.block_duration_ms=60000
 
 BSD 3-Clause License - see [LICENSE](LICENSE) for details.
 
+## CI/CD
+
+The project includes comprehensive CI/CD workflows matching the database_system pipeline:
+
+### Core Workflows
+
+| Workflow | Description | Status |
+|----------|-------------|--------|
+| `ci.yml` | Multi-platform build (Ubuntu, macOS, Windows) | Active |
+| `integration-tests.yml` | Integration tests with coverage | Active |
+| `coverage.yml` | Code coverage with Codecov | Active |
+
+### Quality Gates
+
+| Workflow | Description | Status |
+|----------|-------------|--------|
+| `static-analysis.yml` | clang-tidy and cppcheck analysis | Active |
+| `sanitizers.yml` | ASan, TSan, UBSan checks | Active |
+
+### Security & Documentation
+
+| Workflow | Description | Status |
+|----------|-------------|--------|
+| `dependency-security-scan.yml` | Trivy vulnerability scanning | Active |
+| `sbom.yml` | SBOM generation (CycloneDX, SPDX) | Active |
+| `build-Doxygen.yaml` | API documentation generation | Active |
+
+### Performance
+
+| Workflow | Description | Status |
+|----------|-------------|--------|
+| `benchmarks.yml` | Performance regression testing | Active |
+
 ## Related Projects
 
 - [common_system](../common_system) - Core utilities and interfaces
