@@ -89,7 +89,7 @@ cmake --build .
 | `BUILD_TESTS` | ON | Build unit tests |
 | `BUILD_SAMPLES` | OFF | Build sample applications |
 | `BUILD_WITH_MONITORING_SYSTEM` | OFF | Enable monitoring integration |
-| `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container serialization |
+| `BUILD_WITH_CONTAINER_SYSTEM` | OFF | Enable container serialization |
 | `ENABLE_COVERAGE` | OFF | Enable code coverage |
 
 ### Running Tests
