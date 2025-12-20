@@ -322,7 +322,7 @@ set_target_properties(database_server PROPERTIES
 if(BUILD_TESTS)
     enable_testing()
     message(STATUS "Building database_server tests")
-    # Tests will be added in future phases
+    add_subdirectory(tests)
 endif()
 
 ##################################################
