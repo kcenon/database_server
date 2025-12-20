@@ -265,13 +265,14 @@ jobs:
       run: |
         cd network_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Remove tests directory to avoid Threads::Threads link error
+        # network_system doesn't call find_package(Threads) but tests use it
+        if (Test-Path "tests") { Remove-Item -Recurse -Force "tests" }
         # Use Debug build with Ninja generator to match database_server
-        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
         cmake -B build -S . -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
-          -DBUILD_TESTING=OFF `
+          "-DCMAKE_CXX_FLAGS=/I$prefix/include" `
           -DBUILD_TESTS=OFF `
           -DBUILD_SAMPLES=OFF
         # Build only the NetworkSystem library target
