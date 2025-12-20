@@ -61,8 +61,14 @@
 namespace database_server::gateway
 {
 class gateway_server;
+class query_router;
 struct gateway_config;
 } // namespace database_server::gateway
+
+namespace database_server::pooling
+{
+class connection_pool;
+} // namespace database_server::pooling
 
 namespace database_server
 {
@@ -199,6 +205,10 @@ private:
 
 	// Network gateway
 	std::unique_ptr<gateway::gateway_server> gateway_;
+
+	// Connection pool and query router (Phase 3.3)
+	std::shared_ptr<pooling::connection_pool> connection_pool_;
+	std::unique_ptr<gateway::query_router> query_router_;
 
 	// Signal handling
 	static server_app* instance_;
