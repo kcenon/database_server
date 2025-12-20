@@ -134,6 +134,16 @@ jobs:
         cmake --build build --config Release
         cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
 
+    - name: Set Windows include paths
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        # Add deps_install/include to INCLUDE environment variable for MSVC
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        $includePath = "$prefix/include"
+        echo "INCLUDE=$env:INCLUDE;$includePath" >> $env:GITHUB_ENV
+        echo "Added $includePath to INCLUDE environment variable"
+
     - name: Build and install thread_system (Unix)
       if: runner.os != 'Windows'
       run: |
