@@ -141,10 +141,10 @@ jobs:
       shell: pwsh
       run: |
         cd common_system
-        # Use Debug build to match database_server build type
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF
-        cmake --build build --config Debug
-        cmake --install build --config Debug --prefix "$env:GITHUB_WORKSPACE/deps_install"
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF
+        cmake --build build
+        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
 
     - name: Set Windows include paths
       if: runner.os == 'Windows'
@@ -170,14 +170,14 @@ jobs:
       run: |
         cd thread_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        # Set include path via environment variable for MSVC
-        $env:CXXFLAGS = "/I`"$prefix/include`""
-        # Use Debug build to match database_server build type
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF `
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
-        cmake --build build --config Debug
-        cmake --install build --config Debug --prefix "$prefix"
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DUSE_UNIT_TEST=OFF
+        cmake --build build
+        cmake --install build --prefix "$prefix"
 
     - name: Build and install logger_system (Unix)
       if: runner.os != 'Windows'
@@ -193,12 +193,14 @@ jobs:
       run: |
         cd logger_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        # Use Debug build to match database_server build type
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF `
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
-        cmake --build build --config Debug
-        cmake --install build --config Debug --prefix "$prefix"
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DUSE_UNIT_TEST=OFF
+        cmake --build build
+        cmake --install build --prefix "$prefix"
 
     - name: Build and install database_system (Unix)
       if: runner.os != 'Windows'
@@ -221,8 +223,9 @@ jobs:
       run: |
         cd database_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        # Use Debug build to match database_server build type
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug `
+        # Use Debug build with Ninja generator
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
@@ -233,7 +236,7 @@ jobs:
           -DUSE_POSTGRESQL=OFF `
           -DBUILD_DATABASE_SAMPLES=OFF
         # Build only the database library target (skip integration tests)
-        cmake --build build --config Debug --target database
+        cmake --build build --target database
         # Install headers and library manually to avoid install script errors
         New-Item -ItemType Directory -Force -Path "$prefix/include/database"
         Copy-Item -Recurse -Force "database/*" "$prefix/include/database/"
@@ -258,14 +261,16 @@ jobs:
       run: |
         cd network_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
-        # Use Debug build to match database_server build type
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug `
+        # Use Debug build with Ninja generator to match database_server
+        # Ninja is a single-config generator which simplifies Debug builds
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DUSE_UNIT_TEST=OFF `
           -DBUILD_SAMPLES=OFF
-        # Build only the NetworkSystem library target (skip tests that fail to link)
-        cmake --build build --config Debug --target NetworkSystem
+        # Build only the NetworkSystem library target
+        cmake --build build --target NetworkSystem
         # Install headers and library manually
         New-Item -ItemType Directory -Force -Path "$prefix/include/kcenon/network"
         Copy-Item -Recurse -Force "include/kcenon/network/*" "$prefix/include/kcenon/network/"
