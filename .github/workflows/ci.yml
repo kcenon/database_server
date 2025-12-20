@@ -144,7 +144,7 @@ jobs:
         # Use Debug build to match database_server build type
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Debug -DUSE_UNIT_TEST=OFF
         cmake --build build --config Debug
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+        cmake --install build --config Debug --prefix "$env:GITHUB_WORKSPACE/deps_install"
 
     - name: Set Windows include paths
       if: runner.os == 'Windows'
@@ -177,7 +177,7 @@ jobs:
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
         cmake --build build --config Debug
-        cmake --install build --prefix "$prefix"
+        cmake --install build --config Debug --prefix "$prefix"
 
     - name: Build and install logger_system (Unix)
       if: runner.os != 'Windows'
@@ -198,7 +198,7 @@ jobs:
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
         cmake --build build --config Debug
-        cmake --install build --prefix "$prefix"
+        cmake --install build --config Debug --prefix "$prefix"
 
     - name: Build and install database_system (Unix)
       if: runner.os != 'Windows'
