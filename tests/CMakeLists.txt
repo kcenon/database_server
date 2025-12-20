@@ -135,6 +135,60 @@ if(GTest_FOUND OR gtest_FOUND)
     )
 
     message(STATUS "Query protocol tests configured (Phase 3.1)")
+
+    ##################################################
+    # Integration Tests (Phase 3.5)
+    ##################################################
+
+    # Create integration test executable
+    add_executable(integration_test
+        integration_test.cpp
+    )
+
+    # Integration tests need the full DatabaseServerLib
+    target_link_libraries(integration_test PRIVATE
+        DatabaseServerLib
+    )
+
+    # Link GTest - handle different target names
+    if(GTest_FOUND)
+        target_link_libraries(integration_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(integration_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    # Set properties
+    set_target_properties(integration_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Add test
+    add_test(NAME IntegrationTests COMMAND integration_test)
+
+    # Longer timeout for integration tests
+    if(CMAKE_CXX_FLAGS MATCHES "fsanitize")
+        set(INTEGRATION_TEST_TIMEOUT 600)
+    else()
+        set(INTEGRATION_TEST_TIMEOUT 120)
+    endif()
+
+    gtest_discover_tests(integration_test
+        PROPERTIES
+            TIMEOUT ${INTEGRATION_TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 120
+    )
+
+    message(STATUS "Integration tests configured (Phase 3.5)")
 else()
-    message(WARNING "GTest not found - query protocol tests will not be built")
+    message(WARNING "GTest not found - tests will not be built")
 endif()
