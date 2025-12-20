@@ -18,9 +18,13 @@ The Database Server is part of the kcenon unified system architecture evolution 
 │                database_server                   │
 ├─────────────────────────────────────────────────┤
 │  ┌─────────────┐    ┌─────────────────────┐    │
-│  │   Listener   │───▶│   Request Handler   │    │
-│  │ (TCP/QUIC)  │    │                     │    │
+│  │   Listener   │───▶│  Auth Middleware    │    │
+│  │ (TCP/QUIC)  │    │  (Rate Limiting)    │    │
 │  └─────────────┘    └─────────┬───────────┘    │
+│                               │                 │
+│                    ┌──────────▼──────────┐     │
+│                    │   Request Handler   │     │
+│                    └──────────┬──────────┘     │
 │                               │                 │
 │                    ┌──────────▼──────────┐     │
 │                    │   Query Router      │     │
@@ -135,6 +139,18 @@ pool.min_connections=5
 pool.max_connections=50
 pool.idle_timeout_ms=60000
 pool.health_check_interval_ms=30000
+
+# Authentication (Phase 3.4)
+auth.enabled=true
+auth.validate_on_each_request=false
+auth.token_refresh_window_ms=300000
+
+# Rate Limiting (Phase 3.4)
+rate_limit.enabled=true
+rate_limit.requests_per_second=100
+rate_limit.burst_size=200
+rate_limit.window_size_ms=1000
+rate_limit.block_duration_ms=60000
 ```
 
 ## Usage
@@ -187,7 +203,11 @@ pool.health_check_interval_ms=30000
   - [x] Priority-based scheduling integration
   - [x] Metrics collection for performance monitoring
   - [x] server_app integration with gateway and query router
-- [ ] Add authentication middleware (Phase 3.4)
+- [x] Add authentication middleware (Phase 3.4)
+  - [x] auth_middleware: Token validation with pluggable validators
+  - [x] rate_limiter: Sliding window rate limiting with burst support
+  - [x] Audit logging for security events
+  - [x] Integration with gateway_server request pipeline
 - [ ] Write integration tests and benchmarks (Phase 3.5)
 - [ ] (Optional) Implement Query Result Cache
 
