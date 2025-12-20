@@ -113,6 +113,20 @@ if(UNIX)
     include_directories("/usr/local/include")
 endif()
 
+# Windows: Use CMAKE_PREFIX_PATH for library search (set by CI via -DCMAKE_PREFIX_PATH)
+if(WIN32 AND CMAKE_PREFIX_PATH)
+    foreach(_prefix ${CMAKE_PREFIX_PATH})
+        if(EXISTS "${_prefix}/lib")
+            link_directories("${_prefix}/lib")
+            message(STATUS "Added Windows library path: ${_prefix}/lib")
+        endif()
+        if(EXISTS "${_prefix}/include")
+            include_directories("${_prefix}/include")
+            message(STATUS "Added Windows include path: ${_prefix}/include")
+        endif()
+    endforeach()
+endif()
+
 ##################################################
 # Dependency Detection
 ##################################################
@@ -296,9 +310,16 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
             "${CMAKE_SOURCE_DIR}/${DEP_DIR_NAME}/build"
         )
 
+        # Add CMAKE_PREFIX_PATH paths for Windows CI
+        set(PREFIX_LIB_PATHS)
+        foreach(_prefix ${CMAKE_PREFIX_PATH})
+            list(APPEND PREFIX_LIB_PATHS "${_prefix}/lib")
+        endforeach()
+
         find_library(${DEP_NAME}_LIB
             NAMES ${TARGET_NAMES}
             PATHS
+                ${PREFIX_LIB_PATHS}
                 ${SIBLING_PATHS}
                 /usr/local/lib
                 /usr/lib
@@ -382,9 +403,16 @@ link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database
 link_system_dependency(DatabaseServerLib THREAD_SYSTEM ThreadSystem thread_system utilities)
 
 # 4. Link logger_system as transitive dependency (required by network_system and database_system)
+# Build CMAKE_PREFIX_PATH lib paths for Windows CI
+set(LOGGER_PREFIX_LIB_PATHS)
+foreach(_prefix ${CMAKE_PREFIX_PATH})
+    list(APPEND LOGGER_PREFIX_LIB_PATHS "${_prefix}/lib")
+endforeach()
+
 find_library(LOGGER_SYSTEM_LIB
     NAMES LoggerSystem logger_system logger
     PATHS
+        ${LOGGER_PREFIX_LIB_PATHS}
         "${CMAKE_SOURCE_DIR}/../logger_system/build/lib"
         "${CMAKE_SOURCE_DIR}/../logger_system/build"
         "${CMAKE_SOURCE_DIR}/logger_system/build/lib"

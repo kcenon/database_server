@@ -116,7 +116,12 @@ function(find_system_dependency_include NAME)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../${NAME}"
     )
 
-    # 3. Standard installed paths (fallback for CI when deps are installed)
+    # 3. CMAKE_PREFIX_PATH paths (for Windows CI environments)
+    foreach(_prefix ${CMAKE_PREFIX_PATH})
+        list(APPEND _INCLUDE_PATHS "${_prefix}/include")
+    endforeach()
+
+    # 4. Standard installed paths (fallback for CI when deps are installed)
     list(APPEND _INCLUDE_PATHS
         "/usr/local/include"
         "/opt/homebrew/include"
@@ -146,14 +151,19 @@ function(find_system_dependency_library NAME)
         list(APPEND _LIB_PATHS "$ENV{${NAME}_ROOT}/build")
     endif()
 
-    # 2. Standard installed paths (for CI environments where dependencies are installed)
+    # 2. CMAKE_PREFIX_PATH paths (for Windows CI environments)
+    foreach(_prefix ${CMAKE_PREFIX_PATH})
+        list(APPEND _LIB_PATHS "${_prefix}/lib")
+    endforeach()
+
+    # 3. Standard installed paths (for CI environments where dependencies are installed)
     list(APPEND _LIB_PATHS
         "/usr/local/lib"
         "/usr/lib"
         "/opt/homebrew/lib"
     )
 
-    # 3. Workspace-relative paths (for CI environments where dependencies are in workspace root)
+    # 4. Workspace-relative paths (for CI environments where dependencies are in workspace root)
     list(APPEND _LIB_PATHS
         "${CMAKE_SOURCE_DIR}/${NAME}/build/lib"
         "${CMAKE_SOURCE_DIR}/../${NAME}/build/lib"

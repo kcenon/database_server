@@ -279,15 +279,27 @@ jobs:
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
+    - name: Verify Windows dependencies
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        echo "=== Checking deps_install/lib contents ==="
+        Get-ChildItem -Path "$prefix/lib" -Recurse | Select-Object FullName
+        echo "=== Checking deps_install/include contents ==="
+        Get-ChildItem -Path "$prefix/include" -Directory | Select-Object Name
+
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
       run: |
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Add library search paths for CMake
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
+          -DCMAKE_LIBRARY_PATH="$prefix/lib" `
           -DBUILD_TESTS=ON `
           -DBUILD_DATABASE_SAMPLES=OFF `
           -DBUILD_WITH_MONITORING_SYSTEM=OFF `
