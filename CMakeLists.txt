@@ -334,13 +334,12 @@ if(common_system_INCLUDE_DIR)
 endif()
 # common_system is header-only, so no library linking is needed
 
-# Add thread_system include and link
+# Add thread_system include
 if(thread_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${thread_system_INCLUDE_DIR})
 endif()
-link_system_dependency(DatabaseServerLib THREAD_SYSTEM ThreadSystem thread_system utilities)
 
-# Add database_system include and link
+# Add database_system include
 if(database_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${database_system_INCLUDE_DIR})
     # Also add the root directory for headers in database_system/database/
@@ -349,15 +348,40 @@ if(database_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${_database_system_root})
     endif()
 endif()
-link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database_system database)
 
-# Add network_system include and link
+# Add network_system include
 if(network_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${network_system_INCLUDE_DIR})
 endif()
+
+##################################################
+# Link Libraries (Order matters for static linking!)
+#
+# For static libraries, the linker resolves symbols in order.
+# Libraries that DEPEND on others must come BEFORE the libraries they depend on.
+#
+# Dependency chain:
+#   DatabaseServerLib -> network_system -> thread_system
+#   DatabaseServerLib -> database_system -> thread_system (optional)
+#   All systems -> logger_system
+#
+# Therefore, correct order is:
+#   1. network_system (depends on thread_system)
+#   2. database_system
+#   3. thread_system (depended upon by network_system)
+#   4. logger_system (depended upon by all)
+##################################################
+
+# 1. Link network_system first (it depends on thread_system)
 link_system_dependency(DatabaseServerLib NETWORK_SYSTEM NetworkSystem network_system messaging_system network)
 
-# Add logger_system as transitive dependency (required by network_system and database_system)
+# 2. Link database_system
+link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database_system database)
+
+# 3. Link thread_system (network_system depends on it, so it must come after)
+link_system_dependency(DatabaseServerLib THREAD_SYSTEM ThreadSystem thread_system utilities)
+
+# 4. Link logger_system as transitive dependency (required by network_system and database_system)
 find_library(LOGGER_SYSTEM_LIB
     NAMES LoggerSystem logger_system logger
     PATHS
@@ -368,8 +392,6 @@ find_library(LOGGER_SYSTEM_LIB
         /usr/local/lib
         /usr/lib
         /opt/homebrew/lib
-    NO_DEFAULT_PATH
-    NO_CMAKE_SYSTEM_PATH
 )
 if(LOGGER_SYSTEM_LIB)
     target_link_libraries(DatabaseServerLib PUBLIC ${LOGGER_SYSTEM_LIB})
