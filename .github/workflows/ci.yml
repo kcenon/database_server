@@ -171,11 +171,13 @@ jobs:
         cd thread_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         # Use Debug build with Ninja generator
+        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
         cmake -B build -S . -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
-          -DUSE_UNIT_TEST=OFF
+          -DBUILD_TESTING=OFF `
+          -DBUILD_TESTS=OFF
         cmake --build build
         cmake --install build --prefix "$prefix"
 
@@ -194,11 +196,13 @@ jobs:
         cd logger_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         # Use Debug build with Ninja generator
+        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
         cmake -B build -S . -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
-          -DUSE_UNIT_TEST=OFF
+          -DBUILD_TESTING=OFF `
+          -DBUILD_TESTS=OFF
         cmake --build build
         cmake --install build --prefix "$prefix"
 
@@ -262,12 +266,13 @@ jobs:
         cd network_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         # Use Debug build with Ninja generator to match database_server
-        # Ninja is a single-config generator which simplifies Debug builds
+        # Disable tests with BUILD_TESTING=OFF (CMake standard option)
         cmake -B build -S . -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
-          -DUSE_UNIT_TEST=OFF `
+          -DBUILD_TESTING=OFF `
+          -DBUILD_TESTS=OFF `
           -DBUILD_SAMPLES=OFF
         # Build only the NetworkSystem library target
         cmake --build build --target NetworkSystem
