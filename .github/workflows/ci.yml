@@ -185,7 +185,7 @@ jobs:
           -DUSE_CONTAINER_SYSTEM=OFF \
           -DUSE_UNIT_TEST=OFF \
           -DUSE_POSTGRESQL=OFF \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_DATABASE_SAMPLES=OFF
         cmake --build build --config Release
         sudo cmake --install build --prefix /usr/local
 
@@ -204,7 +204,7 @@ jobs:
           -DUSE_CONTAINER_SYSTEM=OFF `
           -DUSE_UNIT_TEST=OFF `
           -DUSE_POSTGRESQL=OFF `
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_DATABASE_SAMPLES=OFF
         cmake --build build --config Release
         cmake --install build --prefix "$prefix"
 
@@ -236,7 +236,7 @@ jobs:
         cmake -B build -G Ninja \
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DBUILD_TESTS=ON \
-          -DBUILD_SAMPLES=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF \
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
@@ -247,7 +247,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
           -DBUILD_TESTS=ON `
-          -DBUILD_SAMPLES=OFF `
+          -DBUILD_DATABASE_SAMPLES=OFF `
           -DBUILD_WITH_MONITORING_SYSTEM=OFF `
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 

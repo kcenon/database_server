@@ -135,7 +135,7 @@ jobs:
           -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON \
           -DUSE_THREAD_SYSTEM=OFF -DUSE_MONITORING_SYSTEM=OFF \
           -DUSE_CONTAINER_SYSTEM=OFF -DUSE_UNIT_TEST=OFF -DUSE_POSTGRESQL=OFF \
-          -DBUILD_SAMPLES=OFF
+          -DBUILD_DATABASE_SAMPLES=OFF
         cmake --build build --config Release
         sudo cmake --install build --prefix /usr/local
         cd ..
@@ -154,7 +154,7 @@ jobs:
           -GNinja \
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
           -DBUILD_TESTS=OFF \
-          -DBUILD_SAMPLES=OFF \
+          -DBUILD_DATABASE_SAMPLES=OFF \
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
           -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
