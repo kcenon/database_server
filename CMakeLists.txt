@@ -167,6 +167,24 @@ else()
     message(FATAL_ERROR "network_system not found! database_server requires network_system.")
 endif()
 
+# Find ASIO for network_system dependency
+# Check for standalone ASIO (required by network_system)
+if(NOT ASIO_INCLUDE_DIR)
+    find_path(ASIO_INCLUDE_DIR asio.hpp
+        PATHS
+            /opt/homebrew/include
+            /usr/local/include
+            /usr/include
+            $ENV{ASIO_ROOT}
+    )
+endif()
+
+if(ASIO_INCLUDE_DIR)
+    message(STATUS "Found ASIO at: ${ASIO_INCLUDE_DIR}")
+else()
+    message(WARNING "ASIO not found - network features may not compile correctly")
+endif()
+
 # monitoring_system (OPTIONAL)
 if(BUILD_WITH_MONITORING_SYSTEM)
     message(STATUS "Searching for monitoring_system...")
@@ -276,6 +294,12 @@ if(TARGET NetworkSystem)
     target_link_libraries(DatabaseServerLib PUBLIC NetworkSystem)
 elseif(TARGET network_system)
     target_link_libraries(DatabaseServerLib PUBLIC network_system)
+endif()
+
+# Add ASIO include directory (required for network_system headers)
+if(ASIO_INCLUDE_DIR)
+    target_include_directories(DatabaseServerLib PUBLIC ${ASIO_INCLUDE_DIR})
+    target_compile_definitions(DatabaseServerLib PUBLIC ASIO_STANDALONE ASIO_NO_DEPRECATED)
 endif()
 
 # Optional: monitoring_system
