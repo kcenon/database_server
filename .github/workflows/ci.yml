@@ -269,14 +269,19 @@ jobs:
         # network_system doesn't call find_package(Threads) but tests use it
         if (Test-Path "tests") { Remove-Item -Recurse -Force "tests" }
         # Use Debug build with Ninja generator to match database_server
-        # CRITICAL: BUILD_WITH_COMMON_SYSTEM must match database_server to ensure
-        # messaging_server::start_server returns kcenon::common::Result (not network_system::Result)
-        # Otherwise C++ symbol mangling causes LNK2019 unresolved external symbol errors
+        #
+        # CRITICAL: COMMON_SYSTEM_INCLUDE_DIR must be set explicitly because
+        # network_system's find_common_system() uses NO_DEFAULT_PATH which skips
+        # CMAKE_PREFIX_PATH. Without this, BUILD_WITH_COMMON_SYSTEM won't be added
+        # as a compile definition, causing messaging_server to use network_system::Result
+        # instead of kcenon::common::Result. This results in LNK2019 errors due to
+        # C++ symbol mangling differences.
         cmake -B build -S . -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          "-DCMAKE_CXX_FLAGS=/I$prefix/include /DBUILD_WITH_COMMON_SYSTEM" `
-          -DBUILD_WITH_COMMON_SYSTEM=ON `
+          "-DCMAKE_CXX_FLAGS=/I$prefix/include" `
+          -DCOMMON_SYSTEM_INCLUDE_DIR="$prefix/include" `
+          -DTHREAD_SYSTEM_INCLUDE_DIR="$prefix/include" `
           -DBUILD_TESTS=OFF `
           -DBUILD_SAMPLES=OFF
         # Build only the NetworkSystem library target
