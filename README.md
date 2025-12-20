@@ -87,6 +87,7 @@ cmake --build .
 | Option | Default | Description |
 |--------|---------|-------------|
 | `BUILD_TESTS` | ON | Build unit tests |
+| `BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
 | `BUILD_SAMPLES` | OFF | Build sample applications |
 | `BUILD_WITH_MONITORING_SYSTEM` | OFF | Enable monitoring integration |
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container serialization |
@@ -104,6 +105,7 @@ ctest --output-on-failure
 
 # Or run specific test executable directly
 ./bin/query_protocol_test
+./bin/integration_test
 ```
 
 **Current Test Coverage:**
@@ -114,6 +116,34 @@ ctest --output-on-failure
   - Query param value types
   - Query request/response serialization
   - Error handling for invalid inputs
+
+- Integration Tests (Phase 3.5)
+  - Auth middleware authentication flow
+  - Rate limiting behavior under load
+  - Query router metrics tracking
+  - Concurrent request handling
+  - Full pipeline throughput tests
+  - Error handling scenarios
+
+### Running Benchmarks
+
+```bash
+# Build with benchmarks enabled
+cmake .. -DBUILD_BENCHMARKS=ON
+cmake --build .
+
+# Run benchmarks
+./bin/gateway_benchmarks
+```
+
+**Performance Benchmarks (Phase 3.5):**
+- Router routing overhead measurement (target: < 1ms)
+- Query throughput benchmarks (target: 10k+ queries/sec)
+- Auth middleware validation throughput
+- Rate limiter performance
+- Serialization/deserialization throughput
+- Latency distribution (p50, p90, p99)
+- Concurrent access patterns
 
 ## Configuration
 
@@ -208,7 +238,11 @@ rate_limit.block_duration_ms=60000
   - [x] rate_limiter: Sliding window rate limiting with burst support
   - [x] Audit logging for security events
   - [x] Integration with gateway_server request pipeline
-- [ ] Write integration tests and benchmarks (Phase 3.5)
+- [x] Write integration tests and benchmarks (Phase 3.5)
+  - [x] Integration tests for complete query flow
+  - [x] Error handling scenario tests
+  - [x] Performance benchmarks (target: 10k+ queries/sec)
+  - [x] Latency measurement (target: < 1ms routing overhead)
 - [ ] (Optional) Implement Query Result Cache
 
 ## License
