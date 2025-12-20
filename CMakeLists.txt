@@ -366,6 +366,9 @@ endfunction()
 # Add common_system include (header-only library, no linking needed)
 if(common_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${common_system_INCLUDE_DIR})
+    # Define BUILD_WITH_COMMON_SYSTEM so network_system headers use kcenon::common::Result
+    # This ensures VoidResult type matches between network_system and database_server
+    target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_COMMON_SYSTEM)
 endif()
 # common_system is header-only, so no library linking is needed
 
