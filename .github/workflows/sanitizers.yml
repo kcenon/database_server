@@ -47,13 +47,6 @@ jobs:
         path: logger_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Checkout container_system
-      uses: actions/checkout@v4
-      with:
-        repository: kcenon/container_system
-        path: container_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Checkout database_system
       uses: actions/checkout@v4
       with:
@@ -106,18 +99,6 @@ jobs:
         sudo cmake --install build --prefix /usr/local
         cd ..
 
-        # container_system
-        cd container_system
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
-          -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
-          -DBUILD_TESTS=OFF \
-          -DBUILD_CONTAINER_SAMPLES=OFF \
-          -DCONTAINER_BUILD_INTEGRATION_TESTS=OFF \
-          -DCONTAINER_BUILD_BENCHMARKS=OFF
-        cmake --build build --config Release
-        sudo cmake --install build --prefix /usr/local || true
-        cd ..
-
         # database_system
         cd database_system
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
@@ -152,7 +133,7 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
     - name: Build with ${{ matrix.sanitizer }} sanitizer
       run: cmake --build build -j

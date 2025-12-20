@@ -63,13 +63,6 @@ jobs:
         path: logger_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Checkout container_system
-      uses: actions/checkout@v4
-      with:
-        repository: kcenon/container_system
-        path: container_system
-        token: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Checkout monitoring_system
       uses: actions/checkout@v4
       with:
@@ -154,10 +147,12 @@ jobs:
       shell: pwsh
       run: |
         cd thread_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install"
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_INCLUDE_PATH="$prefix/include"
         cmake --build build --config Release
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+        cmake --install build --prefix "$prefix"
 
     - name: Build and install logger_system (Unix)
       if: runner.os != 'Windows'
@@ -172,37 +167,12 @@ jobs:
       shell: pwsh
       run: |
         cd logger_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install"
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_INCLUDE_PATH="$prefix/include"
         cmake --build build --config Release
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
-
-    - name: Build and install container_system (Unix)
-      if: runner.os != 'Windows'
-      run: |
-        cd container_system
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
-          -DBUILD_TESTS=OFF \
-          -DBUILD_CONTAINER_SAMPLES=OFF \
-          -DCONTAINER_BUILD_INTEGRATION_TESTS=OFF \
-          -DCONTAINER_BUILD_BENCHMARKS=OFF
-        cmake --build build --config Release
-        sudo cmake --install build --prefix /usr/local || true
-
-    - name: Build and install container_system (Windows)
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        cd container_system
-        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
-          -DBUILD_TESTS=OFF `
-          -DBUILD_CONTAINER_SAMPLES=OFF `
-          -DCONTAINER_BUILD_INTEGRATION_TESTS=OFF `
-          -DCONTAINER_BUILD_BENCHMARKS=OFF
-        cmake --build build --config Release
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
-        if ($LASTEXITCODE -ne 0) { Write-Host "Install had warnings, continuing..." }
+        cmake --install build --prefix "$prefix"
 
     - name: Build and install database_system (Unix)
       if: runner.os != 'Windows'
@@ -223,8 +193,10 @@ jobs:
       shell: pwsh
       run: |
         cd database_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_INCLUDE_PATH="$prefix/include" `
           -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
           -DUSE_THREAD_SYSTEM=OFF `
           -DUSE_MONITORING_SYSTEM=OFF `
@@ -232,7 +204,7 @@ jobs:
           -DUSE_UNIT_TEST=OFF `
           -DUSE_POSTGRESQL=OFF
         cmake --build build --config Release
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+        cmake --install build --prefix "$prefix"
 
     - name: Build and install network_system (Unix)
       if: runner.os != 'Windows'
@@ -264,7 +236,7 @@ jobs:
           -DBUILD_TESTS=ON \
           -DBUILD_SAMPLES=OFF \
           -DBUILD_WITH_MONITORING_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
@@ -275,7 +247,7 @@ jobs:
           -DBUILD_TESTS=ON `
           -DBUILD_SAMPLES=OFF `
           -DBUILD_WITH_MONITORING_SYSTEM=OFF `
-          -DBUILD_WITH_CONTAINER_SYSTEM=ON
+          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
 
     - name: Build
       run: cmake --build build --config Debug --parallel
