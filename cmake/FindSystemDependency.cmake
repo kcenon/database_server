@@ -97,14 +97,14 @@ function(find_system_dependency_include NAME)
     # Build list of include search paths
     set(_INCLUDE_PATHS)
 
-    # 1. Environment variable
+    # 1. Environment variable (highest priority)
     if(DEFINED ENV{${NAME}_ROOT})
         list(APPEND _INCLUDE_PATHS "$ENV{${NAME}_ROOT}/include")
         list(APPEND _INCLUDE_PATHS "$ENV{${NAME}_ROOT}")
     endif()
 
-    # 2. Standard paths (no hardcoded user directories)
-    # Workspace-relative paths first (for CI environments where dependencies are in workspace root)
+    # 2. Workspace-relative paths FIRST (for CI and local development)
+    # These take priority over installed paths to use source headers
     list(APPEND _INCLUDE_PATHS
         "${CMAKE_SOURCE_DIR}/${NAME}/include"
         "${CMAKE_SOURCE_DIR}/../${NAME}/include"
@@ -116,10 +116,17 @@ function(find_system_dependency_include NAME)
         "${CMAKE_CURRENT_SOURCE_DIR}/../../${NAME}"
     )
 
+    # 3. Standard installed paths (fallback for CI when deps are installed)
+    list(APPEND _INCLUDE_PATHS
+        "/usr/local/include"
+        "/opt/homebrew/include"
+    )
+
     # Try to find include directory
     foreach(_path ${_INCLUDE_PATHS})
         if(EXISTS "${_path}")
             set(${NAME}_INCLUDE_DIR "${_path}" PARENT_SCOPE)
+            message(STATUS "Found ${NAME} include directory: ${_path}")
             return()
         endif()
     endforeach()
@@ -139,8 +146,14 @@ function(find_system_dependency_library NAME)
         list(APPEND _LIB_PATHS "$ENV{${NAME}_ROOT}/build")
     endif()
 
-    # 2. Standard relative paths (no hardcoded user directories)
-    # Workspace-relative paths first (for CI environments where dependencies are in workspace root)
+    # 2. Standard installed paths (for CI environments where dependencies are installed)
+    list(APPEND _LIB_PATHS
+        "/usr/local/lib"
+        "/usr/lib"
+        "/opt/homebrew/lib"
+    )
+
+    # 3. Workspace-relative paths (for CI environments where dependencies are in workspace root)
     list(APPEND _LIB_PATHS
         "${CMAKE_SOURCE_DIR}/${NAME}/build/lib"
         "${CMAKE_SOURCE_DIR}/../${NAME}/build/lib"
@@ -156,6 +169,7 @@ function(find_system_dependency_library NAME)
     foreach(_path ${_LIB_PATHS})
         if(EXISTS "${_path}")
             set(${NAME}_LIBRARY_DIR "${_path}" PARENT_SCOPE)
+            message(STATUS "Found ${NAME} library directory: ${_path}")
             return()
         endif()
     endforeach()

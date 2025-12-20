@@ -103,6 +103,16 @@ include(FindSystemDependency)
 
 find_package(Threads REQUIRED)
 
+# Add standard library paths for installed dependencies (CI environment)
+# This ensures find_library can locate libraries installed to /usr/local
+if(UNIX)
+    list(APPEND CMAKE_PREFIX_PATH "/usr/local")
+    link_directories("/usr/local/lib")
+
+    # Also add standard include paths for installed headers
+    include_directories("/usr/local/include")
+endif()
+
 ##################################################
 # Dependency Detection
 ##################################################
@@ -254,43 +264,81 @@ target_link_libraries(DatabaseServerLib
         Threads::Threads
 )
 
-# Add common_system include and link
+##################################################
+# Helper function for robust library linking
+# This function handles both CMake target and installed library scenarios
+##################################################
+function(link_system_dependency TARGET_NAME DEP_NAME)
+    set(TARGET_NAMES ${ARGN})
+    set(LINKED FALSE)
+
+    # First try CMake targets
+    foreach(target_name ${TARGET_NAMES})
+        if(TARGET ${target_name})
+            target_link_libraries(${TARGET_NAME} PUBLIC ${target_name})
+            message(STATUS "Linking ${DEP_NAME} via CMake target: ${target_name}")
+            set(LINKED TRUE)
+            break()
+        endif()
+    endforeach()
+
+    # If no target found, search in sibling project build directories first
+    if(NOT LINKED)
+        # Convert DEP_NAME to lowercase for directory search
+        string(TOLOWER ${DEP_NAME} DEP_NAME_LOWER)
+        string(REPLACE "_" "_" DEP_DIR_NAME ${DEP_NAME_LOWER})
+
+        # Build list of sibling project paths
+        set(SIBLING_PATHS
+            "${CMAKE_SOURCE_DIR}/../${DEP_DIR_NAME}/build/lib"
+            "${CMAKE_SOURCE_DIR}/../${DEP_DIR_NAME}/build"
+            "${CMAKE_SOURCE_DIR}/${DEP_DIR_NAME}/build/lib"
+            "${CMAKE_SOURCE_DIR}/${DEP_DIR_NAME}/build"
+        )
+
+        find_library(${DEP_NAME}_LIB
+            NAMES ${TARGET_NAMES}
+            PATHS
+                ${SIBLING_PATHS}
+                /usr/local/lib
+                /usr/lib
+                /opt/homebrew/lib
+            NO_DEFAULT_PATH
+            NO_CMAKE_SYSTEM_PATH
+        )
+
+        # Exclude macOS system frameworks (avoid matching Network.framework etc.)
+        if(${DEP_NAME}_LIB)
+            string(FIND "${${DEP_NAME}_LIB}" ".framework" FRAMEWORK_IDX)
+            string(FIND "${${DEP_NAME}_LIB}" "/System/" SYSTEM_IDX)
+            string(FIND "${${DEP_NAME}_LIB}" "Xcode.app" XCODE_IDX)
+            if(FRAMEWORK_IDX GREATER -1 OR SYSTEM_IDX GREATER -1 OR XCODE_IDX GREATER -1)
+                message(STATUS "Skipping system library: ${${DEP_NAME}_LIB}")
+                unset(${DEP_NAME}_LIB CACHE)
+            endif()
+        endif()
+
+        if(${DEP_NAME}_LIB)
+            target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
+            message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
+            set(LINKED TRUE)
+        else()
+            message(WARNING "${DEP_NAME} library not found - linking may fail. Searched: ${TARGET_NAMES}")
+        endif()
+    endif()
+endfunction()
+
+# Add common_system include (header-only library, no linking needed)
 if(common_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${common_system_INCLUDE_DIR})
 endif()
-if(TARGET common_system)
-    target_link_libraries(DatabaseServerLib PUBLIC common_system)
-else()
-    # Fallback: find installed library
-    find_library(COMMON_SYSTEM_LIB
-        NAMES common_system CommonSystem common
-        PATHS /usr/local/lib /usr/lib
-    )
-    if(COMMON_SYSTEM_LIB)
-        target_link_libraries(DatabaseServerLib PUBLIC ${COMMON_SYSTEM_LIB})
-        message(STATUS "Linking common_system from: ${COMMON_SYSTEM_LIB}")
-    endif()
-endif()
+# common_system is header-only, so no library linking is needed
 
 # Add thread_system include and link
 if(thread_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${thread_system_INCLUDE_DIR})
 endif()
-if(TARGET ThreadSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC ThreadSystem)
-elseif(TARGET thread_system)
-    target_link_libraries(DatabaseServerLib PUBLIC thread_system)
-else()
-    # Fallback: find installed library
-    find_library(THREAD_SYSTEM_LIB
-        NAMES ThreadSystem thread_system utilities
-        PATHS /usr/local/lib /usr/lib
-    )
-    if(THREAD_SYSTEM_LIB)
-        target_link_libraries(DatabaseServerLib PUBLIC ${THREAD_SYSTEM_LIB})
-        message(STATUS "Linking thread_system from: ${THREAD_SYSTEM_LIB}")
-    endif()
-endif()
+link_system_dependency(DatabaseServerLib THREAD_SYSTEM ThreadSystem thread_system utilities)
 
 # Add database_system include and link
 if(database_system_INCLUDE_DIR)
@@ -301,40 +349,31 @@ if(database_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${_database_system_root})
     endif()
 endif()
-if(TARGET DatabaseSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC DatabaseSystem)
-elseif(TARGET database_system)
-    target_link_libraries(DatabaseServerLib PUBLIC database_system)
-else()
-    # Fallback: find installed library
-    find_library(DATABASE_SYSTEM_LIB
-        NAMES DatabaseSystem database_system database
-        PATHS /usr/local/lib /usr/lib
-    )
-    if(DATABASE_SYSTEM_LIB)
-        target_link_libraries(DatabaseServerLib PUBLIC ${DATABASE_SYSTEM_LIB})
-        message(STATUS "Linking database_system from: ${DATABASE_SYSTEM_LIB}")
-    endif()
-endif()
+link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database_system database)
 
 # Add network_system include and link
 if(network_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${network_system_INCLUDE_DIR})
 endif()
-if(TARGET NetworkSystem)
-    target_link_libraries(DatabaseServerLib PUBLIC NetworkSystem)
-elseif(TARGET network_system)
-    target_link_libraries(DatabaseServerLib PUBLIC network_system)
-else()
-    # Fallback: find installed library
-    find_library(NETWORK_SYSTEM_LIB
-        NAMES NetworkSystem network_system network
-        PATHS /usr/local/lib /usr/lib
-    )
-    if(NETWORK_SYSTEM_LIB)
-        target_link_libraries(DatabaseServerLib PUBLIC ${NETWORK_SYSTEM_LIB})
-        message(STATUS "Linking network_system from: ${NETWORK_SYSTEM_LIB}")
-    endif()
+link_system_dependency(DatabaseServerLib NETWORK_SYSTEM NetworkSystem network_system messaging_system network)
+
+# Add logger_system as transitive dependency (required by network_system and database_system)
+find_library(LOGGER_SYSTEM_LIB
+    NAMES LoggerSystem logger_system logger
+    PATHS
+        "${CMAKE_SOURCE_DIR}/../logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/../logger_system/build"
+        "${CMAKE_SOURCE_DIR}/logger_system/build/lib"
+        "${CMAKE_SOURCE_DIR}/logger_system/build"
+        /usr/local/lib
+        /usr/lib
+        /opt/homebrew/lib
+    NO_DEFAULT_PATH
+    NO_CMAKE_SYSTEM_PATH
+)
+if(LOGGER_SYSTEM_LIB)
+    target_link_libraries(DatabaseServerLib PUBLIC ${LOGGER_SYSTEM_LIB})
+    message(STATUS "Linking logger_system from: ${LOGGER_SYSTEM_LIB}")
 endif()
 
 # Add ASIO include directory (required for network_system headers)
@@ -365,11 +404,7 @@ if(BUILD_WITH_CONTAINER_SYSTEM)
             target_include_directories(DatabaseServerLib PUBLIC ${_container_system_root})
         endif()
     endif()
-    if(TARGET ContainerSystem::container)
-        target_link_libraries(DatabaseServerLib PUBLIC ContainerSystem::container)
-    elseif(TARGET container_system)
-        target_link_libraries(DatabaseServerLib PUBLIC container_system)
-    endif()
+    link_system_dependency(DatabaseServerLib CONTAINER_SYSTEM container_system ContainerSystem container)
 endif()
 
 ##################################################
