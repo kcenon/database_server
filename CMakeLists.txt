@@ -221,8 +221,8 @@ add_library(DatabaseServerLib
     # Core
     src/core/server_app.cpp
     src/core/server_config.cpp
-    # Pooling (Phase 2) - temporarily disabled due to database_system API changes
-    # src/pooling/connection_pool.cpp
+    # Pooling (Phase 2)
+    src/pooling/connection_pool.cpp
     # Resilience (Phase 2) - temporarily disabled due to database_system API changes
     # src/resilience/connection_health_monitor.cpp
     # src/resilience/resilient_database_connection.cpp
@@ -260,6 +260,16 @@ if(common_system_INCLUDE_DIR)
 endif()
 if(TARGET common_system)
     target_link_libraries(DatabaseServerLib PUBLIC common_system)
+else()
+    # Fallback: find installed library
+    find_library(COMMON_SYSTEM_LIB
+        NAMES common_system CommonSystem common
+        PATHS /usr/local/lib /usr/lib
+    )
+    if(COMMON_SYSTEM_LIB)
+        target_link_libraries(DatabaseServerLib PUBLIC ${COMMON_SYSTEM_LIB})
+        message(STATUS "Linking common_system from: ${COMMON_SYSTEM_LIB}")
+    endif()
 endif()
 
 # Add thread_system include and link
@@ -270,6 +280,16 @@ if(TARGET ThreadSystem)
     target_link_libraries(DatabaseServerLib PUBLIC ThreadSystem)
 elseif(TARGET thread_system)
     target_link_libraries(DatabaseServerLib PUBLIC thread_system)
+else()
+    # Fallback: find installed library
+    find_library(THREAD_SYSTEM_LIB
+        NAMES ThreadSystem thread_system utilities
+        PATHS /usr/local/lib /usr/lib
+    )
+    if(THREAD_SYSTEM_LIB)
+        target_link_libraries(DatabaseServerLib PUBLIC ${THREAD_SYSTEM_LIB})
+        message(STATUS "Linking thread_system from: ${THREAD_SYSTEM_LIB}")
+    endif()
 endif()
 
 # Add database_system include and link
@@ -285,6 +305,16 @@ if(TARGET DatabaseSystem)
     target_link_libraries(DatabaseServerLib PUBLIC DatabaseSystem)
 elseif(TARGET database_system)
     target_link_libraries(DatabaseServerLib PUBLIC database_system)
+else()
+    # Fallback: find installed library
+    find_library(DATABASE_SYSTEM_LIB
+        NAMES DatabaseSystem database_system database
+        PATHS /usr/local/lib /usr/lib
+    )
+    if(DATABASE_SYSTEM_LIB)
+        target_link_libraries(DatabaseServerLib PUBLIC ${DATABASE_SYSTEM_LIB})
+        message(STATUS "Linking database_system from: ${DATABASE_SYSTEM_LIB}")
+    endif()
 endif()
 
 # Add network_system include and link
@@ -295,6 +325,16 @@ if(TARGET NetworkSystem)
     target_link_libraries(DatabaseServerLib PUBLIC NetworkSystem)
 elseif(TARGET network_system)
     target_link_libraries(DatabaseServerLib PUBLIC network_system)
+else()
+    # Fallback: find installed library
+    find_library(NETWORK_SYSTEM_LIB
+        NAMES NetworkSystem network_system network
+        PATHS /usr/local/lib /usr/lib
+    )
+    if(NETWORK_SYSTEM_LIB)
+        target_link_libraries(DatabaseServerLib PUBLIC ${NETWORK_SYSTEM_LIB})
+        message(STATUS "Linking network_system from: ${NETWORK_SYSTEM_LIB}")
+    endif()
 endif()
 
 # Add ASIO include directory (required for network_system headers)
