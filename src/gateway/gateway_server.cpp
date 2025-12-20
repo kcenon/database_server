@@ -301,7 +301,7 @@ void gateway_server::on_message(
 
 	// Deserialize request
 	auto request_result = query_request::deserialize(data);
-	if (!request_result)
+	if (request_result.is_err())
 	{
 		// Send error response
 		query_response error_response(0, status_code::invalid_query,
@@ -430,7 +430,7 @@ void gateway_server::send_response(
 	if (container)
 	{
 		auto data = container->serialize_array();
-		session->send_packet(data);
+		session->send_packet(std::move(data));
 	}
 #else
 	(void)response;

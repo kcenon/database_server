@@ -32,6 +32,8 @@
 #include <kcenon/database_server/server_app.h>
 
 #include <kcenon/database_server/gateway/gateway_server.h>
+#include <kcenon/database_server/gateway/query_router.h>
+#include <kcenon/database_server/pooling/connection_pool.h>
 
 #include <chrono>
 #include <csignal>
@@ -103,6 +105,16 @@ bool server_app::do_initialize()
 	// Setup signal handlers
 	setup_signal_handlers();
 
+	// Initialize query router
+	gateway::router_config router_cfg;
+	router_cfg.default_timeout_ms = config_.network.connection_timeout_ms;
+	router_cfg.max_concurrent_queries = config_.network.max_connections;
+	router_cfg.enable_metrics = true;
+
+	query_router_ = std::make_unique<gateway::query_router>(router_cfg);
+
+	std::cout << "Query router initialized" << std::endl;
+
 	// Initialize gateway server
 	gateway::gateway_config gw_config;
 	gw_config.server_id = config_.name;
@@ -125,7 +137,16 @@ bool server_app::do_initialize()
 			std::cout << "Client disconnected: " << session_id << std::endl;
 		});
 
-	// TODO (Phase 2): Initialize connection pool
+	// Set up request handler to route queries through query_router
+	gateway_->set_request_handler(
+		[this](const gateway::client_session& session, const gateway::query_request& request)
+			-> gateway::query_response
+		{
+			(void)session; // Session info available for future enhancements (logging, rate limiting)
+
+			// Execute query through query router
+			return query_router_->execute(request);
+		});
 
 	std::cout << "Server '" << config_.name << "' initialized" << std::endl;
 	std::cout << "  Listen address: " << config_.network.host << ":" << config_.network.port
@@ -157,7 +178,12 @@ int server_app::run()
 		}
 	}
 
-	// TODO (Phase 2): Start connection pool health monitoring
+	// Start connection pool health monitoring if pool is configured
+	if (connection_pool_)
+	{
+		connection_pool_->schedule_health_check();
+		std::cout << "Connection pool health monitoring started" << std::endl;
+	}
 
 	state_ = server_state::running;
 	std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
@@ -194,14 +220,23 @@ void server_app::stop()
 		}
 	}
 
-	// TODO (Phase 2): Close connection pool
+	// Shutdown connection pool
+	if (connection_pool_)
+	{
+		connection_pool_->request_shutdown();
+		connection_pool_->shutdown();
+	}
 
 	std::cout << "Shutdown requested" << std::endl;
 }
 
 void server_app::do_cleanup()
 {
-	// TODO (Phase 2): Cleanup connection pool
+	// Cleanup query router
+	query_router_.reset();
+
+	// Cleanup connection pool
+	connection_pool_.reset();
 
 	// Cleanup gateway server
 	gateway_.reset();
