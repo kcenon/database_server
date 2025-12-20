@@ -148,9 +148,11 @@ jobs:
       run: |
         cd thread_system
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        # Set include path via environment variable for MSVC
+        $env:CXXFLAGS = "/I`"$prefix/include`""
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_INCLUDE_PATH="$prefix/include"
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
         cmake --build build --config Release
         cmake --install build --prefix "$prefix"
 
@@ -170,7 +172,7 @@ jobs:
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DUSE_UNIT_TEST=OFF `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_INCLUDE_PATH="$prefix/include"
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`""
         cmake --build build --config Release
         cmake --install build --prefix "$prefix"
 
@@ -197,7 +199,7 @@ jobs:
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
           -DCMAKE_PREFIX_PATH="$prefix" `
-          -DCMAKE_INCLUDE_PATH="$prefix/include" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DALLOW_BUILD_WITHOUT_NETWORK_SYSTEM=ON `
           -DUSE_THREAD_SYSTEM=OFF `
           -DUSE_MONITORING_SYSTEM=OFF `
@@ -223,12 +225,14 @@ jobs:
       shell: pwsh
       run: |
         cd network_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DUSE_UNIT_TEST=OFF `
           -DBUILD_SAMPLES=OFF
         cmake --build build --config Release
-        cmake --install build --prefix "$env:GITHUB_WORKSPACE/deps_install"
+        cmake --install build --prefix "$prefix"
 
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
@@ -242,10 +246,13 @@ jobs:
 
     - name: Configure CMake (Windows)
       if: runner.os == 'Windows'
+      shell: pwsh
       run: |
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
         cmake -B build -G Ninja `
           -DCMAKE_BUILD_TYPE=Debug `
-          -DCMAKE_PREFIX_PATH="$env:GITHUB_WORKSPACE/deps_install" `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          -DCMAKE_CXX_FLAGS="/I`"$prefix/include`"" `
           -DBUILD_TESTS=ON `
           -DBUILD_DATABASE_SAMPLES=OFF `
           -DBUILD_WITH_MONITORING_SYSTEM=OFF `
