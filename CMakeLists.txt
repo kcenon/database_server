@@ -340,8 +340,15 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
         endif()
 
         if(${DEP_NAME}_LIB)
-            target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
-            message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
+            # MSVC requires /WHOLEARCHIVE for network_system to include all symbols
+            # This is needed because messaging_server symbols are not referenced directly
+            if(MSVC AND ${DEP_NAME} STREQUAL "NETWORK_SYSTEM")
+                target_link_options(${TARGET_NAME} PUBLIC "/WHOLEARCHIVE:${${DEP_NAME}_LIB}")
+                message(STATUS "Linking ${DEP_NAME} with WHOLEARCHIVE from: ${${DEP_NAME}_LIB}")
+            else()
+                target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
+                message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
+            endif()
             set(LINKED TRUE)
         else()
             message(WARNING "${DEP_NAME} library not found - linking may fail. Searched: ${TARGET_NAMES}")
