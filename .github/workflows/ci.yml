@@ -231,10 +231,12 @@ jobs:
         # Build only the database library target (skip integration tests)
         cmake --build build --config Release --target database
         # Install headers and library manually to avoid install script errors
-        New-Item -ItemType Directory -Force -Path "$prefix/include/database_system"
-        Copy-Item -Recurse -Force "database/*" "$prefix/include/database_system/"
-        Copy-Item -Force "build/database/Release/*.lib" "$prefix/lib/" -ErrorAction SilentlyContinue
-        Copy-Item -Force "build/database/Release/*.dll" "$prefix/bin/" -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Force -Path "$prefix/include/database"
+        Copy-Item -Recurse -Force "database/*" "$prefix/include/database/"
+        New-Item -ItemType Directory -Force -Path "$prefix/lib"
+        # Find and copy library from various possible locations
+        Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
+        Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
 
     - name: Build and install network_system (Unix)
       if: runner.os != 'Windows'
@@ -260,10 +262,12 @@ jobs:
         # Build only the NetworkSystem library target (skip tests that fail to link)
         cmake --build build --config Release --target NetworkSystem
         # Install headers and library manually
-        New-Item -ItemType Directory -Force -Path "$prefix/include/network_system"
-        Copy-Item -Recurse -Force "include/*" "$prefix/include/network_system/"
-        Copy-Item -Force "build/Release/*.lib" "$prefix/lib/" -ErrorAction SilentlyContinue
-        Copy-Item -Force "build/Release/*.dll" "$prefix/bin/" -ErrorAction SilentlyContinue
+        New-Item -ItemType Directory -Force -Path "$prefix/include/kcenon/network"
+        Copy-Item -Recurse -Force "include/kcenon/network/*" "$prefix/include/kcenon/network/"
+        New-Item -ItemType Directory -Force -Path "$prefix/lib"
+        # Find and copy library from various possible locations
+        Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
+        Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
 
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
