@@ -51,10 +51,8 @@
 #include <memory>
 #include <thread>
 
-// Database system interfaces
-#include <database/connection_pool.h>
-#include <database/database_base.h>
-#include <database/database_types.h>
+// Database server pooling types (server-side implementation)
+#include "connection_types.h"
 
 // Thread system integration
 #include <kcenon/thread/core/cancellation_token.h>
