@@ -366,9 +366,9 @@ endfunction()
 # Add common_system include (header-only library, no linking needed)
 if(common_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${common_system_INCLUDE_DIR})
-    # Define WITH_COMMON_SYSTEM so feature_flags.h sets KCENON_WITH_COMMON_SYSTEM
+    # Define both BUILD_WITH_COMMON_SYSTEM (legacy) and WITH_COMMON_SYSTEM (feature_flags.h)
     # This ensures VoidResult type matches between network_system and database_server
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_COMMON_SYSTEM)
+    target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_COMMON_SYSTEM WITH_COMMON_SYSTEM)
 endif()
 # common_system is header-only, so no library linking is needed
 
@@ -451,7 +451,8 @@ endif()
 
 # Optional: monitoring_system
 if(BUILD_WITH_MONITORING_SYSTEM)
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_MONITORING_SYSTEM)
+    # Define both BUILD_WITH_* (legacy) and WITH_* (feature_flags.h)
+    target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_MONITORING_SYSTEM WITH_MONITORING_SYSTEM)
     if(monitoring_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${monitoring_system_INCLUDE_DIR})
     endif()
@@ -462,7 +463,8 @@ endif()
 
 # Optional: container_system
 if(BUILD_WITH_CONTAINER_SYSTEM)
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_CONTAINER_SYSTEM)
+    # Define both BUILD_WITH_* (legacy) and WITH_* (feature_flags.h)
+    target_compile_definitions(DatabaseServerLib PUBLIC BUILD_WITH_CONTAINER_SYSTEM WITH_CONTAINER_SYSTEM)
     if(container_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${container_system_INCLUDE_DIR})
         # Also add the root directory for headers in container_system/core/
