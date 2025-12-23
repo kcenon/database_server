@@ -58,15 +58,26 @@
 // Common system integration
 #include <kcenon/common/patterns/result.h>
 
-// Forward declarations
-namespace network_system::core
+// Forward declarations - actual classes
+namespace kcenon::network::core
 {
 class messaging_server;
 }
 
-namespace network_system::session
+namespace kcenon::network::session
 {
 class messaging_session;
+}
+
+// Backward compatibility namespace aliases
+namespace network_system::core
+{
+using messaging_server = kcenon::network::core::messaging_server;
+}
+
+namespace network_system::session
+{
+using messaging_session = kcenon::network::session::messaging_session;
 }
 
 namespace database_server::gateway
