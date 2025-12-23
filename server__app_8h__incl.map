@@ -1,0 +1,18 @@
+<map id="include/kcenon/database_server/server_app.h" name="include/kcenon/database_server/server_app.h">
+<area shape="rect" id="Node000001" title="Database server application interface." alt="" coords="255,5,439,45"/>
+<area shape="rect" id="Node000002" href="$server__config_8h.html" title="Server configuration structures." alt="" coords="121,93,274,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="312,48,233,89,230,84,310,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="283,167,341,192"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="345,46,320,154,315,152,340,45"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="349,93,416,119"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="358,44,374,79,369,82,353,47"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="440,93,517,119"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="380,43,448,84,446,88,377,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,72,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="173,121,78,163,76,159,171,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,167,171,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="189,121,155,158,151,155,185,117"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="217,116,283,157,280,162,214,121"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="195,167,258,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="205,118,219,153,214,155,200,120"/>
+</map>

@@ -1,0 +1,27 @@
+<map id="include/kcenon/database_server/gateway/query_types.h" name="include/kcenon/database_server/gateway/query_types.h">
+<area shape="rect" id="Node000001" title="Query protocol type definitions for database gateway." alt="" coords="453,5,637,60"/>
+<area shape="rect" id="Node000002" href="$auth__middleware_8h.html" title="Authentication middleware for database gateway." alt="" coords="21,218,280,258"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="463,67,366,110,262,168,180,220,177,216,259,164,364,106,461,63"/>
+<area shape="rect" id="Node000003" href="$gateway__server_8h.html" title="Database gateway TCP server." alt="" coords="298,313,488,368"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="572,71,594,113,611,164,616,191,616,217,610,243,598,267,581,282,555,295,489,318,487,313,553,290,578,277,593,264,605,241,610,217,610,191,606,166,589,115,567,73"/>
+<area shape="rect" id="Node000007" href="$query__protocol_8h.html" title="Query protocol message structures for database gateway." alt="" coords="377,108,561,163"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="519,73,491,110,487,106,515,69"/>
+<area shape="rect" id="Node000008" href="$query__router_8h.html" title="Query router with load balancing for database gateway." alt="" coords="658,211,842,265"/>
+<area shape="poly" id="edge15_Node000001_Node000008" title=" " alt="" coords="594,66,641,106,692,159,732,208,728,212,688,163,638,110,591,71"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="209,261,331,311,329,316,207,266"/>
+<area shape="rect" id="Node000005" href="$gateway__server_8cpp.html" title=" " alt="" coords="163,416,324,456"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="75,266,43,287,18,315,11,329,8,341,10,353,18,366,39,383,75,397,164,419,162,424,73,402,37,387,14,370,5,355,3,341,6,327,13,312,39,282,72,262"/>
+<area shape="rect" id="Node000006" href="$auth__middleware_8cpp.html" title=" " alt="" coords="28,328,273,353"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="153,272,153,328,148,328,148,272"/>
+<area shape="rect" id="Node000004" href="$server__app_8cpp.html" title=" " alt="" coords="453,423,629,449"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="448,373,524,421,521,426,445,378"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="340,378,275,418,272,414,338,373"/>
+<area shape="poly" id="edge9_Node000007_Node000002" title=" " alt="" coords="374,169,211,220,209,215,372,164"/>
+<area shape="poly" id="edge10_Node000007_Node000003" title=" " alt="" coords="386,172,362,190,345,212,338,237,343,264,356,289,371,312,367,315,351,292,338,265,333,237,340,209,359,186,383,167"/>
+<area shape="poly" id="edge11_Node000007_Node000008" title=" " alt="" coords="556,165,678,208,676,213,554,170"/>
+<area shape="rect" id="Node000010" href="$query__protocol_8cpp.html" title=" " alt="" coords="354,225,584,251"/>
+<area shape="poly" id="edge14_Node000007_Node000010" title=" " alt="" coords="472,176,472,225,466,225,466,176"/>
+<area shape="poly" id="edge12_Node000008_Node000004" title=" " alt="" coords="760,279,759,325,752,348,740,370,717,392,690,409,660,421,630,429,628,424,658,416,687,404,714,388,736,366,747,346,753,324,754,279"/>
+<area shape="rect" id="Node000009" href="$query__router_8cpp.html" title=" " alt="" coords="512,328,727,353"/>
+<area shape="poly" id="edge13_Node000008_Node000009" title=" " alt="" coords="707,276,636,330,633,326,704,271"/>
+</map>

@@ -1,0 +1,20 @@
+var searchData=
+[
+  ['timeout_0',['timeout',['../structdatabase__server_1_1resilience_1_1health__check__config.html#a6986d96277d231b4b91d3c832aafbbec',1,'database_server::resilience::health_check_config']]],
+  ['timeout_5fms_1',['timeout_ms',['../structdatabase__server_1_1gateway_1_1query__options.html#abbebec070dc7814fcfa97e9e8b6406fb',1,'database_server::gateway::query_options']]],
+  ['timeout_5fqueries_2',['timeout_queries',['../structdatabase__server_1_1gateway_1_1router__metrics.html#ad607faac0f842715c06244759025cda3',1,'database_server::gateway::router_metrics']]],
+  ['timeouts_3',['timeouts',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#afef730e06c1f74f91cfb508dd9cf7174',1,'database_server::pooling::pool_metrics']]],
+  ['timestamp_4',['timestamp',['../structdatabase__server_1_1gateway_1_1auth__event.html#a381e9ed92dcb16ace8973a6a6a0046b9',1,'database_server::gateway::auth_event::timestamp'],['../structdatabase__server_1_1gateway_1_1message__header.html#a64a627160a0e51c64aa851847f9d806b',1,'database_server::gateway::message_header::timestamp']]],
+  ['token_5',['token',['../structdatabase__server_1_1gateway_1_1auth__token.html#a4ffc17615fccbd5c6313dbf9881cae37',1,'database_server::gateway::auth_token::token'],['../structdatabase__server_1_1gateway_1_1query__request.html#adedd05aeb5e425f70865704e8a7b7c48',1,'database_server::gateway::query_request::token']]],
+  ['token_5frefresh_5fwindow_5fms_6',['token_refresh_window_ms',['../structdatabase__server_1_1gateway_1_1auth__config.html#a0d71fef0bd8e8e6d083c661bf3984b57',1,'database_server::gateway::auth_config']]],
+  ['total_5facquisitions_7',['total_acquisitions',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#a2180c2686fa20ac7f4a591b9d1a19373',1,'database_server::pooling::pool_metrics']]],
+  ['total_5fauth_5fattempts_8',['total_auth_attempts',['../structdatabase__server_1_1gateway_1_1auth__metrics.html#a4ff7a3f837301d8b3a60cff6ccf14efc',1,'database_server::gateway::auth_metrics']]],
+  ['total_5fconnections_9',['total_connections',['../structdatabase_1_1connection__stats.html#a4d4282b7f8035c4230f69f7e32ae38b4',1,'database::connection_stats']]],
+  ['total_5fexecution_5ftime_5fus_10',['total_execution_time_us',['../structdatabase__server_1_1gateway_1_1router__metrics.html#ac467349b7432dc6b18cd944728d61409',1,'database_server::gateway::router_metrics']]],
+  ['total_5fqueries_11',['total_queries',['../structdatabase__server_1_1gateway_1_1router__metrics.html#a1fdf84c0387d826c8067210abe677b19',1,'database_server::gateway::router_metrics']]],
+  ['total_5frequests_12',['total_requests',['../structdatabase__server_1_1gateway_1_1rate__limit__entry.html#af73ceb7b0dff3acbdba5de53f64d0e21',1,'database_server::gateway::rate_limit_entry']]],
+  ['total_5fwait_5ftime_5fus_13',['total_wait_time_us',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#a8fc87ae6d037afca873d5672dae522b7',1,'database_server::pooling::pool_metrics']]],
+  ['type_14',['type',['../structdatabase__server_1_1gateway_1_1auth__event.html#a5907b31825fdcdba905c9c05482f6f79',1,'database_server::gateway::auth_event::type'],['../structdatabase__server_1_1gateway_1_1query__request.html#aa336e7d363d5a83b8f442aa86b24616c',1,'database_server::gateway::query_request::type']]],
+  ['type_5fid_15',['type_id',['../structdatabase__server_1_1gateway_1_1column__metadata.html#a3a8e39601c7ca42b95ca449dd1b5f538',1,'database_server::gateway::column_metadata']]],
+  ['type_5fname_16',['type_name',['../structdatabase__server_1_1gateway_1_1column__metadata.html#a14d328ea96df06d330a59222195fff4f',1,'database_server::gateway::column_metadata']]]
+];

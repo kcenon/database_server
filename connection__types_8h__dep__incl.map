@@ -1,0 +1,11 @@
+<map id="include/kcenon/database_server/pooling/connection_types.h" name="include/kcenon/database_server/pooling/connection_types.h">
+<area shape="rect" id="Node000001" title="Connection pool types for database_server middleware." alt="" coords="215,5,412,60"/>
+<area shape="rect" id="Node000002" href="$connection__pool_8h.html" title="High&#45;performance connection pool with adaptive queue and priority scheduling." alt="" coords="215,108,412,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="316,74,316,108,311,108,311,74"/>
+<area shape="rect" id="Node000003" href="$server__app_8cpp.html" title=" " alt="" coords="5,218,181,243"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="240,170,121,220,119,216,238,166"/>
+<area shape="rect" id="Node000004" href="$query__router_8cpp.html" title=" " alt="" coords="206,218,421,243"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="316,177,316,218,311,218,311,177"/>
+<area shape="rect" id="Node000005" href="$connection__pool_8cpp.html" title=" " alt="" coords="445,211,613,251"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="388,166,487,208,485,213,385,170"/>
+</map>

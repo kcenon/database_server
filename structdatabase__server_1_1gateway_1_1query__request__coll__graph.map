@@ -1,0 +1,9 @@
+<map id="database_server::gateway::query_request" name="database_server::gateway::query_request">
+<area shape="rect" id="Node000001" title="Request message for database queries." alt="" coords="301,69,496,109"/>
+<area shape="rect" id="Node000002" href="$structdatabase__server_1_1gateway_1_1message__header.html" title="Common header for all protocol messages." alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="210,46,306,67,305,72,209,51"/>
+<area shape="rect" id="Node000003" href="$structdatabase__server_1_1gateway_1_1auth__token.html" title="Authentication token for client identification." alt="" coords="5,69,200,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="214,87,301,87,301,92,214,92"/>
+<area shape="rect" id="Node000004" href="$structdatabase__server_1_1gateway_1_1query__options.html" title="Options for query execution." alt="" coords="5,133,200,173"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="209,128,305,107,306,112,210,133"/>
+</map>

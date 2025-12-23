@@ -1,0 +1,8 @@
+var searchData=
+[
+  ['default_5fconfig_0',['default_config',['../structdatabase__server_1_1server__config.html#ac8c9326b1ad8ba13ae4f0dde1b209c7c',1,'database_server::server_config']]],
+  ['delete_5fquery_1',['delete_query',['../classdatabase__server_1_1resilience_1_1resilient__database__connection.html#ad40db5b4d977686d006797338d471f96',1,'database_server::resilience::resilient_database_connection']]],
+  ['deserialize_2',['deserialize',['../structdatabase__server_1_1gateway_1_1query__request.html#a22c0651883ee7f256c06e25480aee439',1,'database_server::gateway::query_request::deserialize(std::shared_ptr&lt; container_module::value_container &gt; container)'],['../structdatabase__server_1_1gateway_1_1query__request.html#ad8fdfeaf4160673ddef099839a8b2b87',1,'database_server::gateway::query_request::deserialize(const std::vector&lt; uint8_t &gt; &amp;data)'],['../structdatabase__server_1_1gateway_1_1query__response.html#a80b2d7b8a0d53b06760058b8c02bb48b',1,'database_server::gateway::query_response::deserialize(std::shared_ptr&lt; container_module::value_container &gt; container)'],['../structdatabase__server_1_1gateway_1_1query__response.html#a8156ac1d95907f42a5a6163df30593e9',1,'database_server::gateway::query_response::deserialize(const std::vector&lt; uint8_t &gt; &amp;data)']]],
+  ['disconnect_5fclient_3',['disconnect_client',['../classdatabase__server_1_1gateway_1_1gateway__server.html#a97e43df7678abad93898b8bef6f648c1',1,'database_server::gateway::gateway_server']]],
+  ['do_5fwork_4',['do_work',['../classdatabase__server_1_1pooling_1_1connection__acquisition__job.html#a9687ca4d24717b162d935a66447b30ce',1,'database_server::pooling::connection_acquisition_job']]]
+];

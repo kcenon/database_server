@@ -1,0 +1,21 @@
+<map id="include/kcenon/database_server/resilience/connection_health_monitor.h" name="include/kcenon/database_server/resilience/connection_health_monitor.h">
+<area shape="rect" id="Node000001" title="Health monitoring for database connections." alt="" coords="305,5,517,60"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="5,115,72,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="305,56,198,79,85,111,78,113,76,108,83,105,197,74,304,51"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="96,115,163,141"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="322,63,176,111,170,113,168,108,174,105,320,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="187,115,253,141"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="358,62,257,112,254,107,356,58"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="277,115,355,141"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="386,62,339,107,336,104,382,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="379,115,443,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="413,60,413,101,408,101,408,60"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="467,115,525,141"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="437,59,478,103,474,107,433,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="549,115,613,141"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="460,58,550,106,547,111,457,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="638,115,701,141"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="492,58,626,106,632,108,630,113,624,110,490,63"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="725,108,904,148"/>
+<area shape="poly" id="edge9_Node000001_Node000010" title=" " alt="" coords="517,56,720,102,719,107,516,61"/>
+</map>
