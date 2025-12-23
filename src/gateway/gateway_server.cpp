@@ -35,7 +35,9 @@
 #include <network_system/core/messaging_server.h>
 #include <network_system/session/messaging_session.h>
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#include <kcenon/common/config/feature_flags.h>
+
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include <container/core/container.h>
 #endif
 
@@ -467,7 +469,7 @@ void gateway_server::send_response(
 		return;
 	}
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	auto container = response.serialize();
 	if (container)
 	{

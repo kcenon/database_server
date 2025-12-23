@@ -31,7 +31,9 @@
 
 #include <kcenon/database_server/gateway/query_protocol.h>
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#include <kcenon/common/config/feature_flags.h>
+
+#if KCENON_WITH_CONTAINER_SYSTEM
 #include <container/core/container.h>
 #endif
 
@@ -99,7 +101,7 @@ query_request::query_request(std::string query_sql, query_type qtype)
 
 std::shared_ptr<container_module::value_container> query_request::serialize() const
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	auto container = std::make_shared<container_module::value_container>();
 	container->set_message_type("query_request");
 
@@ -178,7 +180,7 @@ std::shared_ptr<container_module::value_container> query_request::serialize() co
 kcenon::common::Result<query_request>
 query_request::deserialize(std::shared_ptr<container_module::value_container> container)
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	if (!container)
 	{
 		return kcenon::common::error_info{ -1, "Null container", "query_protocol" };
@@ -390,7 +392,7 @@ query_request::deserialize(std::shared_ptr<container_module::value_container> co
 kcenon::common::Result<query_request>
 query_request::deserialize(const std::vector<uint8_t>& data)
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	auto container = std::make_shared<container_module::value_container>(data, false);
 	return deserialize(container);
 #else
@@ -442,7 +444,7 @@ query_response::query_response(uint64_t request_id, status_code error_status, st
 
 std::shared_ptr<container_module::value_container> query_response::serialize() const
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	auto container = std::make_shared<container_module::value_container>();
 	container->set_message_type("query_response");
 
@@ -530,7 +532,7 @@ std::shared_ptr<container_module::value_container> query_response::serialize() c
 kcenon::common::Result<query_response>
 query_response::deserialize(std::shared_ptr<container_module::value_container> container)
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	if (!container)
 	{
 		return kcenon::common::error_info{ -1, "Null container", "query_protocol" };
@@ -757,7 +759,7 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 kcenon::common::Result<query_response>
 query_response::deserialize(const std::vector<uint8_t>& data)
 {
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 	auto container = std::make_shared<container_module::value_container>(data, false);
 	return deserialize(container);
 #else

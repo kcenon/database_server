@@ -49,6 +49,8 @@
 #include <kcenon/database_server/gateway/query_protocol.h>
 #include <kcenon/database_server/gateway/query_types.h>
 
+#include <kcenon/common/config/feature_flags.h>
+
 using namespace database_server::gateway;
 
 // ============================================================================
@@ -372,7 +374,7 @@ TEST_F(QueryRequestTest, AddParameters)
 	EXPECT_TRUE(std::get<bool>(request.params[1].value));
 }
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 
 TEST_F(QueryRequestTest, SerializeNotNull)
 {
@@ -449,7 +451,7 @@ TEST_F(QueryRequestTest, SerializeWithAllParamTypes)
 			  (std::vector<uint8_t>{ 0x01, 0x02, 0x03 }));
 }
 
-#endif // BUILD_WITH_CONTAINER_SYSTEM
+#endif // KCENON_WITH_CONTAINER_SYSTEM
 
 // ============================================================================
 // Query Response Tests
@@ -555,7 +557,7 @@ TEST_F(QueryResponseTest, AddResultRows)
 	EXPECT_EQ(std::get<std::string>(response.rows[1].cells[1]), "Bob");
 }
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 
 TEST_F(QueryResponseTest, SerializeNotNull)
 {
@@ -664,7 +666,7 @@ TEST_F(QueryResponseTest, SerializeWithAllCellTypes)
 			  (std::vector<uint8_t>{ 0xDE, 0xAD, 0xBE, 0xEF }));
 }
 
-#endif // BUILD_WITH_CONTAINER_SYSTEM
+#endif // KCENON_WITH_CONTAINER_SYSTEM
 
 // ============================================================================
 // Query Options Tests

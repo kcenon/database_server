@@ -34,7 +34,7 @@ endif()
 
 # Link container_system if available
 if(BUILD_WITH_CONTAINER_SYSTEM)
-    target_compile_definitions(GatewayLib PUBLIC BUILD_WITH_CONTAINER_SYSTEM)
+    target_compile_definitions(GatewayLib PUBLIC WITH_CONTAINER_SYSTEM)
     # Try different include paths for container_system
     if(container_system_INCLUDE_DIR)
         target_include_directories(GatewayLib PUBLIC ${container_system_INCLUDE_DIR})
