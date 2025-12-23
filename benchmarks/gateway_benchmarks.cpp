@@ -55,6 +55,8 @@
 #include <kcenon/database_server/gateway/query_router.h>
 #include <kcenon/database_server/gateway/query_types.h>
 
+#include <kcenon/common/config/feature_flags.h>
+
 using namespace database_server::gateway;
 
 // ============================================================================
@@ -323,7 +325,7 @@ BENCHMARK_REGISTER_F(GatewayBenchmarkFixture, QueryResponseCreation)
 	->Arg(100)
 	->Arg(1000);
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 
 BENCHMARK_DEFINE_F(GatewayBenchmarkFixture, RequestSerialize)(benchmark::State& state)
 {
@@ -420,7 +422,7 @@ BENCHMARK_REGISTER_F(GatewayBenchmarkFixture, ResponseDeserialize)
 	->Arg(100)
 	->Arg(1000);
 
-#endif // BUILD_WITH_CONTAINER_SYSTEM
+#endif // KCENON_WITH_CONTAINER_SYSTEM
 
 // ============================================================================
 // Full Pipeline Throughput Benchmarks

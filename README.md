@@ -93,6 +93,18 @@ cmake --build .
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container serialization |
 | `ENABLE_COVERAGE` | OFF | Enable code coverage |
 
+### Integration Macros
+
+Source code uses `KCENON_WITH_*` macros (from `<kcenon/common/config/feature_flags.h>`) for integration gating:
+
+| Macro | Preprocessor Symbol | CMake Option | Description |
+|-------|---------------------|--------------|-------------|
+| `KCENON_WITH_CONTAINER_SYSTEM` | `WITH_CONTAINER_SYSTEM` | `BUILD_WITH_CONTAINER_SYSTEM` | Container serialization support |
+| `KCENON_WITH_MONITORING_SYSTEM` | `WITH_MONITORING_SYSTEM` | `BUILD_WITH_MONITORING_SYSTEM` | Monitoring integration |
+| `KCENON_WITH_COMMON_SYSTEM` | `WITH_COMMON_SYSTEM` | Auto-detected | Common system integration |
+
+When CMake options like `BUILD_WITH_CONTAINER_SYSTEM` are enabled, CMake defines `WITH_*` preprocessor symbols (e.g., `WITH_CONTAINER_SYSTEM`). The `feature_flags.h` header from `common_system` then maps these to `KCENON_WITH_*` macros for consistent integration gating across repositories.
+
 ### Running Tests
 
 ```bash
@@ -213,11 +225,20 @@ rate_limit.block_duration_ms=60000
   - [x] connection_priority enum with 4 priority levels
   - [x] pool_metrics with priority-specific tracking
   - [x] connection_pool with adaptive job queue integration
+  - [x] Server-side connection pool types (`connection_types.h`)
+    - connection_pool_config, connection_stats, connection_wrapper
+    - connection_pool_base abstract interface
+    - connection_pool implementation
 - [x] Migrate resilience logic from database_system
   - [x] connection_health_monitor with heartbeat-based health tracking
   - [x] resilient_database_connection with automatic reconnection
 - [x] Update namespace to database_server::pooling and database_server::resilience
 - [x] Add database_system as required dependency
+
+> **Note**: As of database_system Phase 4.3, client-side connection pooling was
+> removed (Client Library Diet initiative). Connection pooling is now handled
+> server-side via database_server middleware. Client applications should use
+> ProxyMode (`set_mode_proxy()`) to connect through database_server.
 
 ### Phase 3: Network Gateway Implementation (Current)
 - [x] Define and implement Query Protocol

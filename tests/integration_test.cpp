@@ -54,6 +54,8 @@
 #include <kcenon/database_server/gateway/query_router.h>
 #include <kcenon/database_server/gateway/query_types.h>
 
+#include <kcenon/common/config/feature_flags.h>
+
 using namespace database_server::gateway;
 using namespace std::chrono_literals;
 
@@ -784,7 +786,7 @@ TEST_F(QueryProtocolIntegrationTest, ResponseWithResultSet)
 	EXPECT_EQ(std::get<std::string>(response.rows[99].cells[1]), "User 100");
 }
 
-#ifdef BUILD_WITH_CONTAINER_SYSTEM
+#if KCENON_WITH_CONTAINER_SYSTEM
 
 TEST_F(QueryProtocolIntegrationTest, LargeRequestSerialization)
 {
@@ -842,4 +844,4 @@ TEST_F(QueryProtocolIntegrationTest, LargeResponseSerialization)
 	EXPECT_EQ(deserialized.rows.size(), 1000);
 }
 
-#endif // BUILD_WITH_CONTAINER_SYSTEM
+#endif // KCENON_WITH_CONTAINER_SYSTEM
