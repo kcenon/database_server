@@ -84,6 +84,13 @@ jobs:
         path: network_system
         token: ${{ secrets.GITHUB_TOKEN }}
 
+    - name: Checkout container_system
+      uses: actions/checkout@v4
+      with:
+        repository: kcenon/container_system
+        path: container_system
+        token: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install dependencies (Ubuntu)
       if: runner.os == 'Linux'
       run: |
@@ -298,6 +305,32 @@ jobs:
         Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
         Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
 
+    - name: Build and install container_system (Unix)
+      if: runner.os != 'Windows'
+      run: |
+        cd container_system
+        cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_CONTAINER_EXAMPLES=OFF
+        cmake --build build --config Release
+        sudo cmake --install build --prefix /usr/local
+
+    - name: Build and install container_system (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        cd container_system
+        $prefix = "$env:GITHUB_WORKSPACE/deps_install"
+        cmake -B build -S . -G Ninja `
+          -DCMAKE_BUILD_TYPE=Debug `
+          -DCMAKE_PREFIX_PATH="$prefix" `
+          "-DCMAKE_CXX_FLAGS=/I$prefix/include" `
+          -DBUILD_TESTING=OFF `
+          -DBUILD_CONTAINER_EXAMPLES=OFF
+        cmake --build build
+        # Install using CMake install
+        cmake --install build --prefix "$prefix"
+
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
       run: |
@@ -305,8 +338,7 @@ jobs:
           -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
           -DBUILD_TESTS=ON \
           -DBUILD_DATABASE_SAMPLES=OFF \
-          -DBUILD_WITH_MONITORING_SYSTEM=OFF \
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF
 
     - name: Verify Windows dependencies
       if: runner.os == 'Windows'
@@ -336,10 +368,10 @@ jobs:
           -Dthread_system_INCLUDE_DIR="$prefix/include" `
           -Ddatabase_system_INCLUDE_DIR="$prefix/include" `
           -Dnetwork_system_INCLUDE_DIR="$prefix/include" `
+          -Dcontainer_system_INCLUDE_DIR="$prefix/include" `
           -DBUILD_TESTS=ON `
           -DBUILD_DATABASE_SAMPLES=OFF `
-          -DBUILD_WITH_MONITORING_SYSTEM=OFF `
-          -DBUILD_WITH_CONTAINER_SYSTEM=OFF
+          -DBUILD_WITH_MONITORING_SYSTEM=OFF
 
     - name: Build
       run: cmake --build build --config Debug --parallel

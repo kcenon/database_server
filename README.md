@@ -52,11 +52,11 @@ The Database Server is part of the kcenon unified system architecture evolution 
 - **thread_system** (Tier 1) - Job scheduling, thread pool management
 - **database_system** (Tier 2) - Database interfaces and types
 - **network_system** (Tier 4) - TCP/QUIC server implementation
+- **container_system** (Tier 1) - Protocol serialization (required for query protocol messages)
 
 ### Optional
 
 - **monitoring_system** (Tier 3) - Performance metrics and health monitoring
-- **container_system** (Tier 1) - Binary protocol serialization
 
 ## Building
 
@@ -90,7 +90,7 @@ cmake --build .
 | `BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
 | `BUILD_SAMPLES` | OFF | Build sample applications |
 | `BUILD_WITH_MONITORING_SYSTEM` | OFF | Enable monitoring integration |
-| `BUILD_WITH_CONTAINER_SYSTEM` | ON | Enable container serialization |
+| `BUILD_WITH_CONTAINER_SYSTEM` | ON | Protocol serialization (required, build fails without it) |
 | `ENABLE_COVERAGE` | OFF | Enable code coverage |
 
 ### Integration Macros
