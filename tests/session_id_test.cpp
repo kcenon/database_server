@@ -306,9 +306,19 @@ TEST_F(SessionIdPerformanceTest, GenerationSpeed)
 
 	double avg_ns = static_cast<double>(duration.count()) / iterations;
 
-	// Expect less than 1 microsecond (1000 ns) per generation
-	EXPECT_LT(avg_ns, 1000.0)
-		<< "Average generation time " << avg_ns << "ns exceeds 1μs threshold";
+	// Sanitizer builds have significant overhead, use relaxed threshold
+	// Normal builds: < 1μs (1000 ns)
+	// Sanitizer builds: < 10μs (10000 ns)
+#if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__) \
+	|| defined(__has_feature) && (__has_feature(address_sanitizer) \
+								  || __has_feature(thread_sanitizer))
+	constexpr double threshold_ns = 10000.0;
+#else
+	constexpr double threshold_ns = 1000.0;
+#endif
+
+	EXPECT_LT(avg_ns, threshold_ns) << "Average generation time " << avg_ns
+									<< "ns exceeds threshold (" << threshold_ns << "ns)";
 
 	// Print for informational purposes
 	std::cout << "Average session ID generation time: " << avg_ns << " ns" << std::endl;
