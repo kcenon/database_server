@@ -117,6 +117,7 @@ ctest --output-on-failure
 
 # Or run specific test executable directly
 ./bin/query_protocol_test
+./bin/resilience_test
 ./bin/integration_test
 ```
 
@@ -128,6 +129,14 @@ ctest --output-on-failure
   - Query param value types
   - Query request/response serialization
   - Error handling for invalid inputs
+
+- Resilience Tests (29 tests)
+  - Health status structure and success rate calculation
+  - Health check configuration defaults and customization
+  - Reconnection configuration validation
+  - Connection state enum string conversion
+  - Connection health monitor with null backend handling
+  - Resilient database connection edge cases
 
 - Integration Tests (Phase 3.5)
   - Auth middleware authentication flow

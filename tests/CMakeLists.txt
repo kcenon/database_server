@@ -138,6 +138,53 @@ if(GTest_FOUND OR gtest_FOUND)
     message(STATUS "Query protocol tests configured (Phase 3.1)")
 
     ##################################################
+    # Resilience Unit Tests (Phase 2)
+    ##################################################
+
+    # Create resilience test executable
+    add_executable(resilience_test
+        resilience_test.cpp
+    )
+
+    # Link dependencies
+    target_link_libraries(resilience_test PRIVATE
+        DatabaseServerLib
+    )
+
+    # Link GTest - handle different target names
+    if(GTest_FOUND)
+        target_link_libraries(resilience_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(resilience_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    # Set properties
+    set_target_properties(resilience_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Add test
+    add_test(NAME ResilienceTests COMMAND resilience_test)
+
+    gtest_discover_tests(resilience_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Resilience tests configured (Phase 2)")
+
+    ##################################################
     # Integration Tests (Phase 3.5)
     ##################################################
 

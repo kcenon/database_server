@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <thread>
 
 namespace database_server::resilience
@@ -71,7 +72,7 @@ kcenon::common::VoidResult resilient_database_connection::initialize(
 	if (!backend_)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-1,
 			"Backend is null",
 			"resilient_database_connection"
 		};
@@ -181,7 +182,7 @@ kcenon::common::VoidResult resilient_database_connection::commit_transaction()
 	if (!backend_)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-1,
 			"Backend is null",
 			"resilient_database_connection"
 		};
@@ -196,7 +197,7 @@ kcenon::common::VoidResult resilient_database_connection::rollback_transaction()
 	if (!backend_)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-1,
 			"Backend is null",
 			"resilient_database_connection"
 		};
@@ -252,7 +253,7 @@ kcenon::common::Result<health_status> resilient_database_connection::check_healt
 	if (!health_monitor_)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-1,
 			"Health monitor not initialized",
 			"resilient_database_connection"
 		};
@@ -290,7 +291,7 @@ kcenon::common::VoidResult resilient_database_connection::attempt_reconnect()
 	if (!config_.enable_auto_reconnect)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-2,
 			"Auto reconnect disabled",
 			"resilient_database_connection"
 		};
@@ -303,7 +304,7 @@ kcenon::common::VoidResult resilient_database_connection::attempt_reconnect()
 		set_state(connection_state::failed);
 		last_error_message_ = "Max retries exceeded";
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::unknown_error),
+			-3,
 			"Max retries exceeded",
 			"resilient_database_connection"
 		};
@@ -316,10 +317,18 @@ kcenon::common::VoidResult resilient_database_connection::attempt_reconnect()
 	std::this_thread::sleep_for(delay);
 
 	// Attempt reconnection
-	if (backend_)
+	if (!backend_)
 	{
-		backend_->shutdown();
+		set_state(connection_state::failed);
+		last_error_message_ = "Backend is null";
+		return kcenon::common::error_info{
+			-1,
+			"Backend is null",
+			"resilient_database_connection"
+		};
 	}
+
+	backend_->shutdown();
 
 	auto result = backend_->initialize(connection_config_);
 
@@ -352,7 +361,7 @@ auto resilient_database_connection::execute_with_retry(Func&& operation)
 	if (!backend_)
 	{
 		return kcenon::common::error_info{
-			static_cast<int>(database::error_code::invalid_state),
+			-1,
 			"Backend is null",
 			"resilient_database_connection"
 		};
