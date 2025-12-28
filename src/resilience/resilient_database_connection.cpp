@@ -316,10 +316,18 @@ kcenon::common::VoidResult resilient_database_connection::attempt_reconnect()
 	std::this_thread::sleep_for(delay);
 
 	// Attempt reconnection
-	if (backend_)
+	if (!backend_)
 	{
-		backend_->shutdown();
+		set_state(connection_state::failed);
+		last_error_message_ = "Backend is null";
+		return kcenon::common::error_info{
+			-1,
+			"Backend is null",
+			"resilient_database_connection"
+		};
 	}
+
+	backend_->shutdown();
 
 	auto result = backend_->initialize(connection_config_);
 
