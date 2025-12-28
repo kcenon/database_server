@@ -310,7 +310,8 @@ jobs:
       run: |
         cd container_system
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
-          -DUSE_UNIT_TEST=OFF
+          -DBUILD_TESTING=OFF \
+          -DBUILD_CONTAINER_EXAMPLES=OFF
         cmake --build build --config Release
         sudo cmake --install build --prefix /usr/local
 
@@ -324,14 +325,11 @@ jobs:
           -DCMAKE_BUILD_TYPE=Debug `
           -DCMAKE_PREFIX_PATH="$prefix" `
           "-DCMAKE_CXX_FLAGS=/I$prefix/include" `
-          -DUSE_UNIT_TEST=OFF
+          -DBUILD_TESTING=OFF `
+          -DBUILD_CONTAINER_EXAMPLES=OFF
         cmake --build build
-        # Install headers and library manually
-        New-Item -ItemType Directory -Force -Path "$prefix/include/container"
-        Copy-Item -Recurse -Force "container/*" "$prefix/include/container/"
-        New-Item -ItemType Directory -Force -Path "$prefix/lib"
-        Get-ChildItem -Path "build" -Recurse -Filter "*.lib" | ForEach-Object { Copy-Item $_.FullName "$prefix/lib/" -Force }
-        Get-ChildItem -Path "build" -Recurse -Filter "*.dll" | ForEach-Object { Copy-Item $_.FullName "$prefix/bin/" -Force -ErrorAction SilentlyContinue }
+        # Install using CMake install
+        cmake --install build --prefix "$prefix"
 
     - name: Configure CMake (Unix)
       if: runner.os != 'Windows'
