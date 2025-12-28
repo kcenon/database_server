@@ -254,9 +254,9 @@ add_library(DatabaseServerLib
     src/core/server_config.cpp
     # Pooling (Phase 2)
     src/pooling/connection_pool.cpp
-    # Resilience (Phase 2) - temporarily disabled due to database_system API changes
-    # src/resilience/connection_health_monitor.cpp
-    # src/resilience/resilient_database_connection.cpp
+    # Resilience (Phase 2)
+    src/resilience/connection_health_monitor.cpp
+    src/resilience/resilient_database_connection.cpp
     # Gateway (Phase 3)
     src/gateway/query_protocol.cpp
     src/gateway/gateway_server.cpp
