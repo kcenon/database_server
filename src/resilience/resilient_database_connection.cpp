@@ -33,6 +33,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <thread>
 
 namespace database_server::resilience
