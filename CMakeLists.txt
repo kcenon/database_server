@@ -17,7 +17,7 @@ endif()
 #     ├── database_system (Tier 2) [REQUIRED] - Database interfaces
 #     ├── network_system (Tier 4) [REQUIRED] - TCP/QUIC server
 #     ├── monitoring_system (Tier 3) [OPTIONAL] - Metrics
-#     └── container_system (Tier 1) [OPTIONAL] - Serialization
+#     └── container_system (Tier 1) [REQUIRED] - Protocol serialization
 ##################################################
 
 project(database_server
@@ -52,7 +52,9 @@ option(BUILD_WITH_NETWORK_SYSTEM "Build with network_system integration (REQUIRE
 
 # Optional dependencies
 option(BUILD_WITH_MONITORING_SYSTEM "Build with monitoring_system integration (OPTIONAL)" OFF)
-option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration (OPTIONAL)" ON)
+
+# Required for protocol serialization
+option(BUILD_WITH_CONTAINER_SYSTEM "Build with container_system integration (REQUIRED)" ON)
 
 ##################################################
 # Global Configuration
@@ -223,18 +225,23 @@ if(BUILD_WITH_MONITORING_SYSTEM)
     endif()
 endif()
 
-# container_system (OPTIONAL)
-if(BUILD_WITH_CONTAINER_SYSTEM)
-    message(STATUS "Searching for container_system...")
-    find_system_dependency(container_system)
+# container_system (REQUIRED for protocol serialization)
+# Without container_system, the server cannot serialize/deserialize query protocol messages
+message(STATUS "Searching for container_system...")
+find_system_dependency(container_system)
 
-    if(container_system_FOUND)
-        message(STATUS "container_system integration enabled")
-        find_system_dependency_include(container_system)
-    else()
-        message(WARNING "container_system not found - integration disabled.")
-        set(BUILD_WITH_CONTAINER_SYSTEM OFF CACHE BOOL "container_system not found" FORCE)
-    endif()
+if(NOT container_system_FOUND AND TARGET container_system)
+    set(container_system_FOUND TRUE)
+endif()
+
+if(container_system_FOUND)
+    message(STATUS "container_system integration enabled")
+    find_system_dependency_include(container_system)
+else()
+    message(FATAL_ERROR
+        "container_system not found! database_server requires container_system for protocol serialization.\n"
+        "Without container_system, the server cannot send or receive query protocol messages.\n"
+        "Please ensure container_system is built and available.")
 endif()
 
 ##################################################
@@ -461,20 +468,18 @@ if(BUILD_WITH_MONITORING_SYSTEM)
     endif()
 endif()
 
-# Optional: container_system
-if(BUILD_WITH_CONTAINER_SYSTEM)
-    # Define WITH_CONTAINER_SYSTEM for feature_flags.h (maps to KCENON_WITH_CONTAINER_SYSTEM)
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_CONTAINER_SYSTEM)
-    if(container_system_INCLUDE_DIR)
-        target_include_directories(DatabaseServerLib PUBLIC ${container_system_INCLUDE_DIR})
-        # Also add the root directory for headers in container_system/core/
-        get_filename_component(_container_system_root "${container_system_INCLUDE_DIR}" DIRECTORY)
-        if(EXISTS "${_container_system_root}/core")
-            target_include_directories(DatabaseServerLib PUBLIC ${_container_system_root})
-        endif()
+# container_system (REQUIRED for protocol serialization)
+# Define WITH_CONTAINER_SYSTEM for feature_flags.h (maps to KCENON_WITH_CONTAINER_SYSTEM)
+target_compile_definitions(DatabaseServerLib PUBLIC WITH_CONTAINER_SYSTEM)
+if(container_system_INCLUDE_DIR)
+    target_include_directories(DatabaseServerLib PUBLIC ${container_system_INCLUDE_DIR})
+    # Also add the root directory for headers in container_system/core/
+    get_filename_component(_container_system_root "${container_system_INCLUDE_DIR}" DIRECTORY)
+    if(EXISTS "${_container_system_root}/core")
+        target_include_directories(DatabaseServerLib PUBLIC ${_container_system_root})
     endif()
-    link_system_dependency(DatabaseServerLib CONTAINER_SYSTEM container_system ContainerSystem container)
 endif()
+link_system_dependency(DatabaseServerLib CONTAINER_SYSTEM container_system ContainerSystem container)
 
 ##################################################
 # Create Executable
@@ -559,7 +564,7 @@ message(STATUS "    ├── thread_system (Tier 1): ${thread_system_FOUND} [RE
 message(STATUS "    ├── database_system (Tier 2): ${database_system_FOUND} [REQUIRED]")
 message(STATUS "    ├── network_system (Tier 4): ${network_system_FOUND} [REQUIRED]")
 message(STATUS "    ├── monitoring_system (Tier 3): ${BUILD_WITH_MONITORING_SYSTEM} [OPTIONAL]")
-message(STATUS "    └── container_system (Tier 1): ${BUILD_WITH_CONTAINER_SYSTEM} [OPTIONAL]")
+message(STATUS "    └── container_system (Tier 1): ${container_system_FOUND} [REQUIRED]")
 message(STATUS "")
 message(STATUS "Build Options:")
 message(STATUS "  Build type: ${CMAKE_BUILD_TYPE}")
