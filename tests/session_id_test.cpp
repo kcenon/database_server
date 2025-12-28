@@ -41,6 +41,11 @@
  * - Performance validation (< 1μs per generation)
  */
 
+// Define __has_feature fallback for non-Clang compilers (GCC, MSVC)
+#ifndef __has_feature
+#define __has_feature(x) 0
+#endif
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -310,8 +315,7 @@ TEST_F(SessionIdPerformanceTest, GenerationSpeed)
 	// Normal builds: < 1μs (1000 ns)
 	// Sanitizer builds: < 10μs (10000 ns)
 #if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__) \
-	|| defined(__has_feature) && (__has_feature(address_sanitizer) \
-								  || __has_feature(thread_sanitizer))
+	|| __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
 	constexpr double threshold_ns = 10000.0;
 #else
 	constexpr double threshold_ns = 1000.0;
