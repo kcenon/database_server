@@ -31,6 +31,7 @@
 
 #include <kcenon/database_server/gateway/gateway_server.h>
 #include <kcenon/database_server/gateway/auth_middleware.h>
+#include <kcenon/database_server/gateway/session_id_generator.h>
 
 #include <network_system/core/messaging_server.h>
 #include <network_system/session/messaging_session.h>
@@ -55,14 +56,6 @@ uint64_t current_timestamp_ms()
 		std::chrono::duration_cast<std::chrono::milliseconds>(
 			std::chrono::system_clock::now().time_since_epoch())
 			.count());
-}
-
-std::string generate_session_id()
-{
-	static std::atomic<uint64_t> counter{0};
-	auto timestamp = current_timestamp_ms();
-	auto id = counter.fetch_add(1, std::memory_order_relaxed);
-	return "session_" + std::to_string(timestamp) + "_" + std::to_string(id);
 }
 
 } // namespace
