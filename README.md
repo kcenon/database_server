@@ -146,6 +146,13 @@ ctest --output-on-failure
   - Full pipeline throughput tests
   - Error handling scenarios
 
+- Session ID Security Tests
+  - Format validation (32-character hex string)
+  - Uniqueness verification across 100,000 samples
+  - Entropy estimation (> 3.5 bits per character)
+  - Thread-safety with concurrent generation
+  - Performance validation (< 1μs per generation)
+
 ### Running Benchmarks
 
 ```bash
@@ -274,6 +281,26 @@ rate_limit.block_duration_ms=60000
   - [x] Performance benchmarks (target: 10k+ queries/sec)
   - [x] Latency measurement (target: < 1ms routing overhead)
 - [ ] (Optional) Implement Query Result Cache
+
+## Security
+
+### Session ID Generation
+
+Session IDs are generated using cryptographically secure methods:
+
+- **128-bit entropy**: Uses two 64-bit random values for unpredictability
+- **Hardware seeding**: Uses `std::random_device` for hardware entropy
+- **Thread-safe**: Thread-local RNG prevents contention and predictability
+- **Format**: 32-character lowercase hexadecimal string
+
+The session ID format changed from predictable timestamp-counter pattern to secure random values. Old format (`session_TIMESTAMP_COUNTER`) was vulnerable to session hijacking through ID prediction.
+
+### Security Best Practices
+
+1. **Authentication**: Enable `auth.enabled=true` in production
+2. **Rate Limiting**: Configure appropriate rate limits to prevent abuse
+3. **TLS**: Enable TLS for encrypted connections (`network.enable_tls=true`)
+4. **Logging**: Avoid logging full session IDs in production environments
 
 ## License
 
