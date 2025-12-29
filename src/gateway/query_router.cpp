@@ -33,8 +33,11 @@
 #include <kcenon/database_server/pooling/connection_pool.h>
 #include <kcenon/database_server/pooling/connection_priority.h>
 
+#include <algorithm>
 #include <chrono>
+#include <cctype>
 #include <future>
+#include <regex>
 #include <thread>
 
 namespace database_server::gateway
@@ -211,8 +214,104 @@ bool query_router::is_ready() const noexcept
 	return pool_ != nullptr;
 }
 
+void query_router::set_query_cache(std::shared_ptr<query_cache> cache)
+{
+	std::lock_guard<std::mutex> lock(cache_mutex_);
+	cache_ = std::move(cache);
+}
+
+std::shared_ptr<query_cache> query_router::get_query_cache() const noexcept
+{
+	std::lock_guard<std::mutex> lock(cache_mutex_);
+	return cache_;
+}
+
+std::unordered_set<std::string> query_router::extract_table_names(
+	const std::string& sql, query_type type)
+{
+	std::unordered_set<std::string> tables;
+
+	// Convert SQL to uppercase for case-insensitive matching
+	std::string sql_upper = sql;
+	std::transform(sql_upper.begin(), sql_upper.end(), sql_upper.begin(),
+				   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
+
+	// Regular expression patterns for different query types
+	std::regex from_pattern(R"(\bFROM\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
+							std::regex::icase);
+	std::regex join_pattern(R"(\bJOIN\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
+							std::regex::icase);
+	std::regex into_pattern(R"(\bINTO\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
+							std::regex::icase);
+	std::regex update_pattern(R"(\bUPDATE\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
+							  std::regex::icase);
+
+	std::smatch match;
+	std::string::const_iterator search_start = sql.cbegin();
+
+	// Extract FROM tables
+	while (std::regex_search(search_start, sql.cend(), match, from_pattern))
+	{
+		tables.insert(match[1].str());
+		search_start = match.suffix().first;
+	}
+
+	// Extract JOIN tables
+	search_start = sql.cbegin();
+	while (std::regex_search(search_start, sql.cend(), match, join_pattern))
+	{
+		tables.insert(match[1].str());
+		search_start = match.suffix().first;
+	}
+
+	// For INSERT queries
+	if (type == query_type::insert)
+	{
+		search_start = sql.cbegin();
+		while (std::regex_search(search_start, sql.cend(), match, into_pattern))
+		{
+			tables.insert(match[1].str());
+			search_start = match.suffix().first;
+		}
+	}
+
+	// For UPDATE queries
+	if (type == query_type::update)
+	{
+		search_start = sql.cbegin();
+		while (std::regex_search(search_start, sql.cend(), match, update_pattern))
+		{
+			tables.insert(match[1].str());
+			search_start = match.suffix().first;
+		}
+	}
+
+	return tables;
+}
+
 query_response query_router::execute_select(const query_request& request)
 {
+	// Try cache lookup first
+	std::shared_ptr<query_cache> cache;
+	std::string cache_key;
+	{
+		std::lock_guard<std::mutex> lock(cache_mutex_);
+		cache = cache_;
+	}
+
+	if (cache && cache->is_enabled())
+	{
+		cache_key = query_cache::make_key(request);
+		auto cached = cache->get(cache_key);
+		if (cached)
+		{
+			auto response = std::move(*cached);
+			response.header.message_id = request.header.message_id;
+			response.header.correlation_id = request.header.correlation_id;
+			return response;
+		}
+	}
+
 	std::shared_ptr<pooling::connection_pool> pool;
 	{
 		std::lock_guard<std::mutex> lock(pool_mutex_);
@@ -328,6 +427,14 @@ query_response query_router::execute_select(const query_request& request)
 		}
 
 		pool->release_connection(connection);
+
+		// Cache the successful response
+		if (cache && cache->is_enabled() && !cache_key.empty())
+		{
+			auto tables = extract_table_names(request.sql, request.type);
+			cache->put(cache_key, response, tables);
+		}
+
 		return response;
 	}
 	catch (const std::exception& e)
@@ -415,6 +522,23 @@ query_response query_router::execute_modify(const query_request& request)
 		response.affected_rows = static_cast<uint64_t>(affected_rows);
 
 		pool->release_connection(connection);
+
+		// Invalidate cache for affected tables
+		std::shared_ptr<query_cache> cache;
+		{
+			std::lock_guard<std::mutex> lock(cache_mutex_);
+			cache = cache_;
+		}
+
+		if (cache && cache->is_enabled())
+		{
+			auto tables = extract_table_names(request.sql, request.type);
+			for (const auto& table : tables)
+			{
+				cache->invalidate(table);
+			}
+		}
+
 		return response;
 	}
 	catch (const std::exception& e)
