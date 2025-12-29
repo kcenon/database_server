@@ -88,6 +88,19 @@ struct pool_config
 };
 
 /**
+ * @struct query_cache_config
+ * @brief Query cache configuration (for Phase 3)
+ */
+struct query_cache_config
+{
+	bool enabled = false;                      ///< Enable/disable query cache
+	size_t max_entries = 10000;                ///< Maximum cached entries
+	uint32_t ttl_seconds = 300;                ///< Time-to-live in seconds (0 = no expiration)
+	size_t max_result_size_bytes = 1024 * 1024; ///< Max size of single result (1MB)
+	bool enable_lru = true;                    ///< Enable LRU eviction policy
+};
+
+/**
  * @struct server_config
  * @brief Main server configuration
  *
@@ -100,6 +113,7 @@ struct server_config
 	network_config network;               ///< Network configuration
 	logging_config logging;               ///< Logging configuration
 	pool_config pool;                     ///< Connection pool configuration
+	query_cache_config cache;             ///< Query cache configuration
 
 	/**
 	 * @brief Load configuration from a YAML file
