@@ -284,6 +284,133 @@ if(GTest_FOUND OR gtest_FOUND)
     )
 
     message(STATUS "Integration tests configured (Phase 3.5)")
+
+    ##################################################
+    # Rate Limiter Unit Tests
+    ##################################################
+
+    add_executable(rate_limiter_test
+        rate_limiter_test.cpp
+    )
+
+    target_link_libraries(rate_limiter_test PRIVATE
+        DatabaseServerLib
+    )
+
+    if(GTest_FOUND)
+        target_link_libraries(rate_limiter_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(rate_limiter_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    set_target_properties(rate_limiter_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME RateLimiterTests COMMAND rate_limiter_test)
+
+    gtest_discover_tests(rate_limiter_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Rate limiter tests configured")
+
+    ##################################################
+    # Auth Middleware Unit Tests
+    ##################################################
+
+    add_executable(auth_middleware_test
+        auth_middleware_test.cpp
+    )
+
+    target_link_libraries(auth_middleware_test PRIVATE
+        DatabaseServerLib
+    )
+
+    if(GTest_FOUND)
+        target_link_libraries(auth_middleware_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(auth_middleware_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    set_target_properties(auth_middleware_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME AuthMiddlewareTests COMMAND auth_middleware_test)
+
+    gtest_discover_tests(auth_middleware_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Auth middleware tests configured")
+
+    ##################################################
+    # Connection Pool Unit Tests
+    ##################################################
+
+    add_executable(connection_pool_test
+        connection_pool_test.cpp
+    )
+
+    target_link_libraries(connection_pool_test PRIVATE
+        DatabaseServerLib
+    )
+
+    if(GTest_FOUND)
+        target_link_libraries(connection_pool_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(connection_pool_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    set_target_properties(connection_pool_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME ConnectionPoolTests COMMAND connection_pool_test)
+
+    gtest_discover_tests(connection_pool_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Connection pool tests configured")
+
 else()
     message(WARNING "GTest not found - tests will not be built")
 endif()
