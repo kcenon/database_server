@@ -119,6 +119,9 @@ ctest --output-on-failure
 ./bin/query_protocol_test
 ./bin/resilience_test
 ./bin/integration_test
+./bin/rate_limiter_test
+./bin/auth_middleware_test
+./bin/connection_pool_test
 ```
 
 **Current Test Coverage:**
@@ -152,6 +155,30 @@ ctest --output-on-failure
   - Entropy estimation (> 3.5 bits per character)
   - Thread-safety with concurrent generation
   - Performance validation (< 1μs per generation)
+
+- Rate Limiter Tests
+  - Sliding window algorithm correctness
+  - Burst handling and configuration
+  - Block duration behavior
+  - Concurrent access safety
+  - Client independence verification
+
+- Auth Middleware Tests
+  - Token validation success/failure cases
+  - Token expiration handling
+  - Rate limiting integration
+  - Audit event emission
+  - Metrics collection
+  - Session management
+
+- Connection Pool Tests
+  - Pool configuration and initialization
+  - Connection acquisition and release
+  - Pool exhaustion and timeout handling
+  - Graceful shutdown behavior
+  - Health check functionality
+  - Priority-based metrics tracking
+  - Concurrent access safety
 
 ### Running Benchmarks
 
