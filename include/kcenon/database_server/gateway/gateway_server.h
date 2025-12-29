@@ -33,11 +33,11 @@
  * @file gateway_server.h
  * @brief Database gateway TCP server
  *
- * Implements the network layer for the database gateway using network_system.
+ * Implements the network layer for the database gateway using kcenon::network.
  * Handles client connections, message routing, and lifecycle management.
  *
  * Architecture:
- * - Uses messaging_server from network_system for TCP handling
+ * - Uses messaging_server from kcenon::network for TCP handling
  * - Integrates with query_protocol for message serialization
  * - Provides callbacks for request handling
  */
@@ -67,17 +67,6 @@ class messaging_server;
 namespace kcenon::network::session
 {
 class messaging_session;
-}
-
-// Backward compatibility namespace aliases
-namespace network_system::core
-{
-using messaging_server = kcenon::network::core::messaging_server;
-}
-
-namespace network_system::session
-{
-using messaging_session = kcenon::network::session::messaging_session;
 }
 
 namespace database_server::gateway
@@ -112,7 +101,7 @@ struct client_session
 	uint64_t last_activity = 0; ///< Last activity timestamp
 	uint64_t requests_count = 0; ///< Number of requests processed
 
-	std::weak_ptr<network_system::session::messaging_session> network_session;
+	std::weak_ptr<kcenon::network::session::messaging_session> network_session;
 };
 
 /**
@@ -276,7 +265,7 @@ private:
 	/**
 	 * @brief Handle new client connection
 	 */
-	void on_connection(std::shared_ptr<network_system::session::messaging_session> session);
+	void on_connection(std::shared_ptr<kcenon::network::session::messaging_session> session);
 
 	/**
 	 * @brief Handle client disconnection
@@ -286,31 +275,31 @@ private:
 	/**
 	 * @brief Handle incoming message
 	 */
-	void on_message(std::shared_ptr<network_system::session::messaging_session> session,
+	void on_message(std::shared_ptr<kcenon::network::session::messaging_session> session,
 					const std::vector<uint8_t>& data);
 
 	/**
 	 * @brief Handle connection error
 	 */
-	void on_error(std::shared_ptr<network_system::session::messaging_session> session,
+	void on_error(std::shared_ptr<kcenon::network::session::messaging_session> session,
 				  std::error_code ec);
 
 	/**
 	 * @brief Process a query request
 	 */
 	void process_request(const std::string& session_id,
-						 std::shared_ptr<network_system::session::messaging_session> network_session,
+						 std::shared_ptr<kcenon::network::session::messaging_session> network_session,
 						 const query_request& request);
 
 	/**
 	 * @brief Send response to client
 	 */
-	void send_response(std::shared_ptr<network_system::session::messaging_session> session,
+	void send_response(std::shared_ptr<kcenon::network::session::messaging_session> session,
 					   const query_response& response);
 
 private:
 	gateway_config config_;
-	std::shared_ptr<network_system::core::messaging_server> server_;
+	std::shared_ptr<kcenon::network::core::messaging_server> server_;
 	std::unique_ptr<auth_middleware> auth_middleware_;
 
 	mutable std::mutex sessions_mutex_;

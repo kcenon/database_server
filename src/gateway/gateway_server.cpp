@@ -33,8 +33,8 @@
 #include <kcenon/database_server/gateway/auth_middleware.h>
 #include <kcenon/database_server/gateway/session_id_generator.h>
 
-#include <network_system/core/messaging_server.h>
-#include <network_system/session/messaging_session.h>
+#include <kcenon/network/core/messaging_server.h>
+#include <kcenon/network/session/messaging_session.h>
 
 #include <kcenon/common/config/feature_flags.h>
 
@@ -66,12 +66,12 @@ uint64_t current_timestamp_ms()
 
 gateway_server::gateway_server(const gateway_config& config)
 	: config_(config)
-	, server_(std::make_shared<network_system::core::messaging_server>(config.server_id))
+	, server_(std::make_shared<kcenon::network::core::messaging_server>(config.server_id))
 	, auth_middleware_(std::make_unique<auth_middleware>(config.auth, config.rate_limit))
 {
 	// Set up network callbacks
 	server_->set_connection_callback(
-		[this](std::shared_ptr<network_system::session::messaging_session> session)
+		[this](std::shared_ptr<kcenon::network::session::messaging_session> session)
 		{
 			on_connection(session);
 		});
@@ -83,14 +83,14 @@ gateway_server::gateway_server(const gateway_config& config)
 		});
 
 	server_->set_receive_callback(
-		[this](std::shared_ptr<network_system::session::messaging_session> session,
+		[this](std::shared_ptr<kcenon::network::session::messaging_session> session,
 			   const std::vector<uint8_t>& data)
 		{
 			on_message(session, data);
 		});
 
 	server_->set_error_callback(
-		[this](std::shared_ptr<network_system::session::messaging_session> session,
+		[this](std::shared_ptr<kcenon::network::session::messaging_session> session,
 			   std::error_code ec)
 		{
 			on_error(session, ec);
@@ -240,7 +240,7 @@ void gateway_server::set_audit_callback(audit_callback_t callback)
 }
 
 void gateway_server::on_connection(
-	std::shared_ptr<network_system::session::messaging_session> session)
+	std::shared_ptr<kcenon::network::session::messaging_session> session)
 {
 	if (!session)
 	{
@@ -297,7 +297,7 @@ void gateway_server::on_disconnection(const std::string& session_id)
 }
 
 void gateway_server::on_message(
-	std::shared_ptr<network_system::session::messaging_session> session,
+	std::shared_ptr<kcenon::network::session::messaging_session> session,
 	const std::vector<uint8_t>& data)
 {
 	if (!session || data.empty())
@@ -350,7 +350,7 @@ void gateway_server::on_message(
 }
 
 void gateway_server::on_error(
-	std::shared_ptr<network_system::session::messaging_session> session,
+	std::shared_ptr<kcenon::network::session::messaging_session> session,
 	std::error_code ec)
 {
 	(void)session;
@@ -360,7 +360,7 @@ void gateway_server::on_error(
 
 void gateway_server::process_request(
 	const std::string& session_id,
-	std::shared_ptr<network_system::session::messaging_session> network_session,
+	std::shared_ptr<kcenon::network::session::messaging_session> network_session,
 	const query_request& request)
 {
 	// Handle ping request directly
@@ -454,7 +454,7 @@ void gateway_server::process_request(
 }
 
 void gateway_server::send_response(
-	std::shared_ptr<network_system::session::messaging_session> session,
+	std::shared_ptr<kcenon::network::session::messaging_session> session,
 	const query_response& response)
 {
 	if (!session)
