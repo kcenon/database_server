@@ -311,12 +311,15 @@ TEST_F(SessionIdPerformanceTest, GenerationSpeed)
 
 	double avg_ns = static_cast<double>(duration.count()) / iterations;
 
-	// Sanitizer builds have significant overhead, use relaxed threshold
-	// Normal builds: < 1μs (1000 ns)
+	// Sanitizer and Debug builds have significant overhead, use relaxed thresholds
+	// Release builds: < 1μs (1000 ns)
+	// Debug builds: < 2μs (2000 ns) - Debug mode disables optimizations
 	// Sanitizer builds: < 10μs (10000 ns)
 #if defined(__SANITIZE_ADDRESS__) || defined(__SANITIZE_THREAD__) \
 	|| __has_feature(address_sanitizer) || __has_feature(thread_sanitizer)
 	constexpr double threshold_ns = 10000.0;
+#elif !defined(NDEBUG)
+	constexpr double threshold_ns = 2000.0;
 #else
 	constexpr double threshold_ns = 1000.0;
 #endif
