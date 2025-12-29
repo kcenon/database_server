@@ -262,6 +262,7 @@ add_library(DatabaseServerLib
     src/gateway/gateway_server.cpp
     src/gateway/query_router.cpp
     src/gateway/auth_middleware.cpp
+    src/gateway/session_id_generator.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES

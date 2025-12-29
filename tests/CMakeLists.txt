@@ -138,6 +138,53 @@ if(GTest_FOUND OR gtest_FOUND)
     message(STATUS "Query protocol tests configured (Phase 3.1)")
 
     ##################################################
+    # Session ID Security Tests
+    ##################################################
+
+    # Create session ID test executable
+    add_executable(session_id_test
+        session_id_test.cpp
+    )
+
+    # Link dependencies
+    target_link_libraries(session_id_test PRIVATE
+        DatabaseServerLib
+    )
+
+    # Link GTest - handle different target names
+    if(GTest_FOUND)
+        target_link_libraries(session_id_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(session_id_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    # Set properties
+    set_target_properties(session_id_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    # Add test
+    add_test(NAME SessionIdTests COMMAND session_id_test)
+
+    gtest_discover_tests(session_id_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Session ID security tests configured")
+
+    ##################################################
     # Resilience Unit Tests (Phase 2)
     ##################################################
 
