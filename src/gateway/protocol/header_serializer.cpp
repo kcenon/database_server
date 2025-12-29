@@ -30,22 +30,19 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 /**
- * @file query_protocol.cpp
- * @brief Query protocol implementation (thin wrapper)
- *
- * This file includes all protocol serialization modules.
- * The actual implementation is split into smaller, focused files:
- *
- * - protocol/serialization_helpers.h: Common utilities
- * - protocol/header_serializer.cpp: message_header implementation
- * - protocol/auth_serializer.cpp: auth_token implementation
- * - protocol/param_serializer.cpp: query_param implementation
- * - protocol/request_serializer.cpp: query_request implementation
- * - protocol/response_serializer.cpp: query_response implementation
- *
- * @see https://github.com/kcenon/database_server/issues/32
+ * @file header_serializer.cpp
+ * @brief Implementation of message_header serialization
  */
 
-// This file is intentionally minimal.
-// All implementations are in the protocol/ subdirectory.
-// This file exists for backward compatibility with the build system.
+#include "serialization_helpers.h"
+
+namespace database_server::gateway
+{
+
+message_header::message_header(uint64_t id)
+	: message_id(id)
+	, timestamp(detail::current_timestamp_ms())
+{
+}
+
+} // namespace database_server::gateway

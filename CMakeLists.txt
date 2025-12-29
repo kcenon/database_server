@@ -259,6 +259,11 @@ add_library(DatabaseServerLib
     src/resilience/resilient_database_connection.cpp
     # Gateway (Phase 3)
     src/gateway/query_protocol.cpp
+    src/gateway/protocol/header_serializer.cpp
+    src/gateway/protocol/auth_serializer.cpp
+    src/gateway/protocol/param_serializer.cpp
+    src/gateway/protocol/request_serializer.cpp
+    src/gateway/protocol/response_serializer.cpp
     src/gateway/gateway_server.cpp
     src/gateway/query_router.cpp
     src/gateway/auth_middleware.cpp
