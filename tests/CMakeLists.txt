@@ -18,6 +18,11 @@ endif()
 # Create a standalone gateway library for testing without full DatabaseServerLib
 add_library(GatewayLib STATIC
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/query_protocol.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/protocol/header_serializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/protocol/auth_serializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/protocol/param_serializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/protocol/request_serializer.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/gateway/protocol/response_serializer.cpp
 )
 
 target_include_directories(GatewayLib PUBLIC

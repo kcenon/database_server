@@ -289,6 +289,13 @@ rate_limit.block_duration_ms=60000
   - [x] query_protocol.h: Request/response message structures
   - [x] Serialization using container_system
   - [x] Unit tests for message validation (45 tests)
+  - [x] Refactored into modular structure (see [#32](https://github.com/kcenon/database_server/issues/32)):
+    - `protocol/serialization_helpers.h`: Common utilities
+    - `protocol/header_serializer.cpp`: message_header
+    - `protocol/auth_serializer.cpp`: auth_token
+    - `protocol/param_serializer.cpp`: query_param
+    - `protocol/request_serializer.cpp`: query_request
+    - `protocol/response_serializer.cpp`: query_response
 - [x] Implement TCP Listener
   - [x] gateway_server: TCP server using kcenon::network::core::messaging_server
   - [x] Client session management with authentication support
