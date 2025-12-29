@@ -205,7 +205,12 @@ void query_cache::invalidate(const std::string& table_name)
 		return;
 	}
 
+	// Copy keys to remove since remove_entry modifies table_map_
 	auto keys_to_remove = it->second;
+
+	// Clear the table mapping first to avoid iterator invalidation
+	table_map_.erase(it);
+
 	for (const auto& key : keys_to_remove)
 	{
 		auto cache_it = cache_map_.find(key);
@@ -215,8 +220,6 @@ void query_cache::invalidate(const std::string& table_name)
 			++metrics_.invalidations;
 		}
 	}
-
-	table_map_.erase(it);
 }
 
 void query_cache::invalidate_key(const std::string& cache_key)

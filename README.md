@@ -122,6 +122,7 @@ ctest --output-on-failure
 ./bin/rate_limiter_test
 ./bin/auth_middleware_test
 ./bin/connection_pool_test
+./bin/query_cache_test
 ```
 
 **Current Test Coverage:**
@@ -180,6 +181,17 @@ ctest --output-on-failure
   - Priority-based metrics tracking
   - Concurrent access safety
 
+- Query Cache Tests (32 tests)
+  - Cache configuration defaults and customization
+  - Basic cache operations (get, put, clear)
+  - LRU eviction policy verification
+  - TTL-based expiration handling
+  - Table-based cache invalidation
+  - Cache key generation from SQL and parameters
+  - Cache metrics (hits, misses, evictions)
+  - Size limit enforcement
+  - Thread safety with concurrent access
+
 ### Running Benchmarks
 
 ```bash
@@ -236,6 +248,13 @@ rate_limit.requests_per_second=100
 rate_limit.burst_size=200
 rate_limit.window_size_ms=1000
 rate_limit.block_duration_ms=60000
+
+# Query Cache (Phase 3)
+cache.enabled=true
+cache.max_entries=10000
+cache.ttl_seconds=300
+cache.max_result_size_bytes=1048576
+cache.enable_lru=true
 ```
 
 ## Usage
@@ -314,7 +333,13 @@ rate_limit.block_duration_ms=60000
   - [x] Error handling scenario tests
   - [x] Performance benchmarks (target: 10k+ queries/sec)
   - [x] Latency measurement (target: < 1ms routing overhead)
-- [ ] (Optional) Implement Query Result Cache
+- [x] Implement Query Result Cache ([#30](https://github.com/kcenon/database_server/issues/30))
+  - [x] LRU eviction policy with configurable max entries
+  - [x] TTL-based expiration for cached results
+  - [x] Automatic cache invalidation on write operations
+  - [x] SQL table name extraction for targeted invalidation
+  - [x] Thread-safe implementation with shared_mutex
+  - [x] Comprehensive cache metrics
 
 ## Planned Features
 
@@ -323,7 +348,7 @@ The following features are planned for future releases:
 | Feature | Description | Status |
 |---------|-------------|--------|
 | QUIC Protocol | High-performance UDP-based transport with built-in TLS | Planned |
-| Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | Planned (see [#30](https://github.com/kcenon/database_server/issues/30)) |
+| Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | ✅ Completed ([#30](https://github.com/kcenon/database_server/issues/30)) |
 
 ## Security
 

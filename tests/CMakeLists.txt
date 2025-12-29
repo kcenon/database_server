@@ -416,6 +416,48 @@ if(GTest_FOUND OR gtest_FOUND)
 
     message(STATUS "Connection pool tests configured")
 
+    ##################################################
+    # Query Cache Unit Tests
+    ##################################################
+
+    add_executable(query_cache_test
+        query_cache_test.cpp
+    )
+
+    target_link_libraries(query_cache_test PRIVATE
+        DatabaseServerLib
+    )
+
+    if(GTest_FOUND)
+        target_link_libraries(query_cache_test PRIVATE
+            GTest::gtest
+            GTest::gtest_main
+            Threads::Threads
+        )
+    else()
+        target_link_libraries(query_cache_test PRIVATE
+            gtest
+            gtest_main
+            Threads::Threads
+        )
+    endif()
+
+    set_target_properties(query_cache_test PROPERTIES
+        CXX_STANDARD 20
+        CXX_STANDARD_REQUIRED ON
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
+    )
+
+    add_test(NAME QueryCacheTests COMMAND query_cache_test)
+
+    gtest_discover_tests(query_cache_test
+        PROPERTIES
+            TIMEOUT ${TEST_TIMEOUT}
+        DISCOVERY_TIMEOUT 60
+    )
+
+    message(STATUS "Query cache tests configured")
+
 else()
     message(WARNING "GTest not found - tests will not be built")
 endif()
