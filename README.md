@@ -290,7 +290,7 @@ rate_limit.block_duration_ms=60000
   - [x] Serialization using container_system
   - [x] Unit tests for message validation (45 tests)
 - [x] Implement TCP Listener
-  - [x] gateway_server: TCP server using network_system's messaging_server
+  - [x] gateway_server: TCP server using kcenon::network::core::messaging_server
   - [x] Client session management with authentication support
 - [x] Implement Query Routing & Load Balancing
   - [x] query_router: Routes queries to connection pool
