@@ -46,6 +46,7 @@
 
 #pragma once
 
+#include "query_cache.h"
 #include "query_protocol.h"
 #include "query_types.h"
 
@@ -56,6 +57,7 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 
 // Common system integration
 #include <kcenon/common/patterns/result.h>
@@ -207,6 +209,27 @@ public:
 	 */
 	[[nodiscard]] bool is_ready() const noexcept;
 
+	/**
+	 * @brief Set query cache for result caching
+	 * @param cache Shared pointer to query cache
+	 */
+	void set_query_cache(std::shared_ptr<query_cache> cache);
+
+	/**
+	 * @brief Get the current query cache
+	 * @return Shared pointer to query cache, or nullptr if not set
+	 */
+	[[nodiscard]] std::shared_ptr<query_cache> get_query_cache() const noexcept;
+
+	/**
+	 * @brief Extract table names from SQL query
+	 * @param sql The SQL query string
+	 * @param type The query type
+	 * @return Set of table names found in the query
+	 */
+	[[nodiscard]] static std::unordered_set<std::string> extract_table_names(
+		const std::string& sql, query_type type);
+
 private:
 	/**
 	 * @brief Execute SELECT query
@@ -231,10 +254,12 @@ private:
 private:
 	router_config config_;
 	std::shared_ptr<pooling::connection_pool> pool_;
+	std::shared_ptr<query_cache> cache_;
 	router_metrics metrics_;
 
 	std::atomic<uint64_t> active_queries_{0};
 	mutable std::mutex pool_mutex_;
+	mutable std::mutex cache_mutex_;
 };
 
 } // namespace database_server::gateway
