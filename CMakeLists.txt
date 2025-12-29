@@ -15,7 +15,7 @@ endif()
 #     ├── common_system (Tier 0) [REQUIRED] - ILogger, Result<T>
 #     ├── thread_system (Tier 1) [REQUIRED] - Job scheduling
 #     ├── database_system (Tier 2) [REQUIRED] - Database interfaces
-#     ├── network_system (Tier 4) [REQUIRED] - TCP/QUIC server
+#     ├── network_system (Tier 4) [REQUIRED] - TCP server
 #     ├── monitoring_system (Tier 3) [OPTIONAL] - Metrics
 #     └── container_system (Tier 1) [REQUIRED] - Protocol serialization
 ##################################################
@@ -354,7 +354,7 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
             if(MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
                 target_link_options(${TARGET_NAME} PUBLIC "/WHOLEARCHIVE:${${DEP_NAME}_LIB}")
                 message(STATUS "Linking ${DEP_NAME} with WHOLEARCHIVE from: ${${DEP_NAME}_LIB}")
-                # Link OpenSSL for HTTP/2, WebSocket, and QUIC support in network_system
+                # Link OpenSSL for HTTP/2 and WebSocket support in network_system
                 find_package(OpenSSL QUIET)
                 if(OPENSSL_FOUND)
                     target_link_libraries(${TARGET_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)

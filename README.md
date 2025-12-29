@@ -19,7 +19,7 @@ The Database Server is part of the kcenon unified system architecture evolution 
 ├─────────────────────────────────────────────────┤
 │  ┌─────────────┐    ┌─────────────────────┐    │
 │  │   Listener   │───▶│  Auth Middleware    │    │
-│  │ (TCP/QUIC)  │    │  (Rate Limiting)    │    │
+│  │    (TCP)    │    │  (Rate Limiting)    │    │
 │  └─────────────┘    └─────────┬───────────┘    │
 │                               │                 │
 │                    ┌──────────▼──────────┐     │
@@ -51,7 +51,7 @@ The Database Server is part of the kcenon unified system architecture evolution 
 - **common_system** (Tier 0) - Core utilities, Result<T>, logging interfaces
 - **thread_system** (Tier 1) - Job scheduling, thread pool management
 - **database_system** (Tier 2) - Database interfaces and types
-- **network_system** (Tier 4) - TCP/QUIC server implementation
+- **network_system** (Tier 4) - TCP server implementation
 - **container_system** (Tier 1) - Protocol serialization (required for query protocol messages)
 
 ### Optional
@@ -308,6 +308,15 @@ rate_limit.block_duration_ms=60000
   - [x] Performance benchmarks (target: 10k+ queries/sec)
   - [x] Latency measurement (target: < 1ms routing overhead)
 - [ ] (Optional) Implement Query Result Cache
+
+## Planned Features
+
+The following features are planned for future releases:
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| QUIC Protocol | High-performance UDP-based transport with built-in TLS | Planned |
+| Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | Planned (see [#30](https://github.com/kcenon/database_server/issues/30)) |
 
 ## Security
 
