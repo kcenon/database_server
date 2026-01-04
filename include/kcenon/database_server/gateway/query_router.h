@@ -60,6 +60,7 @@
 #include <unordered_set>
 
 // Common system integration
+#include <kcenon/common/interfaces/executor_interface.h>
 #include <kcenon/common/patterns/result.h>
 
 // Forward declarations
@@ -222,6 +223,22 @@ public:
 	[[nodiscard]] std::shared_ptr<query_cache> get_query_cache() const noexcept;
 
 	/**
+	 * @brief Set executor for async query execution
+	 * @param executor Shared pointer to executor
+	 *
+	 * When set, execute_async will use the executor instead of
+	 * creating detached threads.
+	 */
+	void set_executor(std::shared_ptr<kcenon::common::interfaces::IExecutor> executor);
+
+	/**
+	 * @brief Get the current executor
+	 * @return Shared pointer to executor, or nullptr if not set
+	 */
+	[[nodiscard]] std::shared_ptr<kcenon::common::interfaces::IExecutor> get_executor()
+		const noexcept;
+
+	/**
 	 * @brief Extract table names from SQL query
 	 * @param sql The SQL query string
 	 * @param type The query type
@@ -255,11 +272,13 @@ private:
 	router_config config_;
 	std::shared_ptr<pooling::connection_pool> pool_;
 	std::shared_ptr<query_cache> cache_;
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor_;
 	router_metrics metrics_;
 
 	std::atomic<uint64_t> active_queries_{0};
 	mutable std::mutex pool_mutex_;
 	mutable std::mutex cache_mutex_;
+	mutable std::mutex executor_mutex_;
 };
 
 } // namespace database_server::gateway

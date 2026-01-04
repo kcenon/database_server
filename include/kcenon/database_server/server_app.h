@@ -57,6 +57,9 @@
 #include <memory>
 #include <string>
 
+// Common system interfaces
+#include <kcenon/common/interfaces/executor_interface.h>
+
 // Forward declarations
 namespace database_server::gateway
 {
@@ -183,6 +186,21 @@ public:
 	 */
 	const server_config& config() const;
 
+	/**
+	 * @brief Get the executor used for background tasks
+	 * @return Shared pointer to executor, or nullptr if not set
+	 */
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> get_executor() const;
+
+	/**
+	 * @brief Set the executor for background tasks
+	 * @param executor Shared pointer to executor
+	 *
+	 * When set, the executor is propagated to query_router and other
+	 * components that support IExecutor for background task execution.
+	 */
+	void set_executor(std::shared_ptr<kcenon::common::interfaces::IExecutor> executor);
+
 private:
 	/**
 	 * @brief Setup signal handlers for graceful shutdown
@@ -209,6 +227,9 @@ private:
 	// Connection pool and query router (Phase 3.3)
 	std::shared_ptr<pooling::connection_pool> connection_pool_;
 	std::unique_ptr<gateway::query_router> query_router_;
+
+	// Executor for background tasks
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor_;
 
 	// Signal handling
 	static server_app* instance_;

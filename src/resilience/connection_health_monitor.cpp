@@ -38,10 +38,40 @@
 namespace database_server::resilience
 {
 
+/**
+ * @brief Job implementation for health monitoring loop
+ */
+class health_monitor_job : public kcenon::common::interfaces::IJob
+{
+public:
+	explicit health_monitor_job(connection_health_monitor* monitor)
+		: monitor_(monitor)
+	{
+	}
+
+	kcenon::common::VoidResult execute() override
+	{
+		if (monitor_)
+		{
+			monitor_->monitoring_loop();
+		}
+		return kcenon::common::ok();
+	}
+
+	std::string get_name() const override { return "health_monitor_loop"; }
+	int get_priority() const override { return 0; }
+
+private:
+	connection_health_monitor* monitor_;
+};
+
 connection_health_monitor::connection_health_monitor(
-	database::core::database_backend* backend, health_check_config config)
+	database::core::database_backend* backend,
+	health_check_config config,
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor)
 	: backend_(backend)
 	, config_(std::move(config))
+	, executor_(std::move(executor))
 	, connection_start_time_(std::chrono::system_clock::now())
 {
 	current_status_.last_check_time = std::chrono::system_clock::now();
@@ -60,7 +90,22 @@ void connection_health_monitor::start_monitoring()
 	}
 
 	stop_requested_ = false;
-	monitoring_thread_ = std::make_unique<std::thread>([this] { monitoring_loop(); });
+
+	if (executor_)
+	{
+		// Use IExecutor for background task
+		auto job = std::make_unique<health_monitor_job>(this);
+		auto result = executor_->execute(std::move(job));
+		if (result.is_ok())
+		{
+			monitoring_future_ = std::move(result.unwrap());
+		}
+	}
+	else
+	{
+		// Fallback to std::async if no executor provided
+		monitoring_future_ = std::async(std::launch::async, [this] { monitoring_loop(); });
+	}
 }
 
 void connection_health_monitor::stop_monitoring()
@@ -71,9 +116,16 @@ void connection_health_monitor::stop_monitoring()
 	}
 
 	stop_requested_ = true;
-	if (monitoring_thread_ && monitoring_thread_->joinable())
+
+	// Wait for monitoring task to complete
+	if (monitoring_future_.valid())
 	{
-		monitoring_thread_->join();
+		// Use wait_for with timeout to avoid indefinite blocking
+		auto status = monitoring_future_.wait_for(std::chrono::seconds(5));
+		if (status == std::future_status::timeout)
+		{
+			// Monitoring loop should have exited, but continue anyway
+		}
 	}
 }
 

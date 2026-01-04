@@ -53,6 +53,9 @@
 #include <database/core/database_backend.h>
 #include <database/database_types.h>
 
+// Common system interfaces
+#include <kcenon/common/interfaces/executor_interface.h>
+
 namespace database_server::resilience
 {
 
@@ -148,10 +151,12 @@ public:
 	 * @brief Construct resilient connection wrapper
 	 * @param backend Underlying database backend to wrap
 	 * @param config Reconnection configuration
+	 * @param executor Optional executor for background tasks (health monitoring, etc.)
 	 */
 	explicit resilient_database_connection(
 		std::unique_ptr<database::core::database_backend> backend,
-		reconnection_config config = reconnection_config{});
+		reconnection_config config = reconnection_config{},
+		std::shared_ptr<kcenon::common::interfaces::IExecutor> executor = nullptr);
 
 	~resilient_database_connection() override;
 
@@ -334,6 +339,7 @@ private:
 private:
 	std::unique_ptr<database::core::database_backend> backend_;
 	reconnection_config config_;
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor_;
 	std::unique_ptr<connection_health_monitor> health_monitor_;
 
 	database::core::connection_config connection_config_;

@@ -42,14 +42,17 @@
 #include <atomic>
 #include <chrono>
 #include <cstdint>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 
 // Database system interfaces
 #include <database/core/database_backend.h>
+
+// Common system interfaces
+#include <kcenon/common/interfaces/executor_interface.h>
 
 namespace database_server::resilience
 {
@@ -128,17 +131,24 @@ struct health_check_config
  *   }
  * @endcode
  */
+// Forward declaration for friend class
+class health_monitor_job;
+
 class connection_health_monitor
 {
+	friend class health_monitor_job;
+
 public:
 	/**
 	 * @brief Construct health monitor for database backend
 	 * @param backend Database backend to monitor
 	 * @param config Health check configuration
+	 * @param executor Optional executor for background tasks. If null, uses internal thread.
 	 */
 	explicit connection_health_monitor(
 		database::core::database_backend* backend,
-		health_check_config config = health_check_config{});
+		health_check_config config = health_check_config{},
+		std::shared_ptr<kcenon::common::interfaces::IExecutor> executor = nullptr);
 
 	~connection_health_monitor();
 
@@ -235,10 +245,11 @@ private:
 private:
 	database::core::database_backend* backend_;
 	health_check_config config_;
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor_;
 
 	std::atomic<bool> is_monitoring_{ false };
 	std::atomic<bool> stop_requested_{ false };
-	std::unique_ptr<std::thread> monitoring_thread_;
+	std::future<void> monitoring_future_;
 
 	mutable std::mutex mutex_;
 	health_status current_status_;

@@ -105,6 +105,11 @@ bool server_app::do_initialize()
 	// Setup signal handlers
 	setup_signal_handlers();
 
+	// Note: IExecutor integration is available but optional.
+	// Modules will use std::async fallback when executor is not provided.
+	// To enable IExecutor, inject it via set_executor() methods on query_router
+	// and resilience components.
+
 	// Initialize query router
 	gateway::router_config router_cfg;
 	router_cfg.default_timeout_ms = config_.network.connection_timeout_ms;
@@ -241,9 +246,33 @@ void server_app::do_cleanup()
 	// Cleanup gateway server
 	gateway_.reset();
 
+	// Shutdown executor if set
+	if (executor_)
+	{
+		executor_->shutdown(true);
+		executor_.reset();
+	}
+
 	if (instance_ == this)
 	{
 		instance_ = nullptr;
+	}
+}
+
+std::shared_ptr<kcenon::common::interfaces::IExecutor> server_app::get_executor() const
+{
+	return executor_;
+}
+
+void server_app::set_executor(
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor)
+{
+	executor_ = std::move(executor);
+
+	// Propagate to query router if available
+	if (query_router_ && executor_)
+	{
+		query_router_->set_executor(executor_);
 	}
 }
 

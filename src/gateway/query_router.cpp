@@ -34,11 +34,10 @@
 #include <kcenon/database_server/pooling/connection_priority.h>
 
 #include <algorithm>
-#include <chrono>
 #include <cctype>
+#include <chrono>
 #include <future>
 #include <regex>
-#include <thread>
 
 namespace database_server::gateway
 {
@@ -173,20 +172,73 @@ query_response query_router::execute(const query_request& request)
 	return response;
 }
 
+/**
+ * @brief Job implementation for async query execution
+ */
+class async_query_job : public kcenon::common::interfaces::IJob
+{
+public:
+	async_query_job(query_router* router,
+					query_request request,
+					std::function<void(query_response)> callback)
+		: router_(router)
+		, request_(std::move(request))
+		, callback_(std::move(callback))
+	{
+	}
+
+	kcenon::common::VoidResult execute() override
+	{
+		if (router_)
+		{
+			auto response = router_->execute(request_);
+			if (callback_)
+			{
+				callback_(std::move(response));
+			}
+		}
+		return kcenon::common::ok();
+	}
+
+	std::string get_name() const override { return "async_query"; }
+	int get_priority() const override { return 0; }
+
+private:
+	query_router* router_;
+	query_request request_;
+	std::function<void(query_response)> callback_;
+};
+
 void query_router::execute_async(const query_request& request,
 								 std::function<void(query_response)> callback)
 {
-	// Launch async execution
-	std::thread(
-		[this, request, callback = std::move(callback)]()
-		{
-			auto response = execute(request);
-			if (callback)
-			{
-				callback(std::move(response));
-			}
-		})
-		.detach();
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> exec;
+	{
+		std::lock_guard<std::mutex> lock(executor_mutex_);
+		exec = executor_;
+	}
+
+	if (exec)
+	{
+		// Use IExecutor for async execution
+		auto job = std::make_unique<async_query_job>(this, request, std::move(callback));
+		auto result = exec->execute(std::move(job));
+		// Fire and forget - the callback will be invoked when done
+		(void)result;
+	}
+	else
+	{
+		// Fallback to std::async if no executor provided
+		std::async(std::launch::async,
+				   [this, request, callback = std::move(callback)]()
+				   {
+					   auto response = execute(request);
+					   if (callback)
+					   {
+						   callback(std::move(response));
+					   }
+				   });
+	}
 }
 
 const router_metrics& query_router::metrics() const noexcept
@@ -224,6 +276,20 @@ std::shared_ptr<query_cache> query_router::get_query_cache() const noexcept
 {
 	std::lock_guard<std::mutex> lock(cache_mutex_);
 	return cache_;
+}
+
+void query_router::set_executor(
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor)
+{
+	std::lock_guard<std::mutex> lock(executor_mutex_);
+	executor_ = std::move(executor);
+}
+
+std::shared_ptr<kcenon::common::interfaces::IExecutor> query_router::get_executor()
+	const noexcept
+{
+	std::lock_guard<std::mutex> lock(executor_mutex_);
+	return executor_;
 }
 
 std::unordered_set<std::string> query_router::extract_table_names(

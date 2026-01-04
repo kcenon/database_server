@@ -40,13 +40,17 @@ namespace database_server::resilience
 {
 
 resilient_database_connection::resilient_database_connection(
-	std::unique_ptr<database::core::database_backend> backend, reconnection_config config)
+	std::unique_ptr<database::core::database_backend> backend,
+	reconnection_config config,
+	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor)
 	: backend_(std::move(backend))
 	, config_(std::move(config))
+	, executor_(std::move(executor))
 {
 	if (backend_)
 	{
-		health_monitor_ = std::make_unique<connection_health_monitor>(backend_.get());
+		health_monitor_
+			= std::make_unique<connection_health_monitor>(backend_.get(), health_check_config{}, executor_);
 	}
 }
 
