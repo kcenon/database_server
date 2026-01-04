@@ -215,7 +215,8 @@ kcenon.database_server              # Primary module interface
 ├── :core                           # Server app and configuration
 ├── :gateway                        # Query protocol and routing
 ├── :pooling                        # Connection pool management
-└── :resilience                     # Health monitoring and recovery
+├── :resilience                     # Health monitoring and recovery
+└── :metrics                        # CRTP-based metrics collection
 ```
 
 **Usage:**
@@ -410,6 +411,7 @@ The following features are planned for future releases:
 | QUIC Protocol | High-performance UDP-based transport with built-in TLS | Planned |
 | Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | ✅ Completed ([#30](https://github.com/kcenon/database_server/issues/30)) |
 | CRTP Query Handlers | Zero virtual dispatch overhead for query processing | ✅ Completed ([#48](https://github.com/kcenon/database_server/issues/48)) |
+| CRTP Metrics Collector | Zero-overhead query metrics collection following monitoring_system pattern | ✅ Completed ([#49](https://github.com/kcenon/database_server/issues/49)) |
 
 ## Executor Integration
 
@@ -448,6 +450,74 @@ app.run();
 | `resilient_database_connection` | Constructor | Propagates to health monitor |
 
 When no executor is provided, components automatically fall back to `std::async` for background tasks.
+
+## Metrics Collection
+
+The server includes a CRTP-based metrics collector for comprehensive performance monitoring, following the monitoring_system's collector pattern for zero-overhead collection.
+
+### Metrics Categories
+
+| Category | Metrics | Description |
+|----------|---------|-------------|
+| Query Execution | total/success/failed/timeout, latency | Query performance tracking |
+| Cache Performance | hits/misses, hit ratio, evictions | Cache efficiency monitoring |
+| Pool Utilization | active/idle connections, acquisition time | Connection pool health |
+| Session Management | active sessions, auth events, duration | Session lifecycle tracking |
+
+### Usage Example
+
+```cpp
+#include <kcenon/database_server/metrics/query_metrics_collector.h>
+
+using namespace database_server::metrics;
+
+// Get global collector
+auto& collector = get_query_metrics_collector();
+
+// Initialize with configuration
+collector.initialize({
+    {"enabled", "true"},
+    {"track_query_types", "true"}
+});
+
+// Record query execution
+query_execution exec;
+exec.query_type = "select";
+exec.latency_ns = 1500000;  // 1.5ms
+exec.success = true;
+collector.collect_query_metrics(exec);
+
+// Record cache operation
+cache_stats cache;
+cache.hit = true;
+collector.collect_cache_metrics(cache);
+
+// Get metrics for monitoring
+const auto& metrics = collector.get_metrics();
+double avg_latency = metrics.query_metrics.avg_query_latency_ms();
+double cache_hit_ratio = metrics.cache_metrics.cache_hit_ratio();
+```
+
+### Monitoring System Integration
+
+```cpp
+// Initialize monitoring integration
+initialize_monitoring_integration("my_database_server");
+
+// Set export callback for custom monitoring systems
+set_metrics_export_callback([](const std::vector<monitoring_metric>& metrics) {
+    for (const auto& m : metrics) {
+        // Export to your monitoring system
+        push_to_prometheus(m.name, m.value, m.tags);
+    }
+});
+
+// Export current metrics
+export_metrics_to_monitoring();
+
+// Get metrics for health endpoint
+auto health_metrics = get_metrics_for_health_endpoint();
+```
 
 ## Security
 
