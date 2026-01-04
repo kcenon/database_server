@@ -47,6 +47,8 @@
 #pragma once
 
 #include "query_cache.h"
+#include "query_handler_base.h"
+#include "query_handlers.h"
 #include "query_protocol.h"
 #include "query_types.h"
 
@@ -58,6 +60,7 @@
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 // Common system integration
 #include <kcenon/common/interfaces/executor_interface.h>
@@ -247,26 +250,44 @@ public:
 	[[nodiscard]] static std::unordered_set<std::string> extract_table_names(
 		const std::string& sql, query_type type);
 
+	/**
+	 * @brief Register a custom query handler
+	 * @param handler Handler to register
+	 *
+	 * Custom handlers take precedence over built-in handlers.
+	 * Multiple handlers can be registered for the same query type;
+	 * the first handler that can_handle() returns true will be used.
+	 */
+	void register_handler(std::unique_ptr<i_query_handler> handler);
+
+	/**
+	 * @brief Get the handler context for query execution
+	 * @return Handler context with pool and cache references
+	 */
+	[[nodiscard]] handler_context get_handler_context() const;
+
 private:
 	/**
-	 * @brief Execute SELECT query
+	 * @brief Find handler for query type
+	 * @param type Query type to find handler for
+	 * @return Pointer to handler, or nullptr if not found
 	 */
-	[[nodiscard]] query_response execute_select(const query_request& request);
+	[[nodiscard]] i_query_handler* find_handler(query_type type) const;
 
 	/**
-	 * @brief Execute INSERT/UPDATE/DELETE query
+	 * @brief Execute query using appropriate handler
 	 */
-	[[nodiscard]] query_response execute_modify(const query_request& request);
-
-	/**
-	 * @brief Execute stored procedure
-	 */
-	[[nodiscard]] query_response execute_procedure(const query_request& request);
+	[[nodiscard]] query_response execute_with_handler(const query_request& request);
 
 	/**
 	 * @brief Record execution metrics
 	 */
 	void record_metrics(bool success, bool timeout, uint64_t execution_time_us);
+
+	/**
+	 * @brief Initialize built-in handlers
+	 */
+	void initialize_handlers();
 
 private:
 	router_config config_;
@@ -279,6 +300,19 @@ private:
 	mutable std::mutex pool_mutex_;
 	mutable std::mutex cache_mutex_;
 	mutable std::mutex executor_mutex_;
+	mutable std::mutex handlers_mutex_;
+
+	// CRTP-based query handlers
+	std::vector<std::unique_ptr<i_query_handler>> handlers_;
+
+	// Built-in handlers (CRTP-based, stored for direct access)
+	select_handler select_handler_;
+	insert_handler insert_handler_;
+	update_handler update_handler_;
+	delete_handler delete_handler_;
+	execute_handler execute_handler_;
+	ping_handler ping_handler_;
+	batch_handler batch_handler_;
 };
 
 } // namespace database_server::gateway

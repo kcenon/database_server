@@ -41,6 +41,8 @@ module;
 // Include existing headers in the global module fragment
 #include "kcenon/database_server/gateway/query_types.h"
 #include "kcenon/database_server/gateway/query_protocol.h"
+#include "kcenon/database_server/gateway/query_handler_base.h"
+#include "kcenon/database_server/gateway/query_handlers.h"
 #include "kcenon/database_server/gateway/auth_middleware.h"
 #include "kcenon/database_server/gateway/query_cache.h"
 #include "kcenon/database_server/gateway/query_router.h"
@@ -151,6 +153,38 @@ using ::database_server::gateway::cache_metrics;
 
 // Re-export query cache
 using ::database_server::gateway::query_cache;
+
+} // namespace database_server::gateway
+
+// ============================================================================
+// Query Handler CRTP Infrastructure
+// ============================================================================
+
+export namespace database_server::gateway {
+
+// Re-export handler context
+using ::database_server::gateway::handler_context;
+
+// Re-export CRTP base template
+using ::database_server::gateway::query_handler_base;
+
+// Re-export type-erased interface
+using ::database_server::gateway::i_query_handler;
+
+// Re-export wrapper template
+using ::database_server::gateway::query_handler_wrapper;
+
+// Re-export handler factory
+using ::database_server::gateway::make_handler;
+
+// Re-export CRTP handlers
+using ::database_server::gateway::select_handler;
+using ::database_server::gateway::insert_handler;
+using ::database_server::gateway::update_handler;
+using ::database_server::gateway::delete_handler;
+using ::database_server::gateway::execute_handler;
+using ::database_server::gateway::ping_handler;
+using ::database_server::gateway::batch_handler;
 
 } // namespace database_server::gateway
 

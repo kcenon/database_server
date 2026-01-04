@@ -266,6 +266,7 @@ add_library(DatabaseServerLib
     src/gateway/protocol/response_serializer.cpp
     src/gateway/gateway_server.cpp
     src/gateway/query_router.cpp
+    src/gateway/query_handlers.cpp
     src/gateway/auth_middleware.cpp
     src/gateway/session_id_generator.cpp
     src/gateway/query_cache.cpp

@@ -53,27 +53,6 @@ uint64_t current_timestamp_us()
 			.count());
 }
 
-pooling::connection_priority get_priority_for_query_type(query_type type)
-{
-	switch (type)
-	{
-	case query_type::select:
-		return pooling::PRIORITY_NORMAL_QUERY;
-	case query_type::insert:
-	case query_type::update:
-	case query_type::del:
-		return pooling::PRIORITY_TRANSACTION;
-	case query_type::execute:
-		return pooling::PRIORITY_TRANSACTION;
-	case query_type::batch:
-		return pooling::PRIORITY_TRANSACTION;
-	case query_type::ping:
-		return pooling::PRIORITY_HEALTH_CHECK;
-	default:
-		return pooling::PRIORITY_NORMAL_QUERY;
-	}
-}
-
 } // namespace
 
 // ============================================================================
@@ -83,6 +62,93 @@ pooling::connection_priority get_priority_for_query_type(query_type type)
 query_router::query_router(const router_config& config)
 	: config_(config)
 {
+	initialize_handlers();
+}
+
+void query_router::initialize_handlers()
+{
+	// Built-in handlers are stored as member variables for CRTP optimization
+	// No dynamic allocation needed for built-in handlers
+}
+
+void query_router::register_handler(std::unique_ptr<i_query_handler> handler)
+{
+	std::lock_guard<std::mutex> lock(handlers_mutex_);
+	handlers_.push_back(std::move(handler));
+}
+
+handler_context query_router::get_handler_context() const
+{
+	handler_context ctx;
+	{
+		std::lock_guard<std::mutex> lock(pool_mutex_);
+		ctx.pool = pool_;
+	}
+	{
+		std::lock_guard<std::mutex> lock(cache_mutex_);
+		ctx.cache = cache_;
+	}
+	ctx.default_timeout_ms = config_.default_timeout_ms;
+	return ctx;
+}
+
+i_query_handler* query_router::find_handler(query_type type) const
+{
+	// First check custom handlers
+	{
+		std::lock_guard<std::mutex> lock(handlers_mutex_);
+		for (const auto& handler : handlers_)
+		{
+			if (handler->can_handle(type))
+			{
+				return handler.get();
+			}
+		}
+	}
+
+	// Return nullptr - built-in handlers are used directly in execute_with_handler
+	return nullptr;
+}
+
+query_response query_router::execute_with_handler(const query_request& request)
+{
+	auto ctx = get_handler_context();
+
+	// Check for custom handler first
+	auto* custom_handler = find_handler(request.type);
+	if (custom_handler != nullptr)
+	{
+		return custom_handler->handle(request, ctx);
+	}
+
+	// Use built-in CRTP handlers (zero virtual dispatch overhead)
+	switch (request.type)
+	{
+	case query_type::select:
+		return select_handler_.handle(request, ctx);
+
+	case query_type::insert:
+		return insert_handler_.handle(request, ctx);
+
+	case query_type::update:
+		return update_handler_.handle(request, ctx);
+
+	case query_type::del:
+		return delete_handler_.handle(request, ctx);
+
+	case query_type::execute:
+		return execute_handler_.handle(request, ctx);
+
+	case query_type::ping:
+		return ping_handler_.handle(request, ctx);
+
+	case query_type::batch:
+		return batch_handler_.handle(request, ctx);
+
+	default:
+		return query_response(request.header.message_id, status_code::invalid_query,
+							  "Unknown query type");
+	}
 }
 
 void query_router::set_connection_pool(std::shared_ptr<pooling::connection_pool> pool)
@@ -117,43 +183,12 @@ kcenon::common::Result<query_response> query_router::execute(const query_request
 			"query_router"};
 	}
 
-	// Execute based on query type
+	// Execute using CRTP handlers
 	query_response response(request.header.message_id);
 
 	try
 	{
-		switch (request.type)
-		{
-		case query_type::select:
-			response = execute_select(request);
-			break;
-
-		case query_type::insert:
-		case query_type::update:
-		case query_type::del:
-			response = execute_modify(request);
-			break;
-
-		case query_type::execute:
-			response = execute_procedure(request);
-			break;
-
-		case query_type::batch:
-			// Batch queries not yet implemented
-			response = query_response(request.header.message_id, status_code::error,
-									  "Batch queries not yet implemented");
-			break;
-
-		case query_type::ping:
-			// Ping is handled at gateway level
-			response = query_response(request.header.message_id);
-			break;
-
-		default:
-			response = query_response(request.header.message_id, status_code::invalid_query,
-									  "Unknown query type");
-			break;
-		}
+		response = execute_with_handler(request);
 	}
 	catch (const std::exception& e)
 	{
@@ -326,334 +361,8 @@ std::shared_ptr<kcenon::common::interfaces::IExecutor> query_router::get_executo
 std::unordered_set<std::string> query_router::extract_table_names(
 	const std::string& sql, query_type type)
 {
-	std::unordered_set<std::string> tables;
-
-	// Convert SQL to uppercase for case-insensitive matching
-	std::string sql_upper = sql;
-	std::transform(sql_upper.begin(), sql_upper.end(), sql_upper.begin(),
-				   [](unsigned char c) { return static_cast<char>(std::toupper(c)); });
-
-	// Regular expression patterns for different query types
-	std::regex from_pattern(R"(\bFROM\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
-							std::regex::icase);
-	std::regex join_pattern(R"(\bJOIN\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
-							std::regex::icase);
-	std::regex into_pattern(R"(\bINTO\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
-							std::regex::icase);
-	std::regex update_pattern(R"(\bUPDATE\s+([A-Z_][A-Z0-9_]*(?:\.[A-Z_][A-Z0-9_]*)?))",
-							  std::regex::icase);
-
-	std::smatch match;
-	std::string::const_iterator search_start = sql.cbegin();
-
-	// Extract FROM tables
-	while (std::regex_search(search_start, sql.cend(), match, from_pattern))
-	{
-		tables.insert(match[1].str());
-		search_start = match.suffix().first;
-	}
-
-	// Extract JOIN tables
-	search_start = sql.cbegin();
-	while (std::regex_search(search_start, sql.cend(), match, join_pattern))
-	{
-		tables.insert(match[1].str());
-		search_start = match.suffix().first;
-	}
-
-	// For INSERT queries
-	if (type == query_type::insert)
-	{
-		search_start = sql.cbegin();
-		while (std::regex_search(search_start, sql.cend(), match, into_pattern))
-		{
-			tables.insert(match[1].str());
-			search_start = match.suffix().first;
-		}
-	}
-
-	// For UPDATE queries
-	if (type == query_type::update)
-	{
-		search_start = sql.cbegin();
-		while (std::regex_search(search_start, sql.cend(), match, update_pattern))
-		{
-			tables.insert(match[1].str());
-			search_start = match.suffix().first;
-		}
-	}
-
-	return tables;
-}
-
-query_response query_router::execute_select(const query_request& request)
-{
-	// Try cache lookup first
-	std::shared_ptr<query_cache> cache;
-	std::string cache_key;
-	{
-		std::lock_guard<std::mutex> lock(cache_mutex_);
-		cache = cache_;
-	}
-
-	if (cache && cache->is_enabled())
-	{
-		cache_key = query_cache::make_key(request);
-		auto cached = cache->get(cache_key);
-		if (cached.is_ok())
-		{
-			auto response = std::move(cached.value());
-			response.header.message_id = request.header.message_id;
-			response.header.correlation_id = request.header.correlation_id;
-			return response;
-		}
-		// Cache miss is not an error, continue with query execution
-	}
-
-	std::shared_ptr<pooling::connection_pool> pool;
-	{
-		std::lock_guard<std::mutex> lock(pool_mutex_);
-		pool = pool_;
-	}
-
-	if (!pool)
-	{
-		return query_response(request.header.message_id, status_code::no_connection,
-							  "Connection pool not available");
-	}
-
-	// Get priority based on query type
-	auto priority = get_priority_for_query_type(request.type);
-
-	// Acquire connection with timeout
-	auto timeout_ms = request.options.timeout_ms > 0
-						  ? request.options.timeout_ms
-						  : config_.default_timeout_ms;
-
-	auto future = pool->acquire_connection(priority);
-
-	auto status = future.wait_for(std::chrono::milliseconds(timeout_ms));
-	if (status == std::future_status::timeout)
-	{
-		return query_response(request.header.message_id, status_code::timeout,
-							  "Connection acquisition timeout");
-	}
-
-	auto conn_result = future.get();
-	if (!conn_result.is_ok())
-	{
-		return query_response(request.header.message_id, status_code::no_connection,
-							  "Failed to acquire connection: " +
-								  conn_result.error().message);
-	}
-
-	auto connection = conn_result.value();
-
-	// Execute query
-	try
-	{
-		auto db = connection->get();
-		if (!db)
-		{
-			pool->release_connection(connection);
-			return query_response(request.header.message_id, status_code::error,
-								  "Invalid database connection");
-		}
-
-		// Use select_query for SELECT statements
-		auto db_result = db->select_query(request.sql);
-
-		query_response response(request.header.message_id);
-
-		if (!db_result.empty())
-		{
-			// Extract column metadata from first row's keys
-			if (!db_result.empty())
-			{
-				for (const auto& [col_name, value] : db_result.front())
-				{
-					column_metadata meta;
-					meta.name = col_name;
-					// Determine type name from variant
-					std::visit(
-						[&meta](const auto& val)
-						{
-							using T = std::decay_t<decltype(val)>;
-							if constexpr (std::is_same_v<T, std::string>)
-								meta.type_name = "string";
-							else if constexpr (std::is_same_v<T, int64_t>)
-								meta.type_name = "integer";
-							else if constexpr (std::is_same_v<T, double>)
-								meta.type_name = "double";
-							else if constexpr (std::is_same_v<T, bool>)
-								meta.type_name = "boolean";
-							else
-								meta.type_name = "null";
-						},
-						value);
-					response.columns.push_back(std::move(meta));
-				}
-			}
-
-			// Convert rows
-			for (const auto& db_row : db_result)
-			{
-				result_row row;
-				for (const auto& [col_name, cell] : db_row)
-				{
-					std::visit(
-						[&row](const auto& val)
-						{
-							using T = std::decay_t<decltype(val)>;
-							if constexpr (std::is_same_v<T, std::nullptr_t>)
-								row.cells.push_back(std::monostate{});
-							else if constexpr (std::is_same_v<T, int64_t>)
-								row.cells.push_back(val);
-							else if constexpr (std::is_same_v<T, double>)
-								row.cells.push_back(val);
-							else if constexpr (std::is_same_v<T, bool>)
-								row.cells.push_back(val);
-							else if constexpr (std::is_same_v<T, std::string>)
-								row.cells.push_back(val);
-							else
-								row.cells.push_back(std::monostate{});
-						},
-						cell);
-				}
-				response.rows.push_back(std::move(row));
-			}
-		}
-
-		pool->release_connection(connection);
-
-		// Cache the successful response
-		if (cache && cache->is_enabled() && !cache_key.empty())
-		{
-			auto tables = extract_table_names(request.sql, request.type);
-			// Ignore cache put failures - they don't affect query success
-			(void)cache->put(cache_key, response, tables);
-		}
-
-		return response;
-	}
-	catch (const std::exception& e)
-	{
-		pool->release_connection(connection);
-		return query_response(request.header.message_id, status_code::error,
-							  std::string("Query execution error: ") + e.what());
-	}
-}
-
-query_response query_router::execute_modify(const query_request& request)
-{
-	std::shared_ptr<pooling::connection_pool> pool;
-	{
-		std::lock_guard<std::mutex> lock(pool_mutex_);
-		pool = pool_;
-	}
-
-	if (!pool)
-	{
-		return query_response(request.header.message_id, status_code::no_connection,
-							  "Connection pool not available");
-	}
-
-	auto priority = get_priority_for_query_type(request.type);
-	auto timeout_ms = request.options.timeout_ms > 0
-						  ? request.options.timeout_ms
-						  : config_.default_timeout_ms;
-
-	auto future = pool->acquire_connection(priority);
-
-	auto status = future.wait_for(std::chrono::milliseconds(timeout_ms));
-	if (status == std::future_status::timeout)
-	{
-		return query_response(request.header.message_id, status_code::timeout,
-							  "Connection acquisition timeout");
-	}
-
-	auto conn_result = future.get();
-	if (!conn_result.is_ok())
-	{
-		return query_response(request.header.message_id, status_code::no_connection,
-							  "Failed to acquire connection: " +
-								  conn_result.error().message);
-	}
-
-	auto connection = conn_result.value();
-
-	try
-	{
-		auto db = connection->get();
-		if (!db)
-		{
-			pool->release_connection(connection);
-			return query_response(request.header.message_id, status_code::error,
-								  "Invalid database connection");
-		}
-
-		query_response response(request.header.message_id);
-		unsigned int affected_rows = 0;
-
-		// Use appropriate method based on query type
-		switch (request.type)
-		{
-		case query_type::insert:
-			affected_rows = db->insert_query(request.sql);
-			break;
-		case query_type::update:
-			affected_rows = db->update_query(request.sql);
-			break;
-		case query_type::del:
-			affected_rows = db->delete_query(request.sql);
-			break;
-		default:
-			// Generic execute for other types
-			if (!db->execute_query(request.sql))
-			{
-				pool->release_connection(connection);
-				return query_response(request.header.message_id, status_code::error,
-									  "Query execution failed");
-			}
-			break;
-		}
-
-		response.affected_rows = static_cast<uint64_t>(affected_rows);
-
-		pool->release_connection(connection);
-
-		// Invalidate cache for affected tables
-		std::shared_ptr<query_cache> cache;
-		{
-			std::lock_guard<std::mutex> lock(cache_mutex_);
-			cache = cache_;
-		}
-
-		if (cache && cache->is_enabled())
-		{
-			auto tables = extract_table_names(request.sql, request.type);
-			for (const auto& table : tables)
-			{
-				// Ignore cache invalidation failures - they don't affect query success
-				(void)cache->invalidate(table);
-			}
-		}
-
-		return response;
-	}
-	catch (const std::exception& e)
-	{
-		pool->release_connection(connection);
-		return query_response(request.header.message_id, status_code::error,
-							  std::string("Query execution error: ") + e.what());
-	}
-}
-
-query_response query_router::execute_procedure(const query_request& request)
-{
-	// Stored procedure execution - similar to execute_select but may return multiple result sets
-	// For now, delegate to execute_select
-	return execute_select(request);
+	// Delegate to detail namespace implementation
+	return detail::extract_table_names(sql, type);
 }
 
 void query_router::record_metrics(bool success, bool timeout, uint64_t execution_time_us)
