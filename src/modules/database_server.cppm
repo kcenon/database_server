@@ -53,6 +53,9 @@ export import :pooling;
 // Tier 4: Resilience and health monitoring
 export import :resilience;
 
+// Tier 5: Metrics collection
+export import :metrics;
+
 export namespace database_server {
 
 /**
