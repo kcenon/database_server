@@ -340,6 +340,12 @@ cache.enable_lru=true
   - [x] SQL table name extraction for targeted invalidation
   - [x] Thread-safe implementation with shared_mutex
   - [x] Comprehensive cache metrics
+- [x] IExecutor Interface Integration ([#45](https://github.com/kcenon/database_server/issues/45))
+  - [x] Optional IExecutor injection for background tasks
+  - [x] Resilience module: health monitoring via IExecutor
+  - [x] Gateway module: async query execution via IExecutor
+  - [x] Fallback to std::async when executor not provided
+  - [x] Centralized executor management in server_app
 
 ## Planned Features
 
@@ -349,6 +355,44 @@ The following features are planned for future releases:
 |---------|-------------|--------|
 | QUIC Protocol | High-performance UDP-based transport with built-in TLS | Planned |
 | Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | ✅ Completed ([#30](https://github.com/kcenon/database_server/issues/30)) |
+
+## Executor Integration
+
+The server supports optional `IExecutor` injection from `common_system` for centralized thread management. This allows sharing a single thread pool across components for efficient resource utilization.
+
+### Usage Example
+
+```cpp
+#include <kcenon/database_server/server_app.h>
+#include <kcenon/thread/adapters/common_executor_adapter.h>
+#include <kcenon/thread/core/thread_pool.h>
+
+// Create server app
+database_server::server_app app;
+app.initialize("config.conf");
+
+// Create shared executor (optional)
+auto pool = std::make_shared<kcenon::thread::thread_pool>("shared_executor", 4);
+pool->start();
+auto executor = kcenon::thread::adapters::common_executor_factory::create_from_thread_pool(pool);
+
+// Inject executor for unified thread management
+app.set_executor(executor);
+
+// Start server - async queries and health monitoring will use shared executor
+app.run();
+```
+
+### Components with IExecutor Support
+
+| Component | Method | Description |
+|-----------|--------|-------------|
+| `server_app` | `set_executor()` | Centralized executor management |
+| `query_router` | `set_executor()` | Async query execution |
+| `connection_health_monitor` | Constructor | Background health monitoring |
+| `resilient_database_connection` | Constructor | Propagates to health monitor |
+
+When no executor is provided, components automatically fall back to `std::async` for background tasks.
 
 ## Security
 
