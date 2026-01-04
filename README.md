@@ -376,6 +376,7 @@ cache.enable_lru=true
   - [x] Priority-based scheduling integration
   - [x] Metrics collection for performance monitoring
   - [x] server_app integration with gateway and query router
+  - [x] CRTP-based query handlers for zero virtual dispatch overhead ([#48](https://github.com/kcenon/database_server/issues/48))
 - [x] Add authentication middleware (Phase 3.4)
   - [x] auth_middleware: Token validation with pluggable validators
   - [x] rate_limiter: Sliding window rate limiting with burst support
@@ -408,6 +409,7 @@ The following features are planned for future releases:
 |---------|-------------|--------|
 | QUIC Protocol | High-performance UDP-based transport with built-in TLS | Planned |
 | Query Result Cache | In-memory cache for SELECT query results with TTL and LRU eviction | ✅ Completed ([#30](https://github.com/kcenon/database_server/issues/30)) |
+| CRTP Query Handlers | Zero virtual dispatch overhead for query processing | ✅ Completed ([#48](https://github.com/kcenon/database_server/issues/48)) |
 
 ## Executor Integration
 
