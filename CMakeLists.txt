@@ -270,6 +270,9 @@ add_library(DatabaseServerLib
     src/gateway/auth_middleware.cpp
     src/gateway/session_id_generator.cpp
     src/gateway/query_cache.cpp
+    # Metrics (CRTP-based collectors)
+    src/metrics/query_metrics_collector.cpp
+    src/metrics/collector_integration.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES
@@ -520,6 +523,7 @@ if(BUILD_MODULES)
                     src/modules/database_server-gateway.cppm
                     src/modules/database_server-pooling.cppm
                     src/modules/database_server-resilience.cppm
+                    src/modules/database_server-metrics.cppm
         )
 
         target_link_libraries(database_server_module
