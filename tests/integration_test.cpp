@@ -217,11 +217,11 @@ TEST_F(AuthMiddlewareIntegrationTest, MetricsTrackAuthAttempts)
 
 	for (int i = 0; i < 5; ++i)
 	{
-		middleware_->authenticate("session-001", valid_token);
+		(void)middleware_->authenticate("session-001", valid_token);
 	}
 	for (int i = 0; i < 3; ++i)
 	{
-		middleware_->authenticate("session-002", expired_token);
+		(void)middleware_->authenticate("session-002", expired_token);
 	}
 
 	const auto& metrics = middleware_->metrics();
@@ -243,8 +243,8 @@ TEST_F(AuthMiddlewareIntegrationTest, AuditCallbackReceivesEvents)
 	auto valid_token = create_valid_token("client-001");
 	auto expired_token = create_expired_token("client-002");
 
-	middleware_->authenticate("session-001", valid_token);
-	middleware_->authenticate("session-002", expired_token);
+	(void)middleware_->authenticate("session-001", valid_token);
+	(void)middleware_->authenticate("session-002", expired_token);
 
 	std::lock_guard<std::mutex> lock(events_mutex);
 	EXPECT_GE(captured_events.size(), 2);
@@ -345,10 +345,9 @@ TEST_F(QueryRouterIntegrationTest, RouterIsNotReadyWithoutPool)
 TEST_F(QueryRouterIntegrationTest, ExecuteWithoutPoolReturnsError)
 {
 	auto request = create_select_request();
-	auto response = router_->execute(request);
+	auto result = router_->execute(request);
 
-	EXPECT_FALSE(response.is_success());
-	EXPECT_EQ(response.status, status_code::no_connection);
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QueryRouterIntegrationTest, MetricsInitializedToZero)
@@ -366,7 +365,7 @@ TEST_F(QueryRouterIntegrationTest, MetricsTrackFailedQueries)
 	for (int i = 0; i < 5; ++i)
 	{
 		auto request = create_select_request();
-		router_->execute(request);
+		(void)router_->execute(request);
 	}
 
 	const auto& metrics = router_->metrics();
@@ -380,7 +379,7 @@ TEST_F(QueryRouterIntegrationTest, ResetMetricsClearsCounters)
 	for (int i = 0; i < 5; ++i)
 	{
 		auto request = create_select_request();
-		router_->execute(request);
+		(void)router_->execute(request);
 	}
 
 	router_->reset_metrics();
@@ -459,7 +458,13 @@ protected:
 								  auth_result.message);
 		}
 
-		return router_->execute(request);
+		auto result = router_->execute(request);
+		if (result.is_ok())
+		{
+			return std::move(result.value());
+		}
+		return query_response(request.header.message_id, status_code::error,
+							  result.error().message);
 	}
 
 	std::unique_ptr<auth_middleware> middleware_;
@@ -473,7 +478,9 @@ TEST_F(FullPipelineIntegrationTest, ValidAuthAndQueryFlow)
 
 	auto response = execute_authenticated_query("session-001", token, request);
 
-	EXPECT_EQ(response.status, status_code::no_connection);
+	// When no connection pool is available, router returns error Result
+	// which is converted to status_code::error in execute_authenticated_query
+	EXPECT_EQ(response.status, status_code::error);
 	EXPECT_EQ(middleware_->metrics().successful_auths.load(), 1);
 	EXPECT_EQ(router_->metrics().total_queries.load(), 1);
 }
@@ -647,7 +654,7 @@ TEST_F(ErrorHandlingTest, MetricsAccuracyUnderLoad)
 				query_request request("SELECT " + std::to_string(i),
 									  query_type::select);
 				request.header.message_id = i;
-				router_->execute(request);
+				(void)router_->execute(request);
 				executed.fetch_add(1);
 			}
 		});
@@ -681,7 +688,7 @@ TEST_F(RateLimiterEdgeCaseTest, RateLimiterResetAllowsNewRequests)
 
 	for (int i = 0; i < 10; ++i)
 	{
-		limiter.allow_request("client-001");
+		(void)limiter.allow_request("client-001");
 	}
 
 	limiter.reset("client-001");
@@ -697,8 +704,8 @@ TEST_F(RateLimiterEdgeCaseTest, BlockExpirationAllowsNewRequests)
 	rate_config_.block_duration_ms = 50;
 	rate_limiter limiter(rate_config_);
 
-	limiter.allow_request("client-001");
-	limiter.allow_request("client-001");
+	(void)limiter.allow_request("client-001");
+	(void)limiter.allow_request("client-001");
 
 	if (limiter.is_blocked("client-001"))
 	{
@@ -716,7 +723,7 @@ TEST_F(RateLimiterEdgeCaseTest, DifferentClientsHaveIndependentLimits)
 
 	for (int i = 0; i < 10; ++i)
 	{
-		limiter.allow_request("client-001");
+		(void)limiter.allow_request("client-001");
 	}
 
 	EXPECT_TRUE(limiter.allow_request("client-002"));

@@ -169,12 +169,12 @@ public:
 	/**
 	 * @brief Execute a query request
 	 * @param request The query request to execute
-	 * @return Query response with results or error
+	 * @return Result containing query response or error
 	 *
 	 * This is the main entry point for query execution.
 	 * Handles all query types and returns appropriate response.
 	 */
-	[[nodiscard]] query_response execute(const query_request& request);
+	[[nodiscard]] kcenon::common::Result<query_response> execute(const query_request& request);
 
 	/**
 	 * @brief Execute a query request asynchronously

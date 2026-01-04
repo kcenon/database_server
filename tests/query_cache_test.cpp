@@ -112,16 +112,16 @@ protected:
 	cache_config config_;
 };
 
-TEST_F(QueryCacheTest, DisabledCacheReturnsNullopt)
+TEST_F(QueryCacheTest, DisabledCacheReturnsError)
 {
 	config_.enabled = false;
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
 	auto result = cache.get("key1");
-	EXPECT_FALSE(result.has_value());
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QueryCacheTest, EnabledCacheStoresAndRetrieves)
@@ -131,19 +131,19 @@ TEST_F(QueryCacheTest, EnabledCacheStoresAndRetrieves)
 	query_response response(1);
 	response.affected_rows = 42;
 
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 	auto result = cache.get("key1");
 
-	ASSERT_TRUE(result.has_value());
-	EXPECT_EQ(result->affected_rows, 42);
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().affected_rows, 42);
 }
 
-TEST_F(QueryCacheTest, GetNonexistentKeyReturnsNullopt)
+TEST_F(QueryCacheTest, GetNonexistentKeyReturnsError)
 {
 	query_cache cache(config_);
 
 	auto result = cache.get("nonexistent");
-	EXPECT_FALSE(result.has_value());
+	EXPECT_TRUE(result.is_err());
 }
 
 TEST_F(QueryCacheTest, PutReplacesExistingEntry)
@@ -156,12 +156,12 @@ TEST_F(QueryCacheTest, PutReplacesExistingEntry)
 	query_response response2(2);
 	response2.affected_rows = 20;
 
-	cache.put("key1", response1);
-	cache.put("key1", response2);
+	(void)cache.put("key1", response1);
+	(void)cache.put("key1", response2);
 
 	auto result = cache.get("key1");
-	ASSERT_TRUE(result.has_value());
-	EXPECT_EQ(result->affected_rows, 20);
+	ASSERT_TRUE(result.is_ok());
+	EXPECT_EQ(result.value().affected_rows, 20);
 	EXPECT_EQ(cache.size(), 1);
 }
 
@@ -170,18 +170,18 @@ TEST_F(QueryCacheTest, ClearRemovesAllEntries)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
-	cache.put("key2", response);
-	cache.put("key3", response);
+	(void)cache.put("key1", response);
+	(void)cache.put("key2", response);
+	(void)cache.put("key3", response);
 
 	EXPECT_EQ(cache.size(), 3);
 
 	cache.clear();
 
 	EXPECT_EQ(cache.size(), 0);
-	EXPECT_FALSE(cache.get("key1").has_value());
-	EXPECT_FALSE(cache.get("key2").has_value());
-	EXPECT_FALSE(cache.get("key3").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
+	EXPECT_TRUE(cache.get("key2").is_err());
+	EXPECT_TRUE(cache.get("key3").is_err());
 }
 
 TEST_F(QueryCacheTest, ErrorResponseNotCached)
@@ -189,10 +189,10 @@ TEST_F(QueryCacheTest, ErrorResponseNotCached)
 	query_cache cache(config_);
 
 	query_response error_response(1, status_code::error, "Error message");
-	cache.put("key1", error_response);
+	(void)cache.put("key1", error_response);
 
 	EXPECT_EQ(cache.size(), 0);
-	EXPECT_FALSE(cache.get("key1").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
 }
 
 // ============================================================================
@@ -219,20 +219,20 @@ TEST_F(LRUEvictionTest, EvictsLeastRecentlyUsedWhenFull)
 
 	query_response response(1);
 
-	cache.put("key1", response);
-	cache.put("key2", response);
-	cache.put("key3", response);
+	(void)cache.put("key1", response);
+	(void)cache.put("key2", response);
+	(void)cache.put("key3", response);
 
 	EXPECT_EQ(cache.size(), 3);
 
 	// Adding a new entry should evict key1 (oldest)
-	cache.put("key4", response);
+	(void)cache.put("key4", response);
 
 	EXPECT_EQ(cache.size(), 3);
-	EXPECT_FALSE(cache.get("key1").has_value());
-	EXPECT_TRUE(cache.get("key2").has_value());
-	EXPECT_TRUE(cache.get("key3").has_value());
-	EXPECT_TRUE(cache.get("key4").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
+	EXPECT_TRUE(cache.get("key2").is_ok());
+	EXPECT_TRUE(cache.get("key3").is_ok());
+	EXPECT_TRUE(cache.get("key4").is_ok());
 }
 
 TEST_F(LRUEvictionTest, AccessRefreshesEntry)
@@ -241,20 +241,20 @@ TEST_F(LRUEvictionTest, AccessRefreshesEntry)
 
 	query_response response(1);
 
-	cache.put("key1", response);
-	cache.put("key2", response);
-	cache.put("key3", response);
+	(void)cache.put("key1", response);
+	(void)cache.put("key2", response);
+	(void)cache.put("key3", response);
 
 	// Access key1 to refresh it
-	cache.get("key1");
+	(void)cache.get("key1");
 
 	// Now key2 should be the oldest
-	cache.put("key4", response);
+	(void)cache.put("key4", response);
 
-	EXPECT_TRUE(cache.get("key1").has_value());
-	EXPECT_FALSE(cache.get("key2").has_value());
-	EXPECT_TRUE(cache.get("key3").has_value());
-	EXPECT_TRUE(cache.get("key4").has_value());
+	EXPECT_TRUE(cache.get("key1").is_ok());
+	EXPECT_TRUE(cache.get("key2").is_err());
+	EXPECT_TRUE(cache.get("key3").is_ok());
+	EXPECT_TRUE(cache.get("key4").is_ok());
 }
 
 // ============================================================================
@@ -275,19 +275,19 @@ protected:
 	cache_config config_;
 };
 
-TEST_F(TTLExpirationTest, ExpiredEntryReturnsNullopt)
+TEST_F(TTLExpirationTest, ExpiredEntryReturnsError)
 {
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
-	EXPECT_TRUE(cache.get("key1").has_value());
+	EXPECT_TRUE(cache.get("key1").is_ok());
 
 	// Wait for expiration
 	std::this_thread::sleep_for(std::chrono::milliseconds(1200));
 
-	EXPECT_FALSE(cache.get("key1").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
 }
 
 TEST_F(TTLExpirationTest, NoExpirationWhenTTLZero)
@@ -296,12 +296,12 @@ TEST_F(TTLExpirationTest, NoExpirationWhenTTLZero)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
 	// Wait a bit
 	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-	EXPECT_TRUE(cache.get("key1").has_value());
+	EXPECT_TRUE(cache.get("key1").is_ok());
 }
 
 // ============================================================================
@@ -327,18 +327,18 @@ TEST_F(CacheInvalidationTest, InvalidateByTableName)
 
 	query_response response(1);
 
-	cache.put("key1", response, {"users"});
-	cache.put("key2", response, {"users", "orders"});
-	cache.put("key3", response, {"products"});
+	(void)cache.put("key1", response, {"users"});
+	(void)cache.put("key2", response, {"users", "orders"});
+	(void)cache.put("key3", response, {"products"});
 
 	EXPECT_EQ(cache.size(), 3);
 
-	cache.invalidate("users");
+	(void)cache.invalidate("users");
 
 	EXPECT_EQ(cache.size(), 1);
-	EXPECT_FALSE(cache.get("key1").has_value());
-	EXPECT_FALSE(cache.get("key2").has_value());
-	EXPECT_TRUE(cache.get("key3").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
+	EXPECT_TRUE(cache.get("key2").is_err());
+	EXPECT_TRUE(cache.get("key3").is_ok());
 }
 
 TEST_F(CacheInvalidationTest, InvalidateByKey)
@@ -347,14 +347,14 @@ TEST_F(CacheInvalidationTest, InvalidateByKey)
 
 	query_response response(1);
 
-	cache.put("key1", response);
-	cache.put("key2", response);
+	(void)cache.put("key1", response);
+	(void)cache.put("key2", response);
 
-	cache.invalidate_key("key1");
+	(void)cache.invalidate_key("key1");
 
 	EXPECT_EQ(cache.size(), 1);
-	EXPECT_FALSE(cache.get("key1").has_value());
-	EXPECT_TRUE(cache.get("key2").has_value());
+	EXPECT_TRUE(cache.get("key1").is_err());
+	EXPECT_TRUE(cache.get("key2").is_ok());
 }
 
 TEST_F(CacheInvalidationTest, InvalidateNonexistentTableNoOp)
@@ -362,12 +362,12 @@ TEST_F(CacheInvalidationTest, InvalidateNonexistentTableNoOp)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response, {"users"});
+	(void)cache.put("key1", response, {"users"});
 
-	cache.invalidate("nonexistent_table");
+	(void)cache.invalidate("nonexistent_table");
 
 	EXPECT_EQ(cache.size(), 1);
-	EXPECT_TRUE(cache.get("key1").has_value());
+	EXPECT_TRUE(cache.get("key1").is_ok());
 }
 
 // ============================================================================
@@ -451,15 +451,15 @@ TEST_F(CacheMetricsTest, HitMissTracking)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
 	// Hit
-	cache.get("key1");
+	(void)cache.get("key1");
 	EXPECT_EQ(cache.metrics().hits.load(), 1);
 	EXPECT_EQ(cache.metrics().misses.load(), 0);
 
 	// Miss
-	cache.get("nonexistent");
+	(void)cache.get("nonexistent");
 	EXPECT_EQ(cache.metrics().hits.load(), 1);
 	EXPECT_EQ(cache.metrics().misses.load(), 1);
 }
@@ -469,15 +469,15 @@ TEST_F(CacheMetricsTest, HitRateCalculation)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
 	// 3 hits
-	cache.get("key1");
-	cache.get("key1");
-	cache.get("key1");
+	(void)cache.get("key1");
+	(void)cache.get("key1");
+	(void)cache.get("key1");
 
 	// 1 miss
-	cache.get("nonexistent");
+	(void)cache.get("nonexistent");
 
 	// Hit rate should be 75%
 	EXPECT_NEAR(cache.metrics().hit_rate(), 75.0, 0.01);
@@ -489,9 +489,9 @@ TEST_F(CacheMetricsTest, EvictionTracking)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
-	cache.put("key2", response);
-	cache.put("key3", response);  // Should evict key1
+	(void)cache.put("key1", response);
+	(void)cache.put("key2", response);
+	(void)cache.put("key3", response);  // Should evict key1
 
 	EXPECT_EQ(cache.metrics().evictions.load(), 1);
 }
@@ -501,9 +501,9 @@ TEST_F(CacheMetricsTest, ResetMetrics)
 	query_cache cache(config_);
 
 	query_response response(1);
-	cache.put("key1", response);
-	cache.get("key1");
-	cache.get("nonexistent");
+	(void)cache.put("key1", response);
+	(void)cache.get("key1");
+	(void)cache.get("nonexistent");
 
 	cache.reset_metrics();
 
@@ -611,7 +611,7 @@ TEST_F(SizeLimitTest, LargeResultNotCached)
 		response.rows.push_back(row);
 	}
 
-	cache.put("key1", response);
+	(void)cache.put("key1", response);
 
 	EXPECT_EQ(cache.size(), 0);
 	EXPECT_EQ(cache.metrics().skipped_too_large.load(), 1);
@@ -653,8 +653,8 @@ TEST_F(ThreadSafetyTest, ConcurrentPutAndGet)
 					std::string key = "key_" + std::to_string(t) + "_" + std::to_string(i);
 					query_response response(static_cast<uint64_t>(t * ops_per_thread + i));
 
-					cache.put(key, response);
-					cache.get(key);
+					(void)cache.put(key, response);
+					(void)cache.get(key);
 				}
 			});
 	}
@@ -676,7 +676,7 @@ TEST_F(ThreadSafetyTest, ConcurrentInvalidation)
 	query_response response(1);
 	for (int i = 0; i < 100; ++i)
 	{
-		cache.put("key_" + std::to_string(i), response, {"table_" + std::to_string(i % 10)});
+		(void)cache.put("key_" + std::to_string(i), response, {"table_" + std::to_string(i % 10)});
 	}
 
 	std::vector<std::thread> threads;
@@ -689,7 +689,7 @@ TEST_F(ThreadSafetyTest, ConcurrentInvalidation)
 			{
 				for (int i = 0; i < 100; ++i)
 				{
-					cache.get("key_" + std::to_string(i % 100));
+					(void)cache.get("key_" + std::to_string(i % 100));
 				}
 			});
 	}
@@ -702,7 +702,7 @@ TEST_F(ThreadSafetyTest, ConcurrentInvalidation)
 			{
 				for (int i = 0; i < 10; ++i)
 				{
-					cache.invalidate("table_" + std::to_string((t + i) % 10));
+					(void)cache.invalidate("table_" + std::to_string((t + i) % 10));
 				}
 			});
 	}
