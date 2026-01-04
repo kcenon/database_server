@@ -1,0 +1,22 @@
+<map id="include/kcenon/database_server/server_app.h" name="include/kcenon/database_server/server_app.h">
+<area shape="rect" id="Node000001" title="Database server application interface." alt="" coords="339,5,523,45"/>
+<area shape="rect" id="Node000002" href="$server__config_8h.html" title="Server configuration structures." alt="" coords="121,101,274,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="380,48,242,99,240,94,379,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="283,181,341,207"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="394,48,365,68,340,95,323,132,316,168,311,167,318,130,335,92,361,64,391,43"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="349,101,416,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="422,47,398,90,394,87,418,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="440,101,517,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="444,44,468,87,463,90,439,47"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="541,93,739,133"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="478,43,582,86,580,91,476,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="763,93,951,133"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="523,42,751,88,750,93,522,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="175,128,75,178,73,173,173,124"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,181,171,207"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="190,128,154,172,149,169,186,124"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="216,124,285,171,282,176,213,128"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="195,181,258,207"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="204,125,220,167,215,169,199,127"/>
+</map>

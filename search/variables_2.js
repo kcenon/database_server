@@ -1,0 +1,25 @@
+var searchData=
+[
+  ['cache_0',['cache',['../structdatabase__server_1_1gateway_1_1handler__context.html#ab5358986b2e056cea706442780c62755',1,'database_server::gateway::handler_context::cache'],['../structdatabase__server_1_1server__config.html#aa745ead7cdae3e349d0cc30f67bca234',1,'database_server::server_config::cache']]],
+  ['cache_5fentries_1',['cache_entries',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#aae84b784caa88dc2ae8096894a8b5d29',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cache_5fevictions_2',['cache_evictions',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#a5796ffa1746098f920230a1459ee2287',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cache_5fexpirations_3',['cache_expirations',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#a9fa960f0010175ba2c100548f7aac3db',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cache_5fhits_4',['cache_hits',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#ad3309379a2298cc86d588fd9e399f77f',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cache_5fmetrics_5',['cache_metrics',['../structdatabase__server_1_1metrics_1_1query__server__metrics.html#ae4bc7668507701f18d56958ebd81d499',1,'database_server::metrics::query_server_metrics']]],
+  ['cache_5fmisses_6',['cache_misses',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#a64b3c7aeab12f1a10f1bbaf3fbbaaa14',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cache_5fsize_5fbytes_7',['cache_size_bytes',['../structdatabase__server_1_1metrics_1_1cache__performance__metrics.html#a80cab2d53022fc854f9d049b6640cd0b',1,'database_server::metrics::cache_performance_metrics']]],
+  ['cells_8',['cells',['../structdatabase__server_1_1gateway_1_1result__row.html#ae4bd226b8b23073008cc70450ed13696',1,'database_server::gateway::result_row']]],
+  ['cert_5ffile_9',['cert_file',['../structdatabase__server_1_1network__config.html#ae38bd7af1ef80e29a9983b2cabc3b074',1,'database_server::network_config']]],
+  ['client_5fid_10',['client_id',['../structdatabase__server_1_1gateway_1_1client__session.html#a1e4405c40f563b0fad09527f27ba498f',1,'database_server::gateway::client_session::client_id'],['../structdatabase__server_1_1gateway_1_1auth__token.html#a6ed211a01ff60247cbd61d056b4cc12d',1,'database_server::gateway::auth_token::client_id'],['../structdatabase__server_1_1gateway_1_1auth__result.html#a4c4ce1a8e5c23ee0074cb99c3658fda0',1,'database_server::gateway::auth_result::client_id'],['../structdatabase__server_1_1gateway_1_1auth__event.html#afb117d92e91a9c1a715107c853e7d716',1,'database_server::gateway::auth_event::client_id']]],
+  ['code_11',['code',['../structdatabase__server_1_1gateway_1_1auth__result.html#a13e704381a431ab5d075088861189a1e',1,'database_server::gateway::auth_result']]],
+  ['collection_5fcount_5f_12',['collection_count_',['../classdatabase__server_1_1metrics_1_1query__collector__base.html#a90a2d87eb41aa86b822f94e4fbba325c',1,'database_server::metrics::query_collector_base']]],
+  ['collection_5ferrors_5f_13',['collection_errors_',['../classdatabase__server_1_1metrics_1_1query__collector__base.html#a82d4898d61615f69c9272a966be3eb28',1,'database_server::metrics::query_collector_base']]],
+  ['collector_5fname_14',['collector_name',['../classdatabase__server_1_1metrics_1_1query__metrics__collector.html#a6287711e3ab896039581158cf0c0e65f',1,'database_server::metrics::query_metrics_collector::collector_name'],['../collector__integration_8cpp.html#a6bc177e8915ee96fabdd139a20cc5270',1,'collector_name:&#160;collector_integration.cpp']]],
+  ['columns_15',['columns',['../structdatabase__server_1_1gateway_1_1query__response.html#a342fa3ce60be8c9be0a17f3d63860701',1,'database_server::gateway::query_response']]],
+  ['connected_5fat_16',['connected_at',['../structdatabase__server_1_1gateway_1_1client__session.html#af4aa76f321a584fe3dd06706fca8634c',1,'database_server::gateway::client_session']]],
+  ['connection_5fstring_17',['connection_string',['../structdatabase_1_1connection__pool__config.html#a90189157aa9622841e59d617a9a2db12',1,'database::connection_pool_config']]],
+  ['connection_5ftimeout_5fms_18',['connection_timeout_ms',['../structdatabase__server_1_1network__config.html#a00fa9d6507ad3d0107962f55d01190b5',1,'database_server::network_config']]],
+  ['correlation_5fid_19',['correlation_id',['../structdatabase__server_1_1gateway_1_1message__header.html#a205a8ea3c812d68da571749b45c235e3',1,'database_server::gateway::message_header']]],
+  ['current_5factive_20',['current_active',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#a3c22be7d317bb97c5f19fe55ceac9140',1,'database_server::pooling::pool_metrics']]],
+  ['current_5fqueued_21',['current_queued',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#ab0df69e2645f9d8a970f09d7c2710199',1,'database_server::pooling::pool_metrics']]]
+];

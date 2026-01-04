@@ -1,0 +1,38 @@
+<map id="src/metrics/collector_integration.cpp" name="src/metrics/collector_integration.cpp">
+<area shape="rect" id="Node000001" title="Integration layer between query_metrics_collector and monitoring_system." alt="" coords="504,5,658,45"/>
+<area shape="rect" id="Node000002" href="$query__metrics__collector_8h.html" title="CRTP&#45;based query metrics collector implementation." alt="" coords="208,93,389,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="525,48,392,92,390,87,523,43"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="146,343,213,368"/>
+<area shape="poly" id="edge16_Node000001_Node000006" title=" " alt="" coords="504,33,407,40,299,52,201,70,162,82,134,96,74,139,48,161,28,185,14,210,8,236,12,263,27,293,48,315,75,331,104,341,133,347,132,352,103,346,73,335,45,319,23,296,7,265,3,236,9,208,24,182,45,158,71,135,132,91,160,77,200,65,298,47,407,35,503,28"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="37,269,101,295"/>
+<area shape="poly" id="edge19_Node000001_Node000008" title=" " alt="" coords="504,37,333,59,253,76,197,96,174,111,154,130,120,174,96,219,80,257,75,255,91,217,116,171,150,126,171,107,195,91,251,71,332,54,503,31"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="466,269,525,295"/>
+<area shape="poly" id="edge20_Node000001_Node000009" title=" " alt="" coords="589,45,597,80,602,126,600,175,594,200,585,223,565,247,539,265,536,261,561,243,580,220,589,198,595,174,597,126,592,81,584,46"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="572,269,696,295"/>
+<area shape="poly" id="edge21_Node000001_Node000010" title=" " alt="" coords="600,44,616,66,629,92,639,137,643,182,640,256,635,256,638,182,634,137,624,94,612,69,596,47"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="493,196,570,221"/>
+<area shape="poly" id="edge18_Node000001_Node000011" title=" " alt="" coords="578,46,541,184,536,182,573,45"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="696,108,783,133"/>
+<area shape="poly" id="edge17_Node000001_Node000013" title=" " alt="" coords="614,43,710,99,707,103,612,48"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="807,108,870,133"/>
+<area shape="poly" id="edge22_Node000001_Node000014" title=" " alt="" coords="658,43,726,64,797,91,811,98,809,103,795,96,725,69,656,48"/>
+<area shape="rect" id="Node000003" href="$query__collector__base_8h.html" title="CRTP base class for query metrics collectors." alt="" coords="296,196,468,221"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="326,146,363,184,359,188,322,150"/>
+<area shape="rect" id="Node000004" href="$query__metrics_8h.html" title="Metrics structures for query server performance monitoring." alt="" coords="218,269,344,295"/>
+<area shape="poly" id="edge12_Node000002_Node000004" title=" " alt="" coords="209,148,174,169,147,197,143,209,143,218,156,237,182,252,214,263,212,268,180,256,153,241,138,220,137,208,143,195,171,164,206,144"/>
+<area shape="poly" id="edge14_Node000002_Node000008" title=" " alt="" coords="221,151,177,171,136,198,107,228,85,259,80,256,103,224,133,194,175,167,219,146"/>
+<area shape="poly" id="edge13_Node000002_Node000011" title=" " alt="" coords="371,146,488,189,487,194,369,151"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="157,196,272,221"/>
+<area shape="poly" id="edge15_Node000002_Node000012" title=" " alt="" coords="275,150,237,188,233,184,271,146"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="368,224,310,263,307,259,365,219"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="344,343,410,368"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="385,222,381,329,375,329,379,222"/>
+<area shape="poly" id="edge8_Node000003_Node000006" title=" " alt="" coords="298,224,249,242,227,255,207,271,191,299,184,330,179,329,186,297,203,268,224,250,247,237,296,219"/>
+<area shape="poly" id="edge9_Node000003_Node000008" title=" " alt="" coords="333,224,115,273,114,268,331,219"/>
+<area shape="poly" id="edge10_Node000003_Node000009" title=" " alt="" coords="402,219,467,260,464,264,399,224"/>
+<area shape="poly" id="edge11_Node000003_Node000010" title=" " alt="" coords="424,219,581,263,579,268,422,224"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="298,293,352,332,349,336,295,297"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="266,297,209,337,206,332,263,292"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="248,343,314,368"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="284,295,284,329,278,329,278,295"/>
+</map>

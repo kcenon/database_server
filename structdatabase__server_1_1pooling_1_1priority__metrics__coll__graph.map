@@ -1,0 +1,5 @@
+<map id="database_server::pooling::priority_metrics&lt; PriorityType &gt;" name="database_server::pooling::priority_metrics&lt; PriorityType &gt;">
+<area shape="rect" id="Node000001" title="Priority&#45;specific metrics for typed thread pools." alt="" coords="5,93,245,133"/>
+<area shape="rect" id="Node000002" href="$structdatabase__server_1_1pooling_1_1pool__metrics.html" title="Performance metrics for connection pools." alt="" coords="32,5,219,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="128,59,128,93,123,93,123,59"/>
+</map>

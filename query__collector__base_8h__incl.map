@@ -1,0 +1,19 @@
+<map id="include/kcenon/database_server/metrics/query_collector_base.h" name="include/kcenon/database_server/metrics/query_collector_base.h">
+<area shape="rect" id="Node000001" title="CRTP base class for query metrics collectors." alt="" coords="179,5,363,60"/>
+<area shape="rect" id="Node000002" href="$query__metrics_8h.html" title="Metrics structures for query server performance monitoring." alt="" coords="71,108,198,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="231,62,166,103,163,98,228,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="179,49,116,71,87,88,62,110,47,138,42,168,36,167,42,136,58,106,84,84,114,66,177,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,181,264,207"/>
+<area shape="poly" id="edge6_Node000001_Node000004" title=" " alt="" coords="267,61,239,169,234,167,261,60"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="273,108,337,133"/>
+<area shape="poly" id="edge7_Node000001_Node000006" title=" " alt="" coords="284,59,298,94,293,96,279,61"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="361,108,420,133"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="309,58,365,98,362,102,306,62"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="445,108,569,133"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="344,58,463,101,461,106,342,63"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="121,136,67,175,64,171,118,131"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="152,131,205,171,202,175,149,136"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="101,181,168,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="137,134,137,168,132,168,132,134"/>
+</map>
