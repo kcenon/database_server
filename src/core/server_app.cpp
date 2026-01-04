@@ -59,45 +59,58 @@ server_app::~server_app()
 	do_cleanup();
 }
 
-bool server_app::initialize(const std::string& config_path)
+kcenon::common::VoidResult server_app::initialize(const std::string& config_path)
 {
 	auto loaded_config = server_config::load_from_file(config_path);
 	if (!loaded_config)
 	{
 		std::cerr << "Failed to load configuration from: " << config_path << std::endl;
-		return false;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INVALID_ARGUMENT,
+			"Failed to load configuration from: " + config_path,
+			"server_app"};
 	}
 
 	return initialize(*loaded_config);
 }
 
-bool server_app::initialize(const server_config& config)
+kcenon::common::VoidResult server_app::initialize(const server_config& config)
 {
 	if (state_ != server_state::uninitialized)
 	{
 		std::cerr << "Server already initialized" << std::endl;
-		return false;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::ALREADY_EXISTS,
+			"Server already initialized",
+			"server_app"};
 	}
 
 	config_ = config;
 
 	if (!config_.validate())
 	{
-		std::cerr << "Configuration validation failed:" << std::endl;
+		std::string error_msg = "Configuration validation failed:";
 		for (const auto& error : config_.validation_errors())
 		{
 			std::cerr << "  - " << error << std::endl;
+			error_msg += " " + error + ";";
 		}
-		return false;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INVALID_ARGUMENT,
+			error_msg,
+			"server_app"};
 	}
 
 	if (!do_initialize())
 	{
-		return false;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INTERNAL_ERROR,
+			"Server initialization failed",
+			"server_app"};
 	}
 
 	state_ = server_state::initialized;
-	return true;
+	return kcenon::common::ok();
 }
 
 bool server_app::do_initialize()
@@ -150,7 +163,18 @@ bool server_app::do_initialize()
 			(void)session; // Session info available for future enhancements (logging, rate limiting)
 
 			// Execute query through query router
-			return query_router_->execute(request);
+			auto result = query_router_->execute(request);
+			if (result.is_ok())
+			{
+				return std::move(result.value());
+			}
+			else
+			{
+				return gateway::query_response(
+					request.header.message_id,
+					gateway::status_code::error,
+					result.error().message);
+			}
 		});
 
 	std::cout << "Server '" << config_.name << "' initialized" << std::endl;

@@ -43,11 +43,14 @@ query_cache::query_cache(const cache_config& config)
 {
 }
 
-std::optional<query_response> query_cache::get(const std::string& cache_key)
+kcenon::common::Result<query_response> query_cache::get(const std::string& cache_key)
 {
 	if (!config_.enabled)
 	{
-		return std::nullopt;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::NOT_INITIALIZED,
+			"Cache is disabled",
+			"query_cache"};
 	}
 
 	std::unique_lock lock(mutex_);
@@ -56,7 +59,10 @@ std::optional<query_response> query_cache::get(const std::string& cache_key)
 	if (it == cache_map_.end())
 	{
 		++metrics_.misses;
-		return std::nullopt;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::NOT_FOUND,
+			"Cache miss: key not found",
+			"query_cache"};
 	}
 
 	auto& entry = *(it->second);
@@ -66,7 +72,10 @@ std::optional<query_response> query_cache::get(const std::string& cache_key)
 		++metrics_.expirations;
 		++metrics_.misses;
 		remove_entry(it->second);
-		return std::nullopt;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::NOT_FOUND,
+			"Cache entry expired",
+			"query_cache"};
 	}
 
 	++metrics_.hits;
@@ -76,28 +85,38 @@ std::optional<query_response> query_cache::get(const std::string& cache_key)
 		lru_list_.splice(lru_list_.begin(), lru_list_, it->second);
 	}
 
-	return entry.response;
+	return kcenon::common::ok(entry.response);
 }
 
-void query_cache::put(const std::string& cache_key,
-					  const query_response& response,
-					  const std::unordered_set<std::string>& table_names)
+kcenon::common::VoidResult query_cache::put(
+	const std::string& cache_key,
+	const query_response& response,
+	const std::unordered_set<std::string>& table_names)
 {
 	if (!config_.enabled)
 	{
-		return;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::NOT_INITIALIZED,
+			"Cache is disabled",
+			"query_cache"};
 	}
 
 	if (response.status != status_code::ok)
 	{
-		return;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INVALID_ARGUMENT,
+			"Cannot cache error response",
+			"query_cache"};
 	}
 
 	auto estimated_size = estimate_size(response);
 	if (estimated_size > config_.max_result_size_bytes)
 	{
 		++metrics_.skipped_too_large;
-		return;
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INVALID_ARGUMENT,
+			"Cache entry too large",
+			"query_cache"};
 	}
 
 	std::unique_lock lock(mutex_);
@@ -138,6 +157,7 @@ void query_cache::put(const std::string& cache_key,
 	}
 
 	++metrics_.puts;
+	return kcenon::common::ok();
 }
 
 std::string query_cache::make_key(const query_request& request)
@@ -195,14 +215,14 @@ std::string query_cache::make_key(const query_request& request)
 	return oss.str();
 }
 
-void query_cache::invalidate(const std::string& table_name)
+kcenon::common::VoidResult query_cache::invalidate(const std::string& table_name)
 {
 	std::unique_lock lock(mutex_);
 
 	auto it = table_map_.find(table_name);
 	if (it == table_map_.end())
 	{
-		return;
+		return kcenon::common::ok(); // No entries to invalidate is not an error
 	}
 
 	// Copy keys to remove since remove_entry modifies table_map_
@@ -220,9 +240,11 @@ void query_cache::invalidate(const std::string& table_name)
 			++metrics_.invalidations;
 		}
 	}
+
+	return kcenon::common::ok();
 }
 
-void query_cache::invalidate_key(const std::string& cache_key)
+kcenon::common::VoidResult query_cache::invalidate_key(const std::string& cache_key)
 {
 	std::unique_lock lock(mutex_);
 
@@ -232,6 +254,8 @@ void query_cache::invalidate_key(const std::string& cache_key)
 		remove_entry(it->second);
 		++metrics_.invalidations;
 	}
+
+	return kcenon::common::ok();
 }
 
 void query_cache::clear()

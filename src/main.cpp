@@ -121,9 +121,10 @@ int main(int argc, char* argv[])
 		config = database_server::server_config::default_config();
 	}
 
-	if (!app.initialize(config))
+	auto init_result = app.initialize(config);
+	if (init_result.is_err())
 	{
-		std::cerr << "Failed to initialize server\n";
+		std::cerr << "Failed to initialize server: " << init_result.error().message << "\n";
 		return 1;
 	}
 

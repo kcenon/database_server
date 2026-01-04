@@ -91,7 +91,7 @@ void query_router::set_connection_pool(std::shared_ptr<pooling::connection_pool>
 	pool_ = std::move(pool);
 }
 
-query_response query_router::execute(const query_request& request)
+kcenon::common::Result<query_response> query_router::execute(const query_request& request)
 {
 	auto start_time = current_timestamp_us();
 
@@ -99,8 +99,10 @@ query_response query_router::execute(const query_request& request)
 	if (!is_ready())
 	{
 		record_metrics(false, false, 0);
-		return query_response(request.header.message_id, status_code::no_connection,
-							  "No connection pool available");
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::NOT_INITIALIZED,
+			"No connection pool available",
+			"query_router"};
 	}
 
 	// Check concurrent query limit
@@ -109,8 +111,10 @@ query_response query_router::execute(const query_request& request)
 	{
 		active_queries_.fetch_sub(1, std::memory_order_relaxed);
 		record_metrics(false, false, 0);
-		return query_response(request.header.message_id, status_code::server_busy,
-							  "Maximum concurrent queries exceeded");
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INTERNAL_ERROR,
+			"Maximum concurrent queries exceeded",
+			"query_router"};
 	}
 
 	// Execute based on query type
@@ -153,8 +157,12 @@ query_response query_router::execute(const query_request& request)
 	}
 	catch (const std::exception& e)
 	{
-		response = query_response(request.header.message_id, status_code::error,
-								  std::string("Exception: ") + e.what());
+		active_queries_.fetch_sub(1, std::memory_order_relaxed);
+		record_metrics(false, false, 0);
+		return kcenon::common::error_info{
+			kcenon::common::error_codes::INTERNAL_ERROR,
+			std::string("Exception: ") + e.what(),
+			"query_router"};
 	}
 
 	active_queries_.fetch_sub(1, std::memory_order_relaxed);
@@ -169,7 +177,7 @@ query_response query_router::execute(const query_request& request)
 	bool is_timeout = response.status == status_code::timeout;
 	record_metrics(is_success, is_timeout, execution_time);
 
-	return response;
+	return kcenon::common::ok(std::move(response));
 }
 
 /**
@@ -191,10 +199,22 @@ public:
 	{
 		if (router_)
 		{
-			auto response = router_->execute(request_);
+			auto result = router_->execute(request_);
 			if (callback_)
 			{
-				callback_(std::move(response));
+				if (result.is_ok())
+				{
+					callback_(std::move(result.value()));
+				}
+				else
+				{
+					// Create error response for callback
+					query_response error_response(
+						request_.header.message_id,
+						status_code::error,
+						result.error().message);
+					callback_(std::move(error_response));
+				}
 			}
 		}
 		return kcenon::common::ok();
@@ -232,10 +252,21 @@ void query_router::execute_async(const query_request& request,
 		std::async(std::launch::async,
 				   [this, request, callback = std::move(callback)]()
 				   {
-					   auto response = execute(request);
+					   auto result = execute(request);
 					   if (callback)
 					   {
-						   callback(std::move(response));
+						   if (result.is_ok())
+						   {
+							   callback(std::move(result.value()));
+						   }
+						   else
+						   {
+							   query_response error_response(
+								   request.header.message_id,
+								   status_code::error,
+								   result.error().message);
+							   callback(std::move(error_response));
+						   }
 					   }
 				   });
 	}
@@ -369,13 +400,14 @@ query_response query_router::execute_select(const query_request& request)
 	{
 		cache_key = query_cache::make_key(request);
 		auto cached = cache->get(cache_key);
-		if (cached)
+		if (cached.is_ok())
 		{
-			auto response = std::move(*cached);
+			auto response = std::move(cached.value());
 			response.header.message_id = request.header.message_id;
 			response.header.correlation_id = request.header.correlation_id;
 			return response;
 		}
+		// Cache miss is not an error, continue with query execution
 	}
 
 	std::shared_ptr<pooling::connection_pool> pool;
@@ -498,7 +530,8 @@ query_response query_router::execute_select(const query_request& request)
 		if (cache && cache->is_enabled() && !cache_key.empty())
 		{
 			auto tables = extract_table_names(request.sql, request.type);
-			cache->put(cache_key, response, tables);
+			// Ignore cache put failures - they don't affect query success
+			(void)cache->put(cache_key, response, tables);
 		}
 
 		return response;
@@ -601,7 +634,8 @@ query_response query_router::execute_modify(const query_request& request)
 			auto tables = extract_table_names(request.sql, request.type);
 			for (const auto& table : tables)
 			{
-				cache->invalidate(table);
+				// Ignore cache invalidation failures - they don't affect query success
+				(void)cache->invalidate(table);
 			}
 		}
 

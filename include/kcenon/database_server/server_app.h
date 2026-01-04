@@ -59,6 +59,7 @@
 
 // Common system interfaces
 #include <kcenon/common/interfaces/executor_interface.h>
+#include <kcenon/common/patterns/result.h>
 
 // Forward declarations
 namespace database_server::gateway
@@ -133,7 +134,7 @@ public:
 	/**
 	 * @brief Initialize the server with configuration
 	 * @param config_path Path to the configuration file (YAML)
-	 * @return true if initialization succeeded, false otherwise
+	 * @return Result indicating success or error with message
 	 *
 	 * This method:
 	 * - Loads and validates the configuration file
@@ -141,14 +142,14 @@ public:
 	 * - Sets up signal handlers
 	 * - Prepares network listeners (but does not start them)
 	 */
-	bool initialize(const std::string& config_path);
+	[[nodiscard]] kcenon::common::VoidResult initialize(const std::string& config_path);
 
 	/**
 	 * @brief Initialize the server with a configuration object
 	 * @param config Server configuration
-	 * @return true if initialization succeeded, false otherwise
+	 * @return Result indicating success or error with message
 	 */
-	bool initialize(const server_config& config);
+	[[nodiscard]] kcenon::common::VoidResult initialize(const server_config& config);
 
 	/**
 	 * @brief Run the server main loop

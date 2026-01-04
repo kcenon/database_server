@@ -55,11 +55,13 @@
 #include <list>
 #include <memory>
 #include <mutex>
-#include <optional>
 #include <shared_mutex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
+
+// Common system integration
+#include <kcenon/common/patterns/result.h>
 
 namespace database_server::gateway
 {
@@ -177,29 +179,31 @@ public:
 	/**
 	 * @brief Get a cached query response
 	 * @param cache_key The cache key to look up
-	 * @return Cached response if found and valid, std::nullopt otherwise
+	 * @return Result containing cached response or error
 	 *
-	 * Returns std::nullopt if:
-	 * - Cache is disabled
-	 * - Key not found
-	 * - Entry has expired (TTL exceeded)
+	 * Returns error if:
+	 * - Cache is disabled (CacheDisabled)
+	 * - Key not found (CacheMiss)
+	 * - Entry has expired (CacheExpired)
 	 */
-	[[nodiscard]] std::optional<query_response> get(const std::string& cache_key);
+	[[nodiscard]] kcenon::common::Result<query_response> get(const std::string& cache_key);
 
 	/**
 	 * @brief Store a query response in the cache
 	 * @param cache_key The cache key
 	 * @param response The response to cache
 	 * @param table_names Tables referenced by this query (for invalidation)
+	 * @return Result indicating success or error
 	 *
-	 * The entry will not be cached if:
-	 * - Cache is disabled
-	 * - Response size exceeds max_result_size_bytes
-	 * - Response indicates an error (non-OK status)
+	 * Returns error if:
+	 * - Cache is disabled (CacheDisabled)
+	 * - Response size exceeds max_result_size_bytes (CacheEntryTooLarge)
+	 * - Response indicates an error (CacheInvalidEntry)
 	 */
-	void put(const std::string& cache_key,
-			 const query_response& response,
-			 const std::unordered_set<std::string>& table_names = {});
+	[[nodiscard]] kcenon::common::VoidResult put(
+		const std::string& cache_key,
+		const query_response& response,
+		const std::unordered_set<std::string>& table_names = {});
 
 	/**
 	 * @brief Generate a cache key from a query request
@@ -216,17 +220,19 @@ public:
 	/**
 	 * @brief Invalidate all cache entries for a table
 	 * @param table_name Name of the table to invalidate
+	 * @return Result indicating success or error
 	 *
 	 * Called when a write operation (INSERT/UPDATE/DELETE) occurs
 	 * on a table to ensure cached SELECT results are refreshed.
 	 */
-	void invalidate(const std::string& table_name);
+	[[nodiscard]] kcenon::common::VoidResult invalidate(const std::string& table_name);
 
 	/**
 	 * @brief Invalidate a specific cache entry
 	 * @param cache_key The cache key to invalidate
+	 * @return Result indicating success or error
 	 */
-	void invalidate_key(const std::string& cache_key);
+	[[nodiscard]] kcenon::common::VoidResult invalidate_key(const std::string& cache_key);
 
 	/**
 	 * @brief Clear all cached entries
