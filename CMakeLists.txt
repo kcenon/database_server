@@ -489,6 +489,60 @@ endif()
 link_system_dependency(DatabaseServerLib CONTAINER_SYSTEM container_system ContainerSystem container)
 
 ##################################################
+# C++20 Module Library (Optional)
+##################################################
+
+option(BUILD_MODULES "Build C++20 module library" OFF)
+
+if(BUILD_MODULES)
+    # Check if compiler supports modules
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "16.0")
+        set(MODULES_SUPPORTED TRUE)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "MSVC" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "19.29")
+        set(MODULES_SUPPORTED TRUE)
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL "14.0")
+        set(MODULES_SUPPORTED TRUE)
+    else()
+        set(MODULES_SUPPORTED FALSE)
+        message(WARNING "C++20 modules not supported by this compiler. Skipping module build.")
+    endif()
+
+    if(MODULES_SUPPORTED)
+        message(STATUS "Building C++20 module library: kcenon.database_server")
+
+        add_library(database_server_module)
+        target_sources(database_server_module
+            PUBLIC
+                FILE_SET cxx_modules TYPE CXX_MODULES FILES
+                    src/modules/database_server.cppm
+                    src/modules/database_server-core.cppm
+                    src/modules/database_server-gateway.cppm
+                    src/modules/database_server-pooling.cppm
+                    src/modules/database_server-resilience.cppm
+        )
+
+        target_link_libraries(database_server_module
+            PUBLIC
+                DatabaseServerLib
+        )
+
+        set_target_properties(database_server_module PROPERTIES
+            CXX_STANDARD 20
+            CXX_STANDARD_REQUIRED ON
+            OUTPUT_NAME "kcenon_database_server_module"
+        )
+
+        # Install module library
+        install(TARGETS database_server_module
+            EXPORT DatabaseServerTargets
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            FILE_SET cxx_modules DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/kcenon/modules
+        )
+    endif()
+endif()
+
+##################################################
 # Create Executable
 ##################################################
 
@@ -580,6 +634,7 @@ message(STATUS "  Tests: ${BUILD_TESTS}")
 message(STATUS "  Benchmarks: ${BUILD_BENCHMARKS}")
 message(STATUS "  Samples: ${BUILD_SAMPLES}")
 message(STATUS "  Coverage: ${ENABLE_COVERAGE}")
+message(STATUS "  C++20 Modules: ${BUILD_MODULES}")
 message(STATUS "")
 message(STATUS "Output Directories:")
 message(STATUS "  Runtime: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
