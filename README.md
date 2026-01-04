@@ -89,6 +89,7 @@ cmake --build .
 | `BUILD_TESTS` | ON | Build unit tests |
 | `BUILD_BENCHMARKS` | OFF | Build performance benchmarks |
 | `BUILD_SAMPLES` | OFF | Build sample applications |
+| `BUILD_MODULES` | OFF | Build C++20 module library |
 | `BUILD_WITH_MONITORING_SYSTEM` | OFF | Enable monitoring integration |
 | `BUILD_WITH_CONTAINER_SYSTEM` | ON | Protocol serialization (required, build fails without it) |
 | `ENABLE_COVERAGE` | OFF | Enable code coverage |
@@ -191,6 +192,58 @@ ctest --output-on-failure
   - Cache metrics (hits, misses, evictions)
   - Size limit enforcement
   - Thread safety with concurrent access
+
+### C++20 Modules
+
+The project supports C++20 modules for improved compilation times and better encapsulation.
+
+**Requirements:**
+- Clang 16.0+ or GCC 14.0+ or MSVC 19.29+
+- CMake 3.28+ recommended for best module support
+
+**Building with Modules:**
+
+```bash
+cmake .. -DBUILD_MODULES=ON
+cmake --build .
+```
+
+**Module Structure:**
+
+```
+kcenon.database_server              # Primary module interface
+├── :core                           # Server app and configuration
+├── :gateway                        # Query protocol and routing
+├── :pooling                        # Connection pool management
+└── :resilience                     # Health monitoring and recovery
+```
+
+**Usage:**
+
+```cpp
+import kcenon.database_server;
+
+int main() {
+    database_server::server_app app;
+
+    if (auto result = app.initialize("config.yaml"); !result) {
+        return 1;
+    }
+
+    return app.run();
+}
+```
+
+**Partition Imports:**
+
+```cpp
+// Import only gateway components
+import kcenon.database_server:gateway;
+
+// Use gateway types
+database_server::gateway::query_request request("SELECT * FROM users",
+                                                  database_server::gateway::query_type::select);
+```
 
 ### Running Benchmarks
 
