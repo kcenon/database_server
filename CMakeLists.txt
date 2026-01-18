@@ -273,6 +273,8 @@ add_library(DatabaseServerLib
     # Metrics (CRTP-based collectors)
     src/metrics/query_metrics_collector.cpp
     src/metrics/collector_integration.cpp
+    # Logging (Phase 1 of #57)
+    src/logging/console_logger.cpp
 )
 
 set_target_properties(DatabaseServerLib PROPERTIES
@@ -459,6 +461,29 @@ find_library(LOGGER_SYSTEM_LIB
 if(LOGGER_SYSTEM_LIB)
     target_link_libraries(DatabaseServerLib PUBLIC ${LOGGER_SYSTEM_LIB})
     message(STATUS "Linking logger_system from: ${LOGGER_SYSTEM_LIB}")
+endif()
+
+# Find logger_system include directory (required for unified logging - Issue #57)
+# Build CMAKE_PREFIX_PATH include paths for Windows CI
+set(LOGGER_PREFIX_INCLUDE_PATHS)
+foreach(_prefix ${CMAKE_PREFIX_PATH})
+    list(APPEND LOGGER_PREFIX_INCLUDE_PATHS "${_prefix}/include")
+endforeach()
+
+find_path(LOGGER_SYSTEM_INCLUDE_DIR
+    NAMES kcenon/logger/core/log_collector.h
+    PATHS
+        ${LOGGER_PREFIX_INCLUDE_PATHS}
+        "${CMAKE_SOURCE_DIR}/../logger_system/include"
+        "${CMAKE_SOURCE_DIR}/logger_system/include"
+        /usr/local/include
+        /usr/include
+        /opt/homebrew/include
+)
+
+if(LOGGER_SYSTEM_INCLUDE_DIR)
+    target_include_directories(DatabaseServerLib PUBLIC ${LOGGER_SYSTEM_INCLUDE_DIR})
+    message(STATUS "Found logger_system include at: ${LOGGER_SYSTEM_INCLUDE_DIR}")
 endif()
 
 # Add ASIO include directory (required for network_system headers)

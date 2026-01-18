@@ -67,26 +67,26 @@ std::shared_ptr<container_module::value_container> query_request::serialize() co
 	container->set_message_type("query_request");
 
 	// Header
-	container->set_value("version", static_cast<int>(header.version));
-	container->set_value("message_id", static_cast<long long>(header.message_id));
-	container->set_value("timestamp", static_cast<long long>(header.timestamp));
-	container->set_value("correlation_id", header.correlation_id);
+	container->set("version", static_cast<int>(header.version));
+	container->set("message_id", static_cast<long long>(header.message_id));
+	container->set("timestamp", static_cast<long long>(header.timestamp));
+	container->set("correlation_id", header.correlation_id);
 
 	// Auth token
-	container->set_value("auth_token", token.token);
-	container->set_value("client_id", token.client_id);
-	container->set_value("token_expires", static_cast<long long>(token.expires_at));
+	container->set("auth_token", token.token);
+	container->set("client_id", token.client_id);
+	container->set("token_expires", static_cast<long long>(token.expires_at));
 
 	// Query
-	container->set_value("query_type", static_cast<int>(type));
-	container->set_value("sql", sql);
+	container->set("query_type", static_cast<int>(type));
+	container->set("sql", sql);
 
 	// Options
-	container->set_value("timeout_ms", static_cast<int>(options.timeout_ms));
-	container->set_value("read_only", options.read_only);
-	container->set_value("isolation_level", options.isolation_level);
-	container->set_value("max_rows", static_cast<int>(options.max_rows));
-	container->set_value("include_metadata", options.include_metadata);
+	container->set("timeout_ms", static_cast<int>(options.timeout_ms));
+	container->set("read_only", options.read_only);
+	container->set("isolation_level", options.isolation_level);
+	container->set("max_rows", static_cast<int>(options.max_rows));
+	container->set("include_metadata", options.include_metadata);
 
 	// Parameters
 	detail::serialize_params(container, params);

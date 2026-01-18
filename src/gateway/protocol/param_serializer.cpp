@@ -53,14 +53,14 @@ namespace detail
 void serialize_params(std::shared_ptr<container_module::value_container>& container,
 					  const std::vector<query_param>& params)
 {
-	container->set_value("params_count", static_cast<int>(params.size()));
+	container->set("params_count", static_cast<int>(params.size()));
 
 	for (size_t i = 0; i < params.size(); ++i)
 	{
 		const auto& param = params[i];
 		std::string prefix = "param_" + std::to_string(i) + "_";
 
-		container->set_value(prefix + "name", param.name);
+		container->set(prefix + "name", param.name);
 		serialize_variant_value(container, prefix, param.value);
 	}
 }

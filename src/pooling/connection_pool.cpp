@@ -41,14 +41,13 @@ connection_pool::connection_pool(
 	const database::connection_pool_config& config,
 	std::function<std::unique_ptr<database::database_base>()> factory,
 	size_t thread_count,
-	kcenon::thread::adaptive_typed_job_queue_t<connection_priority>::queue_strategy
-		queue_strategy)
+	kcenon::thread::priority_aging_config aging_config)
 	: underlying_pool_(
 		  std::make_shared<database::connection_pool>(db_type, config, std::move(factory)))
-	, adaptive_queue_(
+	, aging_queue_(
 		  std::make_shared<
-			  kcenon::thread::adaptive_typed_job_queue_t<connection_priority>>(
-			  queue_strategy))
+			  kcenon::thread::aging_typed_job_queue_t<connection_priority>>(
+			  aging_config))
 	, worker_pool_(nullptr) // Will be created in initialize()
 	, shutdown_token_(kcenon::thread::cancellation_token::create())
 	, metrics_(std::make_shared<priority_metrics<connection_priority>>())
@@ -134,7 +133,7 @@ connection_pool::acquire_connection(connection_priority priority)
 
 	// Enqueue job to adaptive queue (cast to base job type)
 	std::unique_ptr<kcenon::thread::job> base_job = std::move(job);
-	auto enqueue_result = adaptive_queue_->enqueue(std::move(base_job));
+	auto enqueue_result = aging_queue_->enqueue(std::move(base_job));
 	if (enqueue_result.is_err())
 	{
 		std::promise<kcenon::common::Result<std::shared_ptr<database::connection_wrapper>>>
@@ -158,7 +157,7 @@ connection_pool::acquire_connection(connection_priority priority)
 
 			// Try to dequeue a job matching this priority
 			auto dequeue_result
-				= adaptive_queue_->dequeue(std::vector<connection_priority>{ priority });
+				= aging_queue_->dequeue(std::vector<connection_priority>{ priority });
 			if (dequeue_result.is_ok())
 			{
 				auto job_ptr = std::move(dequeue_result.value());
@@ -217,7 +216,7 @@ void connection_pool::schedule_health_check()
 
 	// Enqueue health check job (cast to base job type)
 	std::unique_ptr<kcenon::thread::job> base_job = std::move(job);
-	[[maybe_unused]] auto result = adaptive_queue_->enqueue(std::move(base_job));
+	[[maybe_unused]] auto result = aging_queue_->enqueue(std::move(base_job));
 }
 
 size_t connection_pool::active_connections() const
@@ -252,9 +251,9 @@ void connection_pool::shutdown()
 	shutdown_token_.cancel();
 
 	// Clear adaptive queue
-	if (adaptive_queue_)
+	if (aging_queue_)
 	{
-		adaptive_queue_->clear();
+		aging_queue_->clear();
 	}
 
 	// Stop worker pool
@@ -275,42 +274,42 @@ bool connection_pool::is_shutdown_requested() const
 	return shutdown_requested_.load();
 }
 
-std::string connection_pool::get_current_queue_type() const
+kcenon::thread::aging_stats connection_pool::get_aging_stats() const
 {
-	return adaptive_queue_ ? adaptive_queue_->get_current_type() : "UNKNOWN";
+	return aging_queue_ ? aging_queue_->get_aging_stats() : kcenon::thread::aging_stats{};
 }
 
-uint64_t connection_pool::get_queue_switch_count() const
+uint64_t connection_pool::get_total_priority_boosts() const
 {
-	if (!adaptive_queue_)
+	if (!aging_queue_)
 	{
 		return 0;
 	}
 
-	auto metrics = adaptive_queue_->get_metrics();
-	return metrics.switch_count;
+	auto stats = aging_queue_->get_aging_stats();
+	return stats.total_boosts_applied;
 }
 
-double connection_pool::get_contention_ratio() const
+std::chrono::milliseconds connection_pool::get_max_wait_time() const
 {
-	if (!adaptive_queue_)
+	if (!aging_queue_)
 	{
-		return 0.0;
+		return std::chrono::milliseconds{0};
 	}
 
-	auto metrics = adaptive_queue_->get_metrics();
-	return metrics.get_contention_ratio() * 100.0; // Convert to percentage
+	auto stats = aging_queue_->get_aging_stats();
+	return stats.max_wait_time;
 }
 
-double connection_pool::get_average_queue_latency_ns() const
+std::chrono::milliseconds connection_pool::get_average_wait_time() const
 {
-	if (!adaptive_queue_)
+	if (!aging_queue_)
 	{
-		return 0.0;
+		return std::chrono::milliseconds{0};
 	}
 
-	auto metrics = adaptive_queue_->get_metrics();
-	return metrics.get_average_latency_ns();
+	auto stats = aging_queue_->get_aging_stats();
+	return stats.avg_wait_time;
 }
 
 std::shared_ptr<priority_metrics<connection_priority>> connection_pool::get_metrics() const
