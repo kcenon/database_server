@@ -91,7 +91,7 @@ void serialize_variant_value(std::shared_ptr<container_module::value_container>&
 							 const std::string& prefix,
 							 const VariantT& value)
 {
-	container->set_value(prefix + "type", static_cast<int>(value.index()));
+	container->set(prefix + "type", static_cast<int>(value.index()));
 
 	std::visit(
 		[&container, &prefix](auto&& arg)
@@ -103,23 +103,23 @@ void serialize_variant_value(std::shared_ptr<container_module::value_container>&
 			}
 			else if constexpr (std::is_same_v<T, bool>)
 			{
-				container->set_value(prefix + "value_bool", arg);
+				container->set(prefix + "value_bool", arg);
 			}
 			else if constexpr (std::is_same_v<T, int64_t>)
 			{
-				container->set_value(prefix + "value_int", static_cast<long long>(arg));
+				container->set(prefix + "value_int", static_cast<long long>(arg));
 			}
 			else if constexpr (std::is_same_v<T, double>)
 			{
-				container->set_value(prefix + "value_double", arg);
+				container->set(prefix + "value_double", arg);
 			}
 			else if constexpr (std::is_same_v<T, std::string>)
 			{
-				container->set_value(prefix + "value_string", arg);
+				container->set(prefix + "value_string", arg);
 			}
 			else if constexpr (std::is_same_v<T, std::vector<uint8_t>>)
 			{
-				container->set_value(prefix + "value_bytes", arg);
+				container->set(prefix + "value_bytes", arg);
 			}
 		},
 		value);

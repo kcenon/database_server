@@ -61,34 +61,34 @@ std::shared_ptr<container_module::value_container> query_response::serialize() c
 	container->set_message_type("query_response");
 
 	// Header
-	container->set_value("version", static_cast<int>(header.version));
-	container->set_value("message_id", static_cast<long long>(header.message_id));
-	container->set_value("timestamp", static_cast<long long>(header.timestamp));
-	container->set_value("correlation_id", header.correlation_id);
+	container->set("version", static_cast<int>(header.version));
+	container->set("message_id", static_cast<long long>(header.message_id));
+	container->set("timestamp", static_cast<long long>(header.timestamp));
+	container->set("correlation_id", header.correlation_id);
 
 	// Status
-	container->set_value("status", static_cast<int>(status));
-	container->set_value("error_message", error_message);
-	container->set_value("affected_rows", static_cast<long long>(affected_rows));
-	container->set_value("execution_time_us", static_cast<long long>(execution_time_us));
+	container->set("status", static_cast<int>(status));
+	container->set("error_message", error_message);
+	container->set("affected_rows", static_cast<long long>(affected_rows));
+	container->set("execution_time_us", static_cast<long long>(execution_time_us));
 
 	// Column metadata
-	container->set_value("columns_count", static_cast<int>(columns.size()));
+	container->set("columns_count", static_cast<int>(columns.size()));
 	for (size_t i = 0; i < columns.size(); ++i)
 	{
 		const auto& col = columns[i];
 		std::string prefix = "col_" + std::to_string(i) + "_";
 
-		container->set_value(prefix + "name", col.name);
-		container->set_value(prefix + "type_name", col.type_name);
-		container->set_value(prefix + "type_id", static_cast<int>(col.type_id));
-		container->set_value(prefix + "nullable", col.nullable);
-		container->set_value(prefix + "precision", static_cast<int>(col.precision));
-		container->set_value(prefix + "scale", static_cast<int>(col.scale));
+		container->set(prefix + "name", col.name);
+		container->set(prefix + "type_name", col.type_name);
+		container->set(prefix + "type_id", static_cast<int>(col.type_id));
+		container->set(prefix + "nullable", col.nullable);
+		container->set(prefix + "precision", static_cast<int>(col.precision));
+		container->set(prefix + "scale", static_cast<int>(col.scale));
 	}
 
 	// Rows
-	container->set_value("rows_count", static_cast<int>(rows.size()));
+	container->set("rows_count", static_cast<int>(rows.size()));
 	for (size_t row_idx = 0; row_idx < rows.size(); ++row_idx)
 	{
 		const auto& row = rows[row_idx];
