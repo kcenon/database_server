@@ -31,10 +31,10 @@
 
 /**
  * @file connection_pool.h
- * @brief High-performance connection pool with adaptive queue and priority scheduling
+ * @brief High-performance connection pool with priority aging and scheduling
  *
  * Provides priority-based connection pool management with:
- * - Adaptive job queue for optimal performance under varying load
+ * - Priority aging queue to prevent starvation of low-priority jobs
  * - Cancellation token for graceful shutdown
  * - Enhanced metrics for performance monitoring
  */
@@ -59,7 +59,7 @@
 #include <kcenon/thread/core/error_handling.h>
 #include <kcenon/thread/core/typed_thread_pool.h>
 #include <kcenon/thread/core/typed_thread_worker.h>
-#include <kcenon/thread/impl/typed_pool/adaptive_typed_job_queue.h>
+#include <kcenon/thread/impl/typed_pool/aging_typed_job_queue.h>
 
 namespace database_server::pooling
 {
@@ -137,23 +137,23 @@ private:
 
 /**
  * @class connection_pool
- * @brief High-performance connection pool with adaptive queue and cancellation support
+ * @brief High-performance connection pool with priority aging and cancellation support
  *
  * connection_pool provides priority-based connection pooling with:
- * - **Adaptive Job Queue**: Automatically switches between mutex-based and lock-free
- *   implementations based on runtime contention metrics (4x-7.7x performance improvement)
+ * - **Priority Aging Queue**: Prevents starvation by gradually boosting priorities
+ *   of waiting jobs based on configurable aging curves
  * - **Cancellation Token**: Graceful shutdown with cooperative cancellation
- * - **Enhanced Metrics**: Detailed performance monitoring with queue-specific metrics
+ * - **Enhanced Metrics**: Detailed performance monitoring with aging statistics
  * - **Ultra-Low Latency**: Target < 100ns connection acquisition latency
- * - **High Throughput**: Target > 1M ops/s (leveraging adaptive queue)
+ * - **High Throughput**: Target > 1M ops/s
  *
  * ### Architecture
- * 1. **Adaptive Queue Strategy**: Dynamically selects optimal queue implementation
- *    - Low contention: Mutex-based queue (lower overhead)
- *    - High contention: Lock-free queue (better scalability)
- *    - Automatic evaluation and switching every 5 seconds
+ * 1. **Priority Aging**: Prevents low-priority job starvation
+ *    - Configurable aging intervals and boost amounts
+ *    - Linear, exponential, or logarithmic aging curves
+ *    - Starvation detection and alerting
  * 2. **Cooperative Cancellation**: Clean shutdown without forceful thread termination
- * 3. **Performance Metrics**: Track queue strategy switches, contention ratios, latencies
+ * 3. **Performance Metrics**: Track priority boosts, wait times, starvation alerts
  *
  * ### Priority Levels
  * - CRITICAL: Time-critical operations that cannot be delayed
@@ -197,27 +197,23 @@ class connection_pool
 {
 public:
 	/**
-	 * @brief Constructs connection pool with adaptive queue
+	 * @brief Constructs connection pool with aging-based priority queue
 	 * @param db_type Database type for this pool
 	 * @param config Pool configuration
 	 * @param factory Function to create new database connections
 	 * @param thread_count Number of worker threads (default: hardware_concurrency)
-	 * @param queue_strategy Initial queue strategy (default: FORCE_LEGACY)
+	 * @param aging_config Priority aging configuration (optional)
 	 *
-	 * ### Queue Strategies
-	 * - AUTO_DETECT: Automatically choose best strategy based on initial load
-	 * - FORCE_LEGACY: Always use mutex-based queue (predictable latency)
-	 * - FORCE_LOCKFREE: Always use lock-free queue (high scalability)
-	 * - ADAPTIVE: Start with legacy, switch based on runtime metrics (recommended)
+	 * ### Priority Aging
+	 * The aging queue prevents starvation by gradually boosting priorities
+	 * of waiting jobs. Configure aging behavior via priority_aging_config.
 	 */
 	connection_pool(
 		database::database_types db_type,
 		const database::connection_pool_config& config,
 		std::function<std::unique_ptr<database::database_base>()> factory,
 		size_t thread_count = std::thread::hardware_concurrency(),
-		kcenon::thread::adaptive_typed_job_queue_t<connection_priority>::queue_strategy
-			queue_strategy = kcenon::thread::adaptive_typed_job_queue_t<
-				connection_priority>::queue_strategy::FORCE_LEGACY);
+		kcenon::thread::priority_aging_config aging_config = {});
 
 	/**
 	 * @brief Destructor - ensures graceful shutdown
@@ -247,7 +243,7 @@ public:
 	 * Thread-safe, can be called from multiple threads concurrently.
 	 *
 	 * ### Performance
-	 * - Adaptive queue: Auto-selects best implementation (mutex or lock-free)
+	 * - Priority aging: Prevents starvation of low-priority requests
 	 * - Target latency: < 100ns scheduling + pool acquisition time
 	 * - Throughput: > 1M ops/s under high load
 	 */
@@ -309,28 +305,28 @@ public:
 	[[nodiscard]] bool is_shutdown_requested() const;
 
 	/**
-	 * @brief Gets the current adaptive queue type in use
-	 * @return String describing current queue implementation
+	 * @brief Gets the aging statistics for the queue
+	 * @return Aging statistics including boost counts and wait times
 	 */
-	[[nodiscard]] std::string get_current_queue_type() const;
+	[[nodiscard]] kcenon::thread::aging_stats get_aging_stats() const;
 
 	/**
-	 * @brief Gets the number of queue strategy switches
-	 * @return Number of times the adaptive queue has switched implementation
+	 * @brief Gets the total number of priority boosts applied
+	 * @return Number of times jobs have had their priorities boosted
 	 */
-	[[nodiscard]] uint64_t get_queue_switch_count() const;
+	[[nodiscard]] uint64_t get_total_priority_boosts() const;
 
 	/**
-	 * @brief Gets the contention ratio
-	 * @return Percentage of operations that experienced contention (0.0-100.0)
+	 * @brief Gets the maximum wait time observed
+	 * @return Maximum time a job has waited in milliseconds
 	 */
-	[[nodiscard]] double get_contention_ratio() const;
+	[[nodiscard]] std::chrono::milliseconds get_max_wait_time() const;
 
 	/**
-	 * @brief Gets the average queue operation latency
-	 * @return Average latency in nanoseconds
+	 * @brief Gets the average wait time
+	 * @return Average time jobs wait before being processed
 	 */
-	[[nodiscard]] double get_average_queue_latency_ns() const;
+	[[nodiscard]] std::chrono::milliseconds get_average_wait_time() const;
 
 	/**
 	 * @brief Gets performance metrics for this pool
@@ -343,9 +339,9 @@ private:
 	// Underlying connection pool (actual connection management)
 	std::shared_ptr<database::connection_pool> underlying_pool_;
 
-	// Adaptive job queue for priority-based scheduling
-	std::shared_ptr<kcenon::thread::adaptive_typed_job_queue_t<connection_priority>>
-		adaptive_queue_;
+	// Aging job queue for priority-based scheduling with starvation prevention
+	std::shared_ptr<kcenon::thread::aging_typed_job_queue_t<connection_priority>>
+		aging_queue_;
 
 	// Worker thread pool
 	std::shared_ptr<kcenon::thread::typed_thread_pool_t<connection_priority>>
