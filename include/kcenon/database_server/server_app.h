@@ -59,6 +59,7 @@
 
 // Common system interfaces
 #include <kcenon/common/interfaces/executor_interface.h>
+#include <kcenon/common/interfaces/logger_interface.h>
 #include <kcenon/common/patterns/result.h>
 
 // Forward declarations
@@ -202,6 +203,21 @@ public:
 	 */
 	void set_executor(std::shared_ptr<kcenon::common::interfaces::IExecutor> executor);
 
+	/**
+	 * @brief Get the logger used by this server
+	 * @return Shared pointer to logger, or nullptr if not set
+	 */
+	std::shared_ptr<kcenon::common::interfaces::ILogger> get_logger() const;
+
+	/**
+	 * @brief Set the logger for this server
+	 * @param logger Shared pointer to logger
+	 *
+	 * When set, replaces stdout/stderr logging with structured logging.
+	 * If not set, a default console logger is created during initialization.
+	 */
+	void set_logger(std::shared_ptr<kcenon::common::interfaces::ILogger> logger);
+
 private:
 	/**
 	 * @brief Setup signal handlers for graceful shutdown
@@ -231,6 +247,9 @@ private:
 
 	// Executor for background tasks
 	std::shared_ptr<kcenon::common::interfaces::IExecutor> executor_;
+
+	// Logger for structured logging
+	std::shared_ptr<kcenon::common::interfaces::ILogger> logger_;
 
 	// Signal handling
 	static server_app* instance_;
