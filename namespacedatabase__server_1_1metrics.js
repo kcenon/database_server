@@ -1,0 +1,27 @@
+var namespacedatabase__server_1_1metrics =
+[
+    [ "cache_performance_metrics", "structdatabase__server_1_1metrics_1_1cache__performance__metrics.html", "structdatabase__server_1_1metrics_1_1cache__performance__metrics" ],
+    [ "cache_stats", "structdatabase__server_1_1metrics_1_1cache__stats.html", "structdatabase__server_1_1metrics_1_1cache__stats" ],
+    [ "collector_options", "structdatabase__server_1_1metrics_1_1collector__options.html", "structdatabase__server_1_1metrics_1_1collector__options" ],
+    [ "metrics_utils", "structdatabase__server_1_1metrics_1_1metrics__utils.html", "structdatabase__server_1_1metrics_1_1metrics__utils" ],
+    [ "pool_performance_metrics", "structdatabase__server_1_1metrics_1_1pool__performance__metrics.html", "structdatabase__server_1_1metrics_1_1pool__performance__metrics" ],
+    [ "pool_stats", "structdatabase__server_1_1metrics_1_1pool__stats.html", "structdatabase__server_1_1metrics_1_1pool__stats" ],
+    [ "query_collector_base", "classdatabase__server_1_1metrics_1_1query__collector__base.html", "classdatabase__server_1_1metrics_1_1query__collector__base" ],
+    [ "query_execution", "structdatabase__server_1_1metrics_1_1query__execution.html", "structdatabase__server_1_1metrics_1_1query__execution" ],
+    [ "query_execution_metrics", "structdatabase__server_1_1metrics_1_1query__execution__metrics.html", "structdatabase__server_1_1metrics_1_1query__execution__metrics" ],
+    [ "query_metrics_collector", "classdatabase__server_1_1metrics_1_1query__metrics__collector.html", "classdatabase__server_1_1metrics_1_1query__metrics__collector" ],
+    [ "query_server_metrics", "structdatabase__server_1_1metrics_1_1query__server__metrics.html", "structdatabase__server_1_1metrics_1_1query__server__metrics" ],
+    [ "session_performance_metrics", "structdatabase__server_1_1metrics_1_1session__performance__metrics.html", "structdatabase__server_1_1metrics_1_1session__performance__metrics" ],
+    [ "session_stats", "structdatabase__server_1_1metrics_1_1session__stats.html", "structdatabase__server_1_1metrics_1_1session__stats" ],
+    [ "QueryCollector", "conceptdatabase__server_1_1metrics_1_1QueryCollector.html", null ],
+    [ "collector_config", "namespacedatabase__server_1_1metrics.html#ad1e7bd628e24b4814ff80997e1939adb", null ],
+    [ "stats_map", "namespacedatabase__server_1_1metrics.html#a8394723cc16b996d6a00157ba14e9a3b", null ],
+    [ "export_metrics_to_monitoring", "namespacedatabase__server_1_1metrics.html#ad09c2c37f39a031e385da9dd0a052f64", null ],
+    [ "get_metrics_for_health_endpoint", "namespacedatabase__server_1_1metrics.html#a114aba5965c09b0ad480a15044fb377b", null ],
+    [ "get_query_metrics_collector", "namespacedatabase__server_1_1metrics.html#acd12b12180dd2fdcf56c957657c1fe55", null ],
+    [ "initialize_monitoring_integration", "namespacedatabase__server_1_1metrics.html#a55c4f5c3fa064384b25b9ca750e5e549", null ],
+    [ "is_monitoring_integration_initialized", "namespacedatabase__server_1_1metrics.html#a60ed9d2679dab6fd1c81ff8cb0e6254c", null ],
+    [ "set_metrics_export_callback", "namespacedatabase__server_1_1metrics.html#a27f864d8922bc62ed1b8cd3c25652213", null ],
+    [ "set_query_metrics_collector", "namespacedatabase__server_1_1metrics.html#a06e2e398f3cbde49df319674fc23b78e", null ],
+    [ "shutdown_monitoring_integration", "namespacedatabase__server_1_1metrics.html#a4539ba3407ec714f1ad3290e1fa57ef8", null ]
+];

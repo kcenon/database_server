@@ -1,0 +1,15 @@
+<map id="include/kcenon/database_server/metrics/query_metrics.h" name="include/kcenon/database_server/metrics/query_metrics.h">
+<area shape="rect" id="Node000001" title="Metrics structures for query server performance monitoring." alt="" coords="88,5,272,60"/>
+<area shape="rect" id="Node000002" href="$metrics__base_8h.html" title="Common utilities for atomic metrics operations." alt="" coords="70,108,191,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="167,61,147,97,142,95,163,59"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="119,62,87,83,61,110,48,138,42,168,37,167,42,137,56,106,84,79,116,58"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="189,181,256,207"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="192,59,207,107,220,167,215,169,201,109,187,61"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="267,108,333,133"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="218,58,274,98,271,102,215,62"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="118,135,66,175,63,171,114,131"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="147,131,199,171,195,175,144,135"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="101,181,160,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="133,134,133,168,128,168,128,134"/>
+</map>

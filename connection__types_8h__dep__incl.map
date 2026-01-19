@@ -1,0 +1,19 @@
+<map id="include/kcenon/database_server/pooling/connection_types.h" name="include/kcenon/database_server/pooling/connection_types.h">
+<area shape="rect" id="Node000001" title="Connection pool types for database_server middleware." alt="" coords="341,5,538,60"/>
+<area shape="rect" id="Node000002" href="$connection__pool_8h.html" title="High&#45;performance connection pool with priority aging and scheduling." alt="" coords="341,108,538,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="442,74,442,108,437,108,437,74"/>
+<area shape="rect" id="Node000003" href="$query__handlers_8h.html" title="CRTP&#45;based query handlers for database gateway." alt="" coords="283,211,467,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="417,176,394,212,390,209,413,173"/>
+<area shape="rect" id="Node000005" href="$server__app_8cpp.html" title=" " alt="" coords="49,416,225,441"/>
+<area shape="poly" id="edge7_Node000002_Node000005" title=" " alt="" coords="328,152,247,170,160,202,119,223,81,249,46,279,17,315,10,328,8,341,10,353,17,367,31,383,48,396,86,414,84,418,45,400,27,387,13,369,5,354,3,341,5,327,13,312,42,275,77,244,116,218,158,197,245,165,327,146"/>
+<area shape="rect" id="Node000006" href="$query__router_8cpp.html" title=" " alt="" coords="332,416,547,441"/>
+<area shape="poly" id="edge8_Node000002_Node000006" title=" " alt="" coords="467,173,482,210,492,254,496,290,493,325,482,369,469,396,452,417,448,414,464,393,477,367,488,324,491,290,487,255,477,211,462,175"/>
+<area shape="rect" id="Node000008" href="$connection__pool_8cpp.html" title=" " alt="" coords="542,218,710,258"/>
+<area shape="poly" id="edge9_Node000002_Node000008" title=" " alt="" coords="501,167,592,215,589,220,499,171"/>
+<area shape="rect" id="Node000004" href="$query__router_8h.html" title="Query router with load balancing for database gateway." alt="" coords="283,313,467,368"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="378,279,378,313,373,313,373,279"/>
+<area shape="rect" id="Node000007" href="$query__handlers_8cpp.html" title=" " alt="" coords="27,328,259,353"/>
+<area shape="poly" id="edge6_Node000003_Node000007" title=" " alt="" coords="304,273,171,330,169,325,301,268"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="290,375,170,418,168,413,289,370"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="405,377,433,414,428,417,401,380"/>
+</map>

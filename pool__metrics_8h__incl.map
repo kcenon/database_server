@@ -1,0 +1,21 @@
+<map id="include/kcenon/database_server/pooling/pool_metrics.h" name="include/kcenon/database_server/pooling/pool_metrics.h">
+<area shape="rect" id="Node000001" title="Performance metrics for connection pools." alt="" coords="199,5,422,45"/>
+<area shape="rect" id="Node000002" href="$metrics__base_8h.html" title="Common utilities for atomic metrics operations." alt="" coords="67,93,203,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="273,48,187,90,184,85,271,43"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge5_Node000001_Node000003" title=" " alt="" coords="200,46,113,67,79,80,57,95,46,111,41,130,38,168,33,167,35,129,41,109,53,91,76,75,111,62,199,41"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="197,181,264,207"/>
+<area shape="poly" id="edge7_Node000001_Node000004" title=" " alt="" coords="298,47,268,95,251,133,240,169,235,167,246,131,263,92,294,44"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="277,101,344,126"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="313,46,313,87,308,87,308,46"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="368,101,419,126"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="331,44,374,89,371,92,327,47"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="443,101,507,126"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="348,43,442,92,439,97,345,48"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="531,101,589,126"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="376,43,520,91,524,93,522,98,518,96,375,48"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="113,136,65,175,62,170,110,131"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="160,131,208,170,204,175,156,136"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="105,181,164,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="137,134,137,167,132,167,132,134"/>
+</map>
