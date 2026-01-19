@@ -39,6 +39,8 @@
 
 #pragma once
 
+#include "../metrics/metrics_base.h"
+
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -48,6 +50,8 @@
 
 namespace database_server::pooling
 {
+
+using database_server::metrics::metrics_utils;
 
 /**
  * @struct pool_metrics
@@ -94,24 +98,8 @@ struct pool_metrics
 		if (success)
 		{
 			successful_acquisitions.fetch_add(1, std::memory_order_relaxed);
-
-			// Update timing statistics
 			total_wait_time_us.fetch_add(wait_time_us, std::memory_order_relaxed);
-
-			// Update min/max (requires atomic compare-exchange)
-			uint64_t current_min = min_wait_time_us.load(std::memory_order_relaxed);
-			while (wait_time_us < current_min
-				   && !min_wait_time_us.compare_exchange_weak(
-					   current_min, wait_time_us, std::memory_order_relaxed))
-			{
-			}
-
-			uint64_t current_max = max_wait_time_us.load(std::memory_order_relaxed);
-			while (wait_time_us > current_max
-				   && !max_wait_time_us.compare_exchange_weak(
-					   current_max, wait_time_us, std::memory_order_relaxed))
-			{
-			}
+			metrics_utils::update_min_max(min_wait_time_us, max_wait_time_us, wait_time_us);
 		}
 		else
 		{
@@ -135,14 +123,7 @@ struct pool_metrics
 	{
 		uint64_t new_active
 			= current_active.fetch_add(delta, std::memory_order_relaxed) + delta;
-
-		// Update peak if necessary
-		uint64_t current_peak = peak_active.load(std::memory_order_relaxed);
-		while (new_active > current_peak
-			   && !peak_active.compare_exchange_weak(
-				   current_peak, new_active, std::memory_order_relaxed))
-		{
-		}
+		metrics_utils::update_max(peak_active, new_active);
 	}
 
 	/**
@@ -153,14 +134,7 @@ struct pool_metrics
 	{
 		uint64_t new_queued
 			= current_queued.fetch_add(delta, std::memory_order_relaxed) + delta;
-
-		// Update peak if necessary
-		uint64_t current_peak = peak_queued.load(std::memory_order_relaxed);
-		while (new_queued > current_peak
-			   && !peak_queued.compare_exchange_weak(
-				   current_peak, new_queued, std::memory_order_relaxed))
-		{
-		}
+		metrics_utils::update_max(peak_queued, new_queued);
 	}
 
 	/**
@@ -183,12 +157,9 @@ struct pool_metrics
 	 */
 	[[nodiscard]] double average_wait_time_us() const
 	{
-		uint64_t total = total_acquisitions.load(std::memory_order_relaxed);
-		if (total == 0)
-			return 0.0;
-
-		uint64_t total_wait = total_wait_time_us.load(std::memory_order_relaxed);
-		return static_cast<double>(total_wait) / static_cast<double>(total);
+		return metrics_utils::average_us(
+			total_wait_time_us.load(std::memory_order_relaxed),
+			total_acquisitions.load(std::memory_order_relaxed));
 	}
 
 	/**
@@ -197,12 +168,9 @@ struct pool_metrics
 	 */
 	[[nodiscard]] double success_rate() const
 	{
-		uint64_t total = total_acquisitions.load(std::memory_order_relaxed);
-		if (total == 0)
-			return 100.0;
-
-		uint64_t successful = successful_acquisitions.load(std::memory_order_relaxed);
-		return (static_cast<double>(successful) / static_cast<double>(total)) * 100.0;
+		return metrics_utils::calculate_rate(
+			successful_acquisitions.load(std::memory_order_relaxed),
+			total_acquisitions.load(std::memory_order_relaxed), 100.0);
 	}
 
 	/**
@@ -210,14 +178,14 @@ struct pool_metrics
 	 */
 	void reset()
 	{
-		total_acquisitions.store(0, std::memory_order_relaxed);
-		successful_acquisitions.store(0, std::memory_order_relaxed);
-		failed_acquisitions.store(0, std::memory_order_relaxed);
-		timeouts.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(total_acquisitions);
+		metrics_utils::reset_counter(successful_acquisitions);
+		metrics_utils::reset_counter(failed_acquisitions);
+		metrics_utils::reset_counter(timeouts);
 
-		total_wait_time_us.store(0, std::memory_order_relaxed);
-		min_wait_time_us.store(UINT64_MAX, std::memory_order_relaxed);
-		max_wait_time_us.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(total_wait_time_us);
+		metrics_utils::reset_min(min_wait_time_us);
+		metrics_utils::reset_counter(max_wait_time_us);
 
 		// Don't reset current_active and current_queued (they reflect current state)
 		peak_active.store(
@@ -225,8 +193,8 @@ struct pool_metrics
 		peak_queued.store(
 			current_queued.load(std::memory_order_relaxed), std::memory_order_relaxed);
 
-		health_checks_performed.store(0, std::memory_order_relaxed);
-		unhealthy_connections_removed.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(health_checks_performed);
+		metrics_utils::reset_counter(unhealthy_connections_removed);
 	}
 };
 
@@ -297,12 +265,9 @@ struct priority_metrics : public pool_metrics
 			return 0.0;
 		}
 
-		uint64_t count = acq_it->second.load(std::memory_order_relaxed);
-		if (count == 0)
-			return 0.0;
-
-		uint64_t total_wait = wait_it->second.load(std::memory_order_relaxed);
-		return static_cast<double>(total_wait) / static_cast<double>(count);
+		return metrics_utils::average_us(
+			wait_it->second.load(std::memory_order_relaxed),
+			acq_it->second.load(std::memory_order_relaxed));
 	}
 
 	/**
@@ -315,11 +280,11 @@ struct priority_metrics : public pool_metrics
 		std::lock_guard<std::mutex> lock(map_mutex);
 		for (auto& [priority, counter] : acquisitions_by_priority)
 		{
-			counter.store(0, std::memory_order_relaxed);
+			metrics_utils::reset_counter(counter);
 		}
 		for (auto& [priority, wait_time] : wait_time_by_priority)
 		{
-			wait_time.store(0, std::memory_order_relaxed);
+			metrics_utils::reset_counter(wait_time);
 		}
 	}
 };

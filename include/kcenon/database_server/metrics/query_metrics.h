@@ -46,6 +46,8 @@
 
 #pragma once
 
+#include "metrics_base.h"
+
 #include <atomic>
 #include <chrono>
 #include <cstdint>
@@ -103,21 +105,7 @@ struct query_execution_metrics
 			failed_queries.fetch_add(1, std::memory_order_relaxed);
 		}
 
-		// Update min latency
-		uint64_t current_min = min_latency_ns.load(std::memory_order_relaxed);
-		while (latency_ns < current_min
-			   && !min_latency_ns.compare_exchange_weak(
-				   current_min, latency_ns, std::memory_order_relaxed))
-		{
-		}
-
-		// Update max latency
-		uint64_t current_max = max_latency_ns.load(std::memory_order_relaxed);
-		while (latency_ns > current_max
-			   && !max_latency_ns.compare_exchange_weak(
-				   current_max, latency_ns, std::memory_order_relaxed))
-		{
-		}
+		metrics_utils::update_min_max(min_latency_ns, max_latency_ns, latency_ns);
 	}
 
 	/**
@@ -126,11 +114,9 @@ struct query_execution_metrics
 	 */
 	[[nodiscard]] double avg_query_latency_ms() const noexcept
 	{
-		uint64_t total = total_queries.load(std::memory_order_relaxed);
-		if (total == 0)
-			return 0.0;
-		return static_cast<double>(total_latency_ns.load(std::memory_order_relaxed))
-			   / static_cast<double>(total) / 1000000.0;
+		return metrics_utils::average_ns_to_ms(
+			total_latency_ns.load(std::memory_order_relaxed),
+			total_queries.load(std::memory_order_relaxed));
 	}
 
 	/**
@@ -139,11 +125,9 @@ struct query_execution_metrics
 	 */
 	[[nodiscard]] double success_rate() const noexcept
 	{
-		uint64_t total = total_queries.load(std::memory_order_relaxed);
-		if (total == 0)
-			return 100.0;
-		return static_cast<double>(successful_queries.load(std::memory_order_relaxed))
-			   / static_cast<double>(total) * 100.0;
+		return metrics_utils::calculate_rate(
+			successful_queries.load(std::memory_order_relaxed),
+			total_queries.load(std::memory_order_relaxed), 100.0);
 	}
 
 	/**
@@ -151,18 +135,18 @@ struct query_execution_metrics
 	 */
 	void reset() noexcept
 	{
-		total_queries.store(0, std::memory_order_relaxed);
-		successful_queries.store(0, std::memory_order_relaxed);
-		failed_queries.store(0, std::memory_order_relaxed);
-		timeout_queries.store(0, std::memory_order_relaxed);
-		total_latency_ns.store(0, std::memory_order_relaxed);
-		min_latency_ns.store(UINT64_MAX, std::memory_order_relaxed);
-		max_latency_ns.store(0, std::memory_order_relaxed);
-		select_queries.store(0, std::memory_order_relaxed);
-		insert_queries.store(0, std::memory_order_relaxed);
-		update_queries.store(0, std::memory_order_relaxed);
-		delete_queries.store(0, std::memory_order_relaxed);
-		other_queries.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(total_queries);
+		metrics_utils::reset_counter(successful_queries);
+		metrics_utils::reset_counter(failed_queries);
+		metrics_utils::reset_counter(timeout_queries);
+		metrics_utils::reset_counter(total_latency_ns);
+		metrics_utils::reset_min(min_latency_ns);
+		metrics_utils::reset_counter(max_latency_ns);
+		metrics_utils::reset_counter(select_queries);
+		metrics_utils::reset_counter(insert_queries);
+		metrics_utils::reset_counter(update_queries);
+		metrics_utils::reset_counter(delete_queries);
+		metrics_utils::reset_counter(other_queries);
 	}
 };
 
@@ -222,10 +206,7 @@ struct cache_performance_metrics
 	{
 		uint64_t hits = cache_hits.load(std::memory_order_relaxed);
 		uint64_t misses = cache_misses.load(std::memory_order_relaxed);
-		uint64_t total = hits + misses;
-		if (total == 0)
-			return 0.0;
-		return static_cast<double>(hits) / static_cast<double>(total) * 100.0;
+		return metrics_utils::calculate_rate(hits, hits + misses, 0.0);
 	}
 
 	/**
@@ -233,10 +214,10 @@ struct cache_performance_metrics
 	 */
 	void reset() noexcept
 	{
-		cache_hits.store(0, std::memory_order_relaxed);
-		cache_misses.store(0, std::memory_order_relaxed);
-		cache_evictions.store(0, std::memory_order_relaxed);
-		cache_expirations.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(cache_hits);
+		metrics_utils::reset_counter(cache_misses);
+		metrics_utils::reset_counter(cache_evictions);
+		metrics_utils::reset_counter(cache_expirations);
 		// Don't reset cache_size_bytes and cache_entries (they reflect current state)
 	}
 };
@@ -297,12 +278,9 @@ struct pool_performance_metrics
 	 */
 	[[nodiscard]] double avg_acquisition_time_ms() const noexcept
 	{
-		uint64_t total = total_acquisitions.load(std::memory_order_relaxed);
-		if (total == 0)
-			return 0.0;
-		return static_cast<double>(
-				   total_acquisition_time_ns.load(std::memory_order_relaxed))
-			   / static_cast<double>(total) / 1000000.0;
+		return metrics_utils::average_ns_to_ms(
+			total_acquisition_time_ns.load(std::memory_order_relaxed),
+			total_acquisitions.load(std::memory_order_relaxed));
 	}
 
 	/**
@@ -310,11 +288,11 @@ struct pool_performance_metrics
 	 */
 	void reset() noexcept
 	{
-		total_acquisitions.store(0, std::memory_order_relaxed);
-		successful_acquisitions.store(0, std::memory_order_relaxed);
-		failed_acquisitions.store(0, std::memory_order_relaxed);
-		pool_exhaustion_count.store(0, std::memory_order_relaxed);
-		total_acquisition_time_ns.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(total_acquisitions);
+		metrics_utils::reset_counter(successful_acquisitions);
+		metrics_utils::reset_counter(failed_acquisitions);
+		metrics_utils::reset_counter(pool_exhaustion_count);
+		metrics_utils::reset_counter(total_acquisition_time_ns);
 		// Don't reset connection counts (they reflect current state)
 	}
 };
@@ -381,12 +359,9 @@ struct session_performance_metrics
 	 */
 	[[nodiscard]] double avg_session_duration_sec() const noexcept
 	{
-		uint64_t terminated = terminated_sessions.load(std::memory_order_relaxed);
-		if (terminated == 0)
-			return 0.0;
-		return static_cast<double>(
-				   total_session_duration_ns.load(std::memory_order_relaxed))
-			   / static_cast<double>(terminated) / 1000000000.0;
+		return metrics_utils::average_ns_to_sec(
+			total_session_duration_ns.load(std::memory_order_relaxed),
+			terminated_sessions.load(std::memory_order_relaxed));
 	}
 
 	/**
@@ -394,11 +369,11 @@ struct session_performance_metrics
 	 */
 	void reset() noexcept
 	{
-		total_sessions.store(0, std::memory_order_relaxed);
-		terminated_sessions.store(0, std::memory_order_relaxed);
-		auth_successes.store(0, std::memory_order_relaxed);
-		auth_failures.store(0, std::memory_order_relaxed);
-		total_session_duration_ns.store(0, std::memory_order_relaxed);
+		metrics_utils::reset_counter(total_sessions);
+		metrics_utils::reset_counter(terminated_sessions);
+		metrics_utils::reset_counter(auth_successes);
+		metrics_utils::reset_counter(auth_failures);
+		metrics_utils::reset_counter(total_session_duration_ns);
 		// Don't reset active_sessions (it reflects current state)
 	}
 };
