@@ -51,6 +51,9 @@
 #include <memory>
 #include <thread>
 
+// Common system interfaces
+#include <kcenon/common/interfaces/logger_interface.h>
+
 // Database server pooling types (server-side implementation)
 #include "connection_types.h"
 
@@ -335,6 +338,20 @@ public:
 	[[nodiscard]] std::shared_ptr<priority_metrics<connection_priority>> get_metrics()
 		const;
 
+	/**
+	 * @brief Get the logger used by this pool
+	 * @return Shared pointer to logger, or nullptr if not set
+	 */
+	[[nodiscard]] std::shared_ptr<kcenon::common::interfaces::ILogger> get_logger() const;
+
+	/**
+	 * @brief Set the logger for this pool
+	 * @param logger Shared pointer to logger
+	 *
+	 * When set, replaces stderr logging with structured logging via ILogger.
+	 */
+	void set_logger(std::shared_ptr<kcenon::common::interfaces::ILogger> logger);
+
 private:
 	// Underlying connection pool (actual connection management)
 	std::shared_ptr<database::connection_pool> underlying_pool_;
@@ -358,6 +375,9 @@ private:
 
 	// Shutdown flag
 	std::atomic<bool> shutdown_requested_;
+
+	// Logger for structured logging
+	std::shared_ptr<kcenon::common::interfaces::ILogger> logger_;
 };
 
 } // namespace database_server::pooling

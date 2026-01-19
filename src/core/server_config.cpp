@@ -33,7 +33,6 @@
 
 #include <filesystem>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 
 namespace database_server
@@ -43,14 +42,14 @@ std::optional<server_config> server_config::load_from_file(const std::string& pa
 {
 	if (!std::filesystem::exists(path))
 	{
-		std::cerr << "Configuration file not found: " << path << std::endl;
+		// Error will be logged by caller with appropriate context
 		return std::nullopt;
 	}
 
 	std::ifstream file(path);
 	if (!file.is_open())
 	{
-		std::cerr << "Failed to open configuration file: " << path << std::endl;
+		// Error will be logged by caller with appropriate context
 		return std::nullopt;
 	}
 

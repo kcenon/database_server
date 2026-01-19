@@ -31,8 +31,6 @@
 
 #include <kcenon/database_server/pooling/connection_pool.h>
 
-#include <iostream>
-
 namespace database_server::pooling
 {
 
@@ -80,8 +78,11 @@ bool connection_pool::initialize()
 	auto start_result = worker_pool_->start();
 	if (start_result.is_err())
 	{
-		std::cerr << "Failed to start worker pool: " << start_result.error().message
-				  << std::endl;
+		if (logger_)
+		{
+			logger_->log(kcenon::common::interfaces::log_level::error,
+						 "Failed to start worker pool: " + start_result.error().message);
+		}
 		return false;
 	}
 
@@ -315,6 +316,16 @@ std::chrono::milliseconds connection_pool::get_average_wait_time() const
 std::shared_ptr<priority_metrics<connection_priority>> connection_pool::get_metrics() const
 {
 	return metrics_;
+}
+
+std::shared_ptr<kcenon::common::interfaces::ILogger> connection_pool::get_logger() const
+{
+	return logger_;
+}
+
+void connection_pool::set_logger(std::shared_ptr<kcenon::common::interfaces::ILogger> logger)
+{
+	logger_ = std::move(logger);
 }
 
 } // namespace database_server::pooling
