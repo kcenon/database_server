@@ -1,0 +1,25 @@
+var classdatabase__server_1_1metrics_1_1query__collector__base =
+[
+    [ "query_collector_base", "classdatabase__server_1_1metrics_1_1query__collector__base.html#aa0230cead08ca45448a7d735996c04e9", null ],
+    [ "~query_collector_base", "classdatabase__server_1_1metrics_1_1query__collector__base.html#adcf355d2043b501dced1e387de96aa5e", null ],
+    [ "query_collector_base", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a22dbf62c0f5d563945aacf7fb7d2ea7f", null ],
+    [ "query_collector_base", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a9994578c919fe929c5c647927d70117b", null ],
+    [ "collect_cache_metrics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a97c2f92039f5339612b6af4b41c4650a", null ],
+    [ "collect_pool_metrics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a13cc33818b70ecb353c9a89685c999ba", null ],
+    [ "collect_query_metrics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#acc2435a65def210c716f28eaad2ae251", null ],
+    [ "collect_session_metrics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#abdf409e7c64ef9060a836e803c36f9c9", null ],
+    [ "get_collection_count", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a6266c8c257bcf715a2ba6f9e1cba8ce6", null ],
+    [ "get_collection_errors", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a33a85cec7a924d962bf271440f38d69a", null ],
+    [ "get_metrics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a7c62e94ad18368a9aee1bf6a2c42da45", null ],
+    [ "get_name", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a6431b5b3e85c82ca1e0809e29dc868fa", null ],
+    [ "get_statistics", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a19e8b8c7d91c9357dfb68e5fb1796aa7", null ],
+    [ "initialize", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a62114e11bdc6223a0bc4143bbe16e597", null ],
+    [ "is_enabled", "classdatabase__server_1_1metrics_1_1query__collector__base.html#ad17d5da7dca84ad720dcdc6af108cf89", null ],
+    [ "is_healthy", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a3524a395c1fab97a5bc75f162847f640", null ],
+    [ "operator=", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a46be9b9df0d731d679b24bcb8d58f19c", null ],
+    [ "operator=", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a39e415b6a13192315031ce07fb6d2b8a", null ],
+    [ "collection_count_", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a90a2d87eb41aa86b822f94e4fbba325c", null ],
+    [ "collection_errors_", "classdatabase__server_1_1metrics_1_1query__collector__base.html#a82d4898d61615f69c9272a966be3eb28", null ],
+    [ "enabled_", "classdatabase__server_1_1metrics_1_1query__collector__base.html#af4390846e90a28b523fb126c575ea5b6", null ],
+    [ "stats_mutex_", "classdatabase__server_1_1metrics_1_1query__collector__base.html#abd878289a8ab7a6866237ad67ba450fd", null ]
+];
