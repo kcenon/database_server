@@ -96,15 +96,15 @@ cmake --build .
 
 ### Integration Macros
 
-Source code uses `KCENON_WITH_*` macros (from `<kcenon/common/config/feature_flags.h>`) for integration gating:
+Source code uses unified `KCENON_WITH_*=1` macros for integration gating, ensuring consistency across all kcenon ecosystem projects:
 
-| Macro | Preprocessor Symbol | CMake Option | Description |
-|-------|---------------------|--------------|-------------|
-| `KCENON_WITH_CONTAINER_SYSTEM` | `WITH_CONTAINER_SYSTEM` | `BUILD_WITH_CONTAINER_SYSTEM` | Container serialization support |
-| `KCENON_WITH_MONITORING_SYSTEM` | `WITH_MONITORING_SYSTEM` | `BUILD_WITH_MONITORING_SYSTEM` | Monitoring integration |
-| `KCENON_WITH_COMMON_SYSTEM` | `WITH_COMMON_SYSTEM` | Auto-detected | Common system integration |
+| Macro | CMake Option | Description |
+|-------|--------------|-------------|
+| `KCENON_WITH_CONTAINER_SYSTEM=1` | `BUILD_WITH_CONTAINER_SYSTEM` | Container serialization support |
+| `KCENON_WITH_MONITORING_SYSTEM=1` | `BUILD_WITH_MONITORING_SYSTEM` | Monitoring integration |
+| `KCENON_WITH_COMMON_SYSTEM=1` | Auto-detected | Common system integration |
 
-When CMake options like `BUILD_WITH_CONTAINER_SYSTEM` are enabled, CMake defines `WITH_*` preprocessor symbols (e.g., `WITH_CONTAINER_SYSTEM`). The `feature_flags.h` header from `common_system` then maps these to `KCENON_WITH_*` macros for consistent integration gating across repositories.
+CMake directly defines `KCENON_WITH_*=1` preprocessor macros when the corresponding `BUILD_WITH_*` options are enabled. This unified macro system ensures consistent integration gating across all kcenon repositories without intermediate mapping.
 
 ### Running Tests
 

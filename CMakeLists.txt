@@ -386,9 +386,9 @@ endfunction()
 # Add common_system include (header-only library, no linking needed)
 if(common_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${common_system_INCLUDE_DIR})
-    # Define WITH_COMMON_SYSTEM for feature_flags.h (maps to KCENON_WITH_COMMON_SYSTEM)
+    # Define KCENON_WITH_COMMON_SYSTEM=1 for unified macro system
     # This ensures VoidResult type matches between network_system and database_server
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_COMMON_SYSTEM)
+    target_compile_definitions(DatabaseServerLib PUBLIC KCENON_WITH_COMMON_SYSTEM=1)
 endif()
 # common_system is header-only, so no library linking is needed
 
@@ -494,8 +494,8 @@ endif()
 
 # Optional: monitoring_system
 if(BUILD_WITH_MONITORING_SYSTEM)
-    # Define WITH_MONITORING_SYSTEM for feature_flags.h (maps to KCENON_WITH_MONITORING_SYSTEM)
-    target_compile_definitions(DatabaseServerLib PUBLIC WITH_MONITORING_SYSTEM)
+    # Define KCENON_WITH_MONITORING_SYSTEM=1 for unified macro system
+    target_compile_definitions(DatabaseServerLib PUBLIC KCENON_WITH_MONITORING_SYSTEM=1)
     if(monitoring_system_INCLUDE_DIR)
         target_include_directories(DatabaseServerLib PUBLIC ${monitoring_system_INCLUDE_DIR})
     endif()
@@ -505,8 +505,8 @@ if(BUILD_WITH_MONITORING_SYSTEM)
 endif()
 
 # container_system (REQUIRED for protocol serialization)
-# Define WITH_CONTAINER_SYSTEM for feature_flags.h (maps to KCENON_WITH_CONTAINER_SYSTEM)
-target_compile_definitions(DatabaseServerLib PUBLIC WITH_CONTAINER_SYSTEM)
+# Define KCENON_WITH_CONTAINER_SYSTEM=1 for unified macro system
+target_compile_definitions(DatabaseServerLib PUBLIC KCENON_WITH_CONTAINER_SYSTEM=1)
 if(container_system_INCLUDE_DIR)
     target_include_directories(DatabaseServerLib PUBLIC ${container_system_INCLUDE_DIR})
     # Also add the root directory for headers in container_system/core/
