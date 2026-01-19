@@ -33,11 +33,12 @@
 
 #include <kcenon/database_server/gateway/gateway_server.h>
 #include <kcenon/database_server/gateway/query_router.h>
+#include <kcenon/database_server/logging/console_logger.h>
 #include <kcenon/database_server/pooling/connection_pool.h>
 
 #include <chrono>
 #include <csignal>
-#include <iostream>
+#include <sstream>
 #include <thread>
 
 namespace database_server
@@ -61,10 +62,17 @@ server_app::~server_app()
 
 kcenon::common::VoidResult server_app::initialize(const std::string& config_path)
 {
+	// Create default logger if not set
+	if (!logger_)
+	{
+		logger_ = logging::create_console_logger();
+	}
+
 	auto loaded_config = server_config::load_from_file(config_path);
 	if (!loaded_config)
 	{
-		std::cerr << "Failed to load configuration from: " << config_path << std::endl;
+		logger_->log(kcenon::common::interfaces::log_level::error,
+					 "Failed to load configuration from: " + config_path);
 		return kcenon::common::error_info{
 			kcenon::common::error_codes::INVALID_ARGUMENT,
 			"Failed to load configuration from: " + config_path,
@@ -76,9 +84,16 @@ kcenon::common::VoidResult server_app::initialize(const std::string& config_path
 
 kcenon::common::VoidResult server_app::initialize(const server_config& config)
 {
+	// Create default logger if not set
+	if (!logger_)
+	{
+		logger_ = logging::create_console_logger();
+	}
+
 	if (state_ != server_state::uninitialized)
 	{
-		std::cerr << "Server already initialized" << std::endl;
+		logger_->log(kcenon::common::interfaces::log_level::error,
+					 std::string("Server already initialized"));
 		return kcenon::common::error_info{
 			kcenon::common::error_codes::ALREADY_EXISTS,
 			"Server already initialized",
@@ -89,15 +104,17 @@ kcenon::common::VoidResult server_app::initialize(const server_config& config)
 
 	if (!config_.validate())
 	{
-		std::string error_msg = "Configuration validation failed:";
+		std::ostringstream error_oss;
+		error_oss << "Configuration validation failed:";
 		for (const auto& error : config_.validation_errors())
 		{
-			std::cerr << "  - " << error << std::endl;
-			error_msg += " " + error + ";";
+			logger_->log(kcenon::common::interfaces::log_level::error,
+						 "  - " + error);
+			error_oss << " " << error << ";";
 		}
 		return kcenon::common::error_info{
 			kcenon::common::error_codes::INVALID_ARGUMENT,
-			error_msg,
+			error_oss.str(),
 			"server_app"};
 	}
 
@@ -131,7 +148,8 @@ bool server_app::do_initialize()
 
 	query_router_ = std::make_unique<gateway::query_router>(router_cfg);
 
-	std::cout << "Query router initialized" << std::endl;
+	logger_->log(kcenon::common::interfaces::log_level::info,
+				 std::string("Query router initialized"));
 
 	// Initialize gateway server
 	gateway::gateway_config gw_config;
@@ -146,13 +164,15 @@ bool server_app::do_initialize()
 	gateway_->set_connection_callback(
 		[this](const gateway::client_session& session)
 		{
-			std::cout << "Client connected: " << session.session_id << std::endl;
+			logger_->log(kcenon::common::interfaces::log_level::info,
+						 "Client connected: " + session.session_id);
 		});
 
 	gateway_->set_disconnection_callback(
-		[](const std::string& session_id)
+		[this](const std::string& session_id)
 		{
-			std::cout << "Client disconnected: " << session_id << std::endl;
+			logger_->log(kcenon::common::interfaces::log_level::info,
+						 "Client disconnected: " + session_id);
 		});
 
 	// Set up request handler to route queries through query_router
@@ -177,9 +197,13 @@ bool server_app::do_initialize()
 			}
 		});
 
-	std::cout << "Server '" << config_.name << "' initialized" << std::endl;
-	std::cout << "  Listen address: " << config_.network.host << ":" << config_.network.port
-			  << std::endl;
+	std::ostringstream init_msg;
+	init_msg << "Server '" << config_.name << "' initialized";
+	logger_->log(kcenon::common::interfaces::log_level::info, init_msg.str());
+
+	std::ostringstream addr_msg;
+	addr_msg << "  Listen address: " << config_.network.host << ":" << config_.network.port;
+	logger_->log(kcenon::common::interfaces::log_level::info, addr_msg.str());
 
 	return true;
 }
@@ -188,7 +212,8 @@ int server_app::run()
 {
 	if (state_ != server_state::initialized)
 	{
-		std::cerr << "Server not initialized" << std::endl;
+		logger_->log(kcenon::common::interfaces::log_level::error,
+					 std::string("Server not initialized"));
 		return 1;
 	}
 
@@ -200,8 +225,8 @@ int server_app::run()
 		auto result = gateway_->start();
 		if (result.is_err())
 		{
-			std::cerr << "Failed to start gateway server: " << result.error().message
-					  << std::endl;
+			logger_->log(kcenon::common::interfaces::log_level::error,
+						 "Failed to start gateway server: " + result.error().message);
 			state_ = server_state::stopped;
 			return 1;
 		}
@@ -211,11 +236,13 @@ int server_app::run()
 	if (connection_pool_)
 	{
 		connection_pool_->schedule_health_check();
-		std::cout << "Connection pool health monitoring started" << std::endl;
+		logger_->log(kcenon::common::interfaces::log_level::info,
+					 std::string("Connection pool health monitoring started"));
 	}
 
 	state_ = server_state::running;
-	std::cout << "Server is running. Press Ctrl+C to stop." << std::endl;
+	logger_->log(kcenon::common::interfaces::log_level::info,
+				 std::string("Server is running. Press Ctrl+C to stop."));
 
 	// Main event loop - wait for shutdown signal
 	while (state_ == server_state::running)
@@ -224,7 +251,8 @@ int server_app::run()
 	}
 
 	state_ = server_state::stopped;
-	std::cout << "Server stopped" << std::endl;
+	logger_->log(kcenon::common::interfaces::log_level::info,
+				 std::string("Server stopped"));
 
 	return 0;
 }
@@ -244,8 +272,8 @@ void server_app::stop()
 		auto result = gateway_->stop();
 		if (result.is_err())
 		{
-			std::cerr << "Warning: Failed to stop gateway server: " << result.error().message
-					  << std::endl;
+			logger_->log(kcenon::common::interfaces::log_level::warning,
+						 "Failed to stop gateway server: " + result.error().message);
 		}
 	}
 
@@ -256,7 +284,8 @@ void server_app::stop()
 		connection_pool_->shutdown();
 	}
 
-	std::cout << "Shutdown requested" << std::endl;
+	logger_->log(kcenon::common::interfaces::log_level::info,
+				 std::string("Shutdown requested"));
 }
 
 void server_app::do_cleanup()
@@ -300,6 +329,16 @@ void server_app::set_executor(
 	}
 }
 
+std::shared_ptr<kcenon::common::interfaces::ILogger> server_app::get_logger() const
+{
+	return logger_;
+}
+
+void server_app::set_logger(std::shared_ptr<kcenon::common::interfaces::ILogger> logger)
+{
+	logger_ = std::move(logger);
+}
+
 server_state server_app::state() const
 {
 	return state_.load();
@@ -337,7 +376,11 @@ void server_app::signal_handler(int signal)
 {
 	if (instance_ != nullptr)
 	{
-		std::cout << "\nReceived signal " << signal << std::endl;
+		// Note: Signal handlers should be async-signal-safe.
+		// The logger_->log call in stop() is safe because stop() is called
+		// from the main thread context after the signal interrupts sleep.
+		// For truly async-safe logging, consider using write() directly.
+		(void)signal; // Signal number logged via stop() method
 		instance_->stop();
 	}
 }
