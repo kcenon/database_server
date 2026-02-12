@@ -110,8 +110,8 @@ jobs:
           -DCMAKE_C_COMPILER=gcc-13 -DCMAKE_CXX_COMPILER=g++-13 \
           -DCOMMON_SYSTEM_INCLUDE_DIR=/usr/local/include \
           -DTHREAD_SYSTEM_INCLUDE_DIR=/usr/local/include \
-          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
-        cmake --build build --config Release
+          -DUSE_UNIT_TEST=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release --target NetworkSystem
         sudo cmake --install build --prefix /usr/local
         cd ..
 

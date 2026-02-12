@@ -126,8 +126,8 @@ jobs:
           -DCMAKE_C_COMPILER=clang-18 -DCMAKE_CXX_COMPILER=clang++-18 \
           -DCOMMON_SYSTEM_INCLUDE_DIR=/usr/local/include \
           -DTHREAD_SYSTEM_INCLUDE_DIR=/usr/local/include \
-          -DUSE_UNIT_TEST=OFF -DBUILD_SAMPLES=OFF
-        cmake --build build --config Release
+          -DUSE_UNIT_TEST=OFF -DBUILD_TESTS=OFF -DBUILD_SAMPLES=OFF
+        cmake --build build --config Release --target NetworkSystem
         sudo cmake --install build --prefix /usr/local
         cd ..
 
