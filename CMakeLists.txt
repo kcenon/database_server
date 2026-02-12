@@ -373,9 +373,9 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
                 target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
                 message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
             endif()
-            # On Unix, network_system sub-libraries contain the actual implementation
-            # (tcp_socket, messaging_session, etc.). Link them explicitly.
-            if(NOT MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
+            # network_system sub-libraries contain the actual implementation
+            # (tcp_socket, messaging_session, etc.). Link them explicitly on all platforms.
+            if("${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
                 foreach(_sub_lib_name network-tcp network-udp network-websocket)
                     find_library(_NETWORK_SUB_LIB_${_sub_lib_name}
                         NAMES ${_sub_lib_name}
@@ -397,15 +397,19 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
                     endif()
                 endforeach()
                 # Link OpenSSL and zlib for secure networking and compression in network_system
-                find_package(OpenSSL QUIET)
+                if(NOT OPENSSL_FOUND)
+                    find_package(OpenSSL QUIET)
+                endif()
                 if(OPENSSL_FOUND)
                     target_link_libraries(${TARGET_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
                     message(STATUS "Linking OpenSSL for network_system support")
                 endif()
-                find_package(ZLIB QUIET)
-                if(ZLIB_FOUND)
-                    target_link_libraries(${TARGET_NAME} PUBLIC ZLIB::ZLIB)
-                    message(STATUS "Linking ZLIB for network_system compression support")
+                if(NOT MSVC)
+                    find_package(ZLIB QUIET)
+                    if(ZLIB_FOUND)
+                        target_link_libraries(${TARGET_NAME} PUBLIC ZLIB::ZLIB)
+                        message(STATUS "Linking ZLIB for network_system compression support")
+                    endif()
                 endif()
             endif()
             set(LINKED TRUE)
