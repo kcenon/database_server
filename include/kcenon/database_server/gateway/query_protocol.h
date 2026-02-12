@@ -60,6 +60,7 @@
 #include <kcenon/common/patterns/result.h>
 
 // Forward declaration for container_system
+// When migrating to kcenon::container namespace, update this and container_compat.h
 namespace container_module
 {
 class value_container;
