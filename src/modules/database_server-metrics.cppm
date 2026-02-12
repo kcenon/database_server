@@ -10,6 +10,9 @@
  * database query server performance monitoring.
  *
  * Key Components:
+ * - metrics_utils: Atomic metrics utility functions
+ * - query_execution_metrics, cache_performance_metrics, etc.: Metrics structures
+ * - query_collector_base: CRTP base class for collectors
  * - query_metrics_collector: CRTP-based collector implementation
  * - query_server_metrics: Aggregated metrics structure
  * - collector_integration: Monitoring system integration
@@ -33,44 +36,131 @@
  * // Get metrics
  * const auto& metrics = collector.get_metrics();
  * @endcode
+ *
+ * Part of the kcenon.database_server module.
  */
+
+module;
+
+// Standard library includes needed before module declaration
+#include <atomic>
+#include <chrono>
+#include <cstdint>
+#include <memory>
+#include <mutex>
+#include <shared_mutex>
+#include <string>
+#include <unordered_map>
+
+// Include existing headers in the global module fragment
+#include "kcenon/database_server/metrics/query_metrics.h"
+#include "kcenon/database_server/metrics/query_collector_base.h"
+#include "kcenon/database_server/metrics/query_metrics_collector.h"
 
 export module kcenon.database_server:metrics;
 
 import kcenon.common;
 
-// Re-export metrics types
+// ============================================================================
+// Metrics Utilities
+// ============================================================================
+
+export namespace database_server::metrics {
+
+// Re-export metrics utility functions
+using ::database_server::metrics::metrics_utils;
+
+} // namespace database_server::metrics
+
+// ============================================================================
+// Metrics Structures
+// ============================================================================
+
+export namespace database_server::metrics {
+
+// Re-export query execution metrics
+using ::database_server::metrics::query_execution_metrics;
+
+// Re-export cache performance metrics
+using ::database_server::metrics::cache_performance_metrics;
+
+// Re-export pool performance metrics
+using ::database_server::metrics::pool_performance_metrics;
+
+// Re-export session performance metrics
+using ::database_server::metrics::session_performance_metrics;
+
+// Re-export aggregated server metrics
+using ::database_server::metrics::query_server_metrics;
+
+} // namespace database_server::metrics
+
+// ============================================================================
+// Collector Base Types
+// ============================================================================
+
+export namespace database_server::metrics {
+
+// Re-export type aliases
+using ::database_server::metrics::collector_config;
+using ::database_server::metrics::stats_map;
+
+// Re-export collector input types
+using ::database_server::metrics::query_execution;
+using ::database_server::metrics::pool_stats;
+using ::database_server::metrics::cache_stats;
+using ::database_server::metrics::session_stats;
+
+// Re-export CRTP base template
+using ::database_server::metrics::query_collector_base;
+
+} // namespace database_server::metrics
+
+// ============================================================================
+// Query Metrics Collector
+// ============================================================================
+
+export namespace database_server::metrics {
+
+// Re-export collector configuration
+using ::database_server::metrics::collector_options;
+
+// Re-export metrics collector class
+using ::database_server::metrics::query_metrics_collector;
+
+// Re-export global collector access
+using ::database_server::metrics::get_query_metrics_collector;
+using ::database_server::metrics::set_query_metrics_collector;
+
+} // namespace database_server::metrics
+
+// ============================================================================
+// Monitoring System Integration
+// ============================================================================
+
 export namespace database_server::metrics {
 
 /**
- * @brief Forward declarations for metrics types
- * @note Full implementations are in header files
+ * @brief Initialize monitoring system integration
+ * @param collector_name Name to use for this collector in monitoring system
+ * @return true if initialization successful
  */
-
-// Core metrics structures
-struct query_execution_metrics;
-struct cache_performance_metrics;
-struct pool_performance_metrics;
-struct session_performance_metrics;
-struct query_server_metrics;
-
-// Collector types
-struct collector_options;
-struct query_execution;
-struct pool_stats;
-struct cache_stats;
-struct session_stats;
-
-class query_metrics_collector;
-
-// Global collector access
-query_metrics_collector& get_query_metrics_collector();
-void set_query_metrics_collector(std::shared_ptr<query_metrics_collector> collector);
-
-// Monitoring integration
 bool initialize_monitoring_integration(const std::string& collector_name);
+
+/**
+ * @brief Export current metrics to monitoring system
+ */
 void export_metrics_to_monitoring();
+
+/**
+ * @brief Check if monitoring integration is initialized
+ * @return true if initialized
+ */
 bool is_monitoring_integration_initialized();
+
+/**
+ * @brief Shutdown monitoring integration
+ */
 void shutdown_monitoring_integration();
 
 } // namespace database_server::metrics
