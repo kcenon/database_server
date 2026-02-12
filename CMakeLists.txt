@@ -360,21 +360,53 @@ function(link_system_dependency TARGET_NAME DEP_NAME)
         endif()
 
         if(${DEP_NAME}_LIB)
-            # MSVC requires /WHOLEARCHIVE for network_system to include all symbols
-            # This is needed because messaging_server symbols are not referenced directly
-            # WHOLEARCHIVE also brings in HTTP/2, WebSocket code that depends on OpenSSL
             if(MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
+                # MSVC requires /WHOLEARCHIVE for network_system to include all symbols
                 target_link_options(${TARGET_NAME} PUBLIC "/WHOLEARCHIVE:${${DEP_NAME}_LIB}")
                 message(STATUS "Linking ${DEP_NAME} with WHOLEARCHIVE from: ${${DEP_NAME}_LIB}")
-                # Link OpenSSL for HTTP/2 and WebSocket support in network_system
                 find_package(OpenSSL QUIET)
                 if(OPENSSL_FOUND)
                     target_link_libraries(${TARGET_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
-                    message(STATUS "Linking OpenSSL for WHOLEARCHIVE network_system support")
+                    message(STATUS "Linking OpenSSL for network_system support")
                 endif()
             else()
                 target_link_libraries(${TARGET_NAME} PUBLIC ${${DEP_NAME}_LIB})
                 message(STATUS "Linking ${DEP_NAME} from: ${${DEP_NAME}_LIB}")
+            endif()
+            # On Unix, network_system sub-libraries contain the actual implementation
+            # (tcp_socket, messaging_session, etc.). Link them explicitly.
+            if(NOT MSVC AND "${DEP_NAME}" STREQUAL "NETWORK_SYSTEM")
+                foreach(_sub_lib_name network-tcp network-udp network-websocket)
+                    find_library(_NETWORK_SUB_LIB_${_sub_lib_name}
+                        NAMES ${_sub_lib_name}
+                        PATHS
+                            ${PREFIX_LIB_PATHS}
+                            ${SIBLING_PATHS}
+                            # Nested sub-library directories in sibling builds
+                            "${CMAKE_SOURCE_DIR}/../network_system/build/libs/${_sub_lib_name}"
+                            "${CMAKE_SOURCE_DIR}/network_system/build/libs/${_sub_lib_name}"
+                            /usr/local/lib
+                            /usr/lib
+                            /opt/homebrew/lib
+                        NO_DEFAULT_PATH
+                        NO_CMAKE_SYSTEM_PATH
+                    )
+                    if(_NETWORK_SUB_LIB_${_sub_lib_name})
+                        target_link_libraries(${TARGET_NAME} PUBLIC ${_NETWORK_SUB_LIB_${_sub_lib_name}})
+                        message(STATUS "Linking network_system sub-library: ${_NETWORK_SUB_LIB_${_sub_lib_name}}")
+                    endif()
+                endforeach()
+                # Link OpenSSL and zlib for secure networking and compression in network_system
+                find_package(OpenSSL QUIET)
+                if(OPENSSL_FOUND)
+                    target_link_libraries(${TARGET_NAME} PUBLIC OpenSSL::SSL OpenSSL::Crypto)
+                    message(STATUS "Linking OpenSSL for network_system support")
+                endif()
+                find_package(ZLIB QUIET)
+                if(ZLIB_FOUND)
+                    target_link_libraries(${TARGET_NAME} PUBLIC ZLIB::ZLIB)
+                    message(STATUS "Linking ZLIB for network_system compression support")
+                endif()
             endif()
             set(LINKED TRUE)
         else()
