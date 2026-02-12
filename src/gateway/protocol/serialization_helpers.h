@@ -44,7 +44,7 @@
 #include <kcenon/database_server/gateway/query_protocol.h>
 
 #if KCENON_WITH_CONTAINER_SYSTEM
-#include <container/core/container.h>
+#include <container.h>
 #endif
 
 #include <chrono>
@@ -134,7 +134,7 @@ VariantT deserialize_variant_value(
 	const std::string& prefix)
 {
 	int type_tag = 0;
-	if (auto val = container->get_value(prefix + "type"))
+	if (auto val = container->get(prefix + "type"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
@@ -149,7 +149,7 @@ VariantT deserialize_variant_value(
 		result = std::monostate{};
 		break;
 	case static_cast<int>(value_type_tag::bool_value):
-		if (auto val = container->get_value(prefix + "value_bool"))
+		if (auto val = container->get(prefix + "value_bool"))
 		{
 			if (std::holds_alternative<bool>(val->data))
 			{
@@ -158,7 +158,7 @@ VariantT deserialize_variant_value(
 		}
 		break;
 	case static_cast<int>(value_type_tag::int64_value):
-		if (auto val = container->get_value(prefix + "value_int"))
+		if (auto val = container->get(prefix + "value_int"))
 		{
 			if (std::holds_alternative<long long>(val->data))
 			{
@@ -167,7 +167,7 @@ VariantT deserialize_variant_value(
 		}
 		break;
 	case static_cast<int>(value_type_tag::double_value):
-		if (auto val = container->get_value(prefix + "value_double"))
+		if (auto val = container->get(prefix + "value_double"))
 		{
 			if (std::holds_alternative<double>(val->data))
 			{
@@ -176,7 +176,7 @@ VariantT deserialize_variant_value(
 		}
 		break;
 	case static_cast<int>(value_type_tag::string_value):
-		if (auto val = container->get_value(prefix + "value_string"))
+		if (auto val = container->get(prefix + "value_string"))
 		{
 			if (std::holds_alternative<std::string>(val->data))
 			{
@@ -185,7 +185,7 @@ VariantT deserialize_variant_value(
 		}
 		break;
 	case static_cast<int>(value_type_tag::bytes_value):
-		if (auto val = container->get_value(prefix + "value_bytes"))
+		if (auto val = container->get(prefix + "value_bytes"))
 		{
 			if (std::holds_alternative<std::vector<uint8_t>>(val->data))
 			{

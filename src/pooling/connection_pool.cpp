@@ -37,7 +37,7 @@ namespace database_server::pooling
 connection_pool::connection_pool(
 	database::database_types db_type,
 	const database::connection_pool_config& config,
-	std::function<std::unique_ptr<database::database_base>()> factory,
+	std::function<std::unique_ptr<database::core::database_backend>()> factory,
 	size_t thread_count,
 	kcenon::thread::priority_aging_config aging_config)
 	: underlying_pool_(

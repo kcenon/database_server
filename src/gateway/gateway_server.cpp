@@ -33,13 +33,12 @@
 #include <kcenon/database_server/gateway/auth_middleware.h>
 #include <kcenon/database_server/gateway/session_id_generator.h>
 
-#include <kcenon/network/core/messaging_server.h>
-#include <kcenon/network/session/messaging_session.h>
+#include <kcenon/network/facade/tcp_facade.h>
 
 #include <kcenon/common/config/feature_flags.h>
 
 #if KCENON_WITH_CONTAINER_SYSTEM
-#include <container/core/container.h>
+#include <container.h>
 #endif
 
 #include <chrono>
@@ -66,34 +65,33 @@ uint64_t current_timestamp_ms()
 
 gateway_server::gateway_server(const gateway_config& config)
 	: config_(config)
-	, server_(std::make_shared<kcenon::network::core::messaging_server>(config.server_id))
+	, server_(kcenon::network::facade::tcp_facade().create_server(
+		  {.port = config.port, .server_id = config.server_id}))
 	, auth_middleware_(std::make_unique<auth_middleware>(config.auth, config.rate_limit))
 {
-	// Set up network callbacks
+	// Set up network callbacks using i_protocol_server interface
 	server_->set_connection_callback(
-		[this](std::shared_ptr<kcenon::network::session::messaging_session> session)
+		[this](std::shared_ptr<kcenon::network::interfaces::i_session> session)
 		{
-			on_connection(session);
+			on_connection(std::move(session));
 		});
 
 	server_->set_disconnection_callback(
-		[this](const std::string& session_id)
+		[this](std::string_view session_id)
 		{
 			on_disconnection(session_id);
 		});
 
 	server_->set_receive_callback(
-		[this](std::shared_ptr<kcenon::network::session::messaging_session> session,
-			   const std::vector<uint8_t>& data)
+		[this](std::string_view session_id, const std::vector<uint8_t>& data)
 		{
-			on_message(session, data);
+			on_message(session_id, data);
 		});
 
 	server_->set_error_callback(
-		[this](std::shared_ptr<kcenon::network::session::messaging_session> session,
-			   std::error_code ec)
+		[this](std::string_view session_id, std::error_code ec)
 		{
-			on_error(session, ec);
+			on_error(session_id, ec);
 		});
 }
 
@@ -114,7 +112,7 @@ kcenon::common::VoidResult gateway_server::start()
 		};
 	}
 
-	auto result = server_->start_server(config_.port);
+	auto result = server_->start(config_.port);
 	if (result.is_err())
 	{
 		running_ = false;
@@ -139,9 +137,10 @@ kcenon::common::VoidResult gateway_server::stop()
 	{
 		std::lock_guard<std::mutex> lock(sessions_mutex_);
 		sessions_.clear();
+		network_id_map_.clear();
 	}
 
-	auto result = server_->stop_server();
+	auto result = server_->stop();
 	if (result.is_err())
 	{
 		return kcenon::common::error_info{
@@ -149,12 +148,14 @@ kcenon::common::VoidResult gateway_server::stop()
 		};
 	}
 
+	stop_cv_.notify_all();
 	return kcenon::common::ok();
 }
 
 void gateway_server::wait()
 {
-	server_->wait_for_stop();
+	std::unique_lock<std::mutex> lock(stop_mutex_);
+	stop_cv_.wait(lock, [this] { return !running_.load(); });
 }
 
 bool gateway_server::is_running() const noexcept
@@ -203,9 +204,11 @@ bool gateway_server::disconnect_client(const std::string& session_id)
 		return false;
 	}
 
-	if (auto network_session = it->second.network_session.lock())
+	if (auto& network_session = it->second.network_session)
 	{
-		network_session->stop_session();
+		// Remove reverse mapping before erasing session
+		network_id_map_.erase(std::string(network_session->id()));
+		network_session->close();
 	}
 
 	sessions_.erase(it);
@@ -240,7 +243,7 @@ void gateway_server::set_audit_callback(audit_callback_t callback)
 }
 
 void gateway_server::on_connection(
-	std::shared_ptr<kcenon::network::session::messaging_session> session)
+	std::shared_ptr<kcenon::network::interfaces::i_session> session)
 {
 	if (!session)
 	{
@@ -248,6 +251,7 @@ void gateway_server::on_connection(
 	}
 
 	auto session_id = generate_session_id();
+	auto network_id = std::string(session->id());
 	auto now = current_timestamp_ms();
 
 	client_session client;
@@ -264,11 +268,12 @@ void gateway_server::on_connection(
 		if (sessions_.size() >= config_.max_connections)
 		{
 			// Reject connection
-			session->stop_session();
+			session->close();
 			return;
 		}
 
 		sessions_[session_id] = client;
+		network_id_map_[network_id] = session_id;
 	}
 
 	// Notify auth middleware of session creation
@@ -280,10 +285,18 @@ void gateway_server::on_connection(
 	}
 }
 
-void gateway_server::on_disconnection(const std::string& session_id)
+void gateway_server::on_disconnection(std::string_view network_session_id)
 {
+	std::string session_id;
 	{
 		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		auto map_it = network_id_map_.find(std::string(network_session_id));
+		if (map_it == network_id_map_.end())
+		{
+			return;
+		}
+		session_id = map_it->second;
+		network_id_map_.erase(map_it);
 		sessions_.erase(session_id);
 	}
 
@@ -297,31 +310,24 @@ void gateway_server::on_disconnection(const std::string& session_id)
 }
 
 void gateway_server::on_message(
-	std::shared_ptr<kcenon::network::session::messaging_session> session,
+	std::string_view network_session_id,
 	const std::vector<uint8_t>& data)
 {
-	if (!session || data.empty())
+	if (data.empty())
 	{
 		return;
 	}
 
-	// Find session by network session
+	// Look up session by network session ID (O(1) hash lookup)
 	std::string session_id;
 	{
 		std::lock_guard<std::mutex> lock(sessions_mutex_);
-		for (const auto& [id, client] : sessions_)
+		auto map_it = network_id_map_.find(std::string(network_session_id));
+		if (map_it == network_id_map_.end())
 		{
-			if (auto ns = client.network_session.lock(); ns.get() == session.get())
-			{
-				session_id = id;
-				break;
-			}
+			return;
 		}
-	}
-
-	if (session_id.empty())
-	{
-		return;
+		session_id = map_it->second;
 	}
 
 	// Deserialize request
@@ -332,7 +338,7 @@ void gateway_server::on_message(
 		query_response error_response(0, status_code::invalid_query,
 									  "Failed to parse request: " +
 										  request_result.error().message);
-		send_response(session, error_response);
+		send_response(session_id, error_response);
 		return;
 	}
 
@@ -346,21 +352,19 @@ void gateway_server::on_message(
 		}
 	}
 
-	process_request(session_id, session, request_result.value());
+	process_request(session_id, request_result.value());
 }
 
 void gateway_server::on_error(
-	std::shared_ptr<kcenon::network::session::messaging_session> session,
-	std::error_code ec)
+	std::string_view network_session_id, std::error_code ec)
 {
-	(void)session;
+	(void)network_session_id;
 	(void)ec;
 	// Log error if logging is available
 }
 
 void gateway_server::process_request(
 	const std::string& session_id,
-	std::shared_ptr<kcenon::network::session::messaging_session> network_session,
 	const query_request& request)
 {
 	// Handle ping request directly
@@ -368,7 +372,7 @@ void gateway_server::process_request(
 	{
 		query_response response(request.header.message_id);
 		response.header.correlation_id = request.header.correlation_id;
-		send_response(network_session, response);
+		send_response(session_id, response);
 		return;
 	}
 
@@ -387,7 +391,7 @@ void gateway_server::process_request(
 		query_response error_response(request.header.message_id,
 									  status_code::error,
 									  "Session not found");
-		send_response(network_session, error_response);
+		send_response(session_id, error_response);
 		return;
 	}
 
@@ -400,7 +404,7 @@ void gateway_server::process_request(
 			query_response error_response(request.header.message_id,
 										  auth_result.code,
 										  auth_result.message);
-			send_response(network_session, error_response);
+			send_response(session_id, error_response);
 			return;
 		}
 
@@ -422,7 +426,7 @@ void gateway_server::process_request(
 			query_response error_response(request.header.message_id,
 										  status_code::rate_limited,
 										  "Rate limit exceeded");
-			send_response(network_session, error_response);
+			send_response(session_id, error_response);
 			return;
 		}
 	}
@@ -433,7 +437,7 @@ void gateway_server::process_request(
 		query_response error_response(request.header.message_id,
 									  status_code::invalid_query,
 									  "Invalid query request");
-		send_response(network_session, error_response);
+		send_response(session_id, error_response);
 		return;
 	}
 
@@ -442,22 +446,33 @@ void gateway_server::process_request(
 	{
 		auto response = request_handler_(*client, request);
 		response.header.correlation_id = request.header.correlation_id;
-		send_response(network_session, response);
+		send_response(session_id, response);
 	}
 	else
 	{
 		query_response error_response(request.header.message_id,
 									  status_code::error,
 									  "No request handler configured");
-		send_response(network_session, error_response);
+		send_response(session_id, error_response);
 	}
 }
 
 void gateway_server::send_response(
-	std::shared_ptr<kcenon::network::session::messaging_session> session,
+	const std::string& session_id,
 	const query_response& response)
 {
-	if (!session)
+	std::shared_ptr<kcenon::network::interfaces::i_session> session;
+	{
+		std::lock_guard<std::mutex> lock(sessions_mutex_);
+		auto it = sessions_.find(session_id);
+		if (it == sessions_.end())
+		{
+			return;
+		}
+		session = it->second.network_session;
+	}
+
+	if (!session || !session->is_connected())
 	{
 		return;
 	}
@@ -466,8 +481,12 @@ void gateway_server::send_response(
 	auto container = response.serialize();
 	if (container)
 	{
-		auto data = container->serialize_array();
-		session->send_packet(std::move(data));
+		auto result = container->serialize(
+			container_module::value_container::serialization_format::binary);
+		if (result.is_ok())
+		{
+			(void)session->send(std::move(result.value()));
+		}
 	}
 #else
 	(void)response;

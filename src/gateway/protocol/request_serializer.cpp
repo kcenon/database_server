@@ -109,28 +109,28 @@ query_request::deserialize(std::shared_ptr<container_module::value_container> co
 	query_request request;
 
 	// Header
-	if (auto val = container->get_value("version"))
+	if (auto val = container->get("version"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			request.header.version = static_cast<uint32_t>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("message_id"))
+	if (auto val = container->get("message_id"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
 			request.header.message_id = static_cast<uint64_t>(std::get<long long>(val->data));
 		}
 	}
-	if (auto val = container->get_value("timestamp"))
+	if (auto val = container->get("timestamp"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
 			request.header.timestamp = static_cast<uint64_t>(std::get<long long>(val->data));
 		}
 	}
-	if (auto val = container->get_value("correlation_id"))
+	if (auto val = container->get("correlation_id"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
@@ -139,21 +139,21 @@ query_request::deserialize(std::shared_ptr<container_module::value_container> co
 	}
 
 	// Auth token
-	if (auto val = container->get_value("auth_token"))
+	if (auto val = container->get("auth_token"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
 			request.token.token = std::get<std::string>(val->data);
 		}
 	}
-	if (auto val = container->get_value("client_id"))
+	if (auto val = container->get("client_id"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
 			request.token.client_id = std::get<std::string>(val->data);
 		}
 	}
-	if (auto val = container->get_value("token_expires"))
+	if (auto val = container->get("token_expires"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
@@ -162,14 +162,14 @@ query_request::deserialize(std::shared_ptr<container_module::value_container> co
 	}
 
 	// Query
-	if (auto val = container->get_value("query_type"))
+	if (auto val = container->get("query_type"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			request.type = static_cast<query_type>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("sql"))
+	if (auto val = container->get("sql"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
@@ -178,35 +178,35 @@ query_request::deserialize(std::shared_ptr<container_module::value_container> co
 	}
 
 	// Options
-	if (auto val = container->get_value("timeout_ms"))
+	if (auto val = container->get("timeout_ms"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			request.options.timeout_ms = static_cast<uint32_t>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("read_only"))
+	if (auto val = container->get("read_only"))
 	{
 		if (std::holds_alternative<bool>(val->data))
 		{
 			request.options.read_only = std::get<bool>(val->data);
 		}
 	}
-	if (auto val = container->get_value("isolation_level"))
+	if (auto val = container->get("isolation_level"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
 			request.options.isolation_level = std::get<std::string>(val->data);
 		}
 	}
-	if (auto val = container->get_value("max_rows"))
+	if (auto val = container->get("max_rows"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			request.options.max_rows = static_cast<uint32_t>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("include_metadata"))
+	if (auto val = container->get("include_metadata"))
 	{
 		if (std::holds_alternative<bool>(val->data))
 		{
