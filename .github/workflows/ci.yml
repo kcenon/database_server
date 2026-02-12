@@ -260,7 +260,13 @@ jobs:
       if: runner.os != 'Windows'
       run: |
         cd network_system
+        # CRITICAL: COMMON_SYSTEM_INCLUDE_DIR and THREAD_SYSTEM_INCLUDE_DIR must be
+        # set explicitly because network_system's find_common_system() uses NO_DEFAULT_PATH
+        # which skips CMAKE_PREFIX_PATH. Without this, BUILD_WITH_COMMON_SYSTEM won't be
+        # defined, causing C++ symbol mangling mismatches at link time.
         cmake -B build -S . -DCMAKE_BUILD_TYPE=Release \
+          -DCOMMON_SYSTEM_INCLUDE_DIR=/usr/local/include \
+          -DTHREAD_SYSTEM_INCLUDE_DIR=/usr/local/include \
           -DUSE_UNIT_TEST=OFF \
           -DBUILD_SAMPLES=OFF
         cmake --build build --config Release
