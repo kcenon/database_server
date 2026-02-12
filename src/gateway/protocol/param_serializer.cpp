@@ -71,7 +71,7 @@ std::vector<query_param> deserialize_params(
 	std::vector<query_param> params;
 
 	int params_count = 0;
-	if (auto val = container->get_value("params_count"))
+	if (auto val = container->get("params_count"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
@@ -84,7 +84,7 @@ std::vector<query_param> deserialize_params(
 		std::string prefix = "param_" + std::to_string(i) + "_";
 		query_param param;
 
-		if (auto val = container->get_value(prefix + "name"))
+		if (auto val = container->get(prefix + "name"))
 		{
 			if (std::holds_alternative<std::string>(val->data))
 			{

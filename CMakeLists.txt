@@ -389,6 +389,9 @@ if(common_system_INCLUDE_DIR)
     # Define KCENON_WITH_COMMON_SYSTEM=1 for unified macro system
     # This ensures VoidResult type matches between network_system and database_server
     target_compile_definitions(DatabaseServerLib PUBLIC KCENON_WITH_COMMON_SYSTEM=1)
+    # Also define KCENON_HAS_COMMON_SYSTEM=1 for container_system's Result-based API
+    # container_system uses this macro to enable serialize(serialization_format) and other Result APIs
+    target_compile_definitions(DatabaseServerLib PUBLIC KCENON_HAS_COMMON_SYSTEM=1)
 endif()
 # common_system is header-only, so no library linking is needed
 

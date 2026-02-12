@@ -43,7 +43,7 @@
 
 #pragma once
 
-#include <database/database_base.h>
+#include <database/core/database_backend.h>
 #include <database/database_types.h>
 
 #include <kcenon/common/patterns/result.h>
@@ -96,7 +96,7 @@ struct connection_stats
 class connection_wrapper
 {
 public:
-	explicit connection_wrapper(std::unique_ptr<database_base> conn)
+	explicit connection_wrapper(std::unique_ptr<core::database_backend> conn)
 		: connection_(std::move(conn))
 		, is_healthy_(true)
 		, last_used_(std::chrono::steady_clock::now())
@@ -105,9 +105,9 @@ public:
 
 	~connection_wrapper() = default;
 
-	database_base* get() const { return connection_.get(); }
-	database_base* operator->() const { return connection_.get(); }
-	database_base& operator*() const { return *connection_; }
+	core::database_backend* get() const { return connection_.get(); }
+	core::database_backend* operator->() const { return connection_.get(); }
+	core::database_backend& operator*() const { return *connection_; }
 
 	bool is_healthy() const { return is_healthy_.load(); }
 	void mark_unhealthy() { is_healthy_.store(false); }
@@ -132,7 +132,7 @@ public:
 	}
 
 private:
-	std::unique_ptr<database_base> connection_;
+	std::unique_ptr<core::database_backend> connection_;
 	std::atomic<bool> is_healthy_;
 	std::chrono::steady_clock::time_point last_used_;
 	mutable std::mutex metadata_mutex_;
@@ -204,7 +204,7 @@ public:
 class connection_pool : public connection_pool_base
 {
 public:
-	using connection_factory = std::function<std::unique_ptr<database_base>()>;
+	using connection_factory = std::function<std::unique_ptr<core::database_backend>()>;
 
 	connection_pool(
 		database_types db_type,

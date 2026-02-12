@@ -64,81 +64,116 @@ using namespace database_server::pooling;
 namespace
 {
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-class mock_database : public database_base
+class mock_database : public core::database_backend
 {
 public:
-	mock_database() : connected_(false) {}
+	mock_database() : initialized_(false) {}
 
-	~mock_database() override { disconnect(); }
-
-	database_types database_type() override { return database_types::mysql; }
-
-	bool connect(const std::string& /*connect_string*/) override
+	~mock_database() override
 	{
-		connected_ = true;
-		return true;
-	}
-
-	bool disconnect() override
-	{
-		connected_ = false;
-		return true;
-	}
-
-	bool create_query(const std::string& /*query_string*/) override { return connected_; }
-
-	unsigned int insert_query(const std::string& /*query_string*/) override
-	{
-		return connected_ ? 1 : 0;
-	}
-
-	unsigned int update_query(const std::string& /*query_string*/) override
-	{
-		return connected_ ? 1 : 0;
-	}
-
-	unsigned int delete_query(const std::string& /*query_string*/) override
-	{
-		return connected_ ? 1 : 0;
-	}
-
-	database_result select_query(const std::string& /*query_string*/) override
-	{
-		if (!connected_)
+		if (initialized_)
 		{
-			return {};
+			(void)shutdown();
 		}
-		database_row row;
-		row["result"] = std::string("mock_result");
-		return { row };
 	}
 
-	bool execute_query(const std::string& /*query_string*/) override { return connected_; }
+	database_types type() const override { return database_types::mysql; }
 
-	bool is_connected() const { return connected_; }
+	kcenon::common::VoidResult initialize(const core::connection_config& /*config*/) override
+	{
+		initialized_ = true;
+		return kcenon::common::ok();
+	}
+
+	kcenon::common::VoidResult shutdown() override
+	{
+		initialized_ = false;
+		return kcenon::common::ok();
+	}
+
+	bool is_initialized() const override { return initialized_; }
+
+	kcenon::common::Result<uint64_t> insert_query(const std::string& /*query_string*/) override
+	{
+		if (!initialized_)
+		{
+			return kcenon::common::error_info{-1, "Not initialized", "mock_database"};
+		}
+		return uint64_t{1};
+	}
+
+	kcenon::common::Result<uint64_t> update_query(const std::string& /*query_string*/) override
+	{
+		if (!initialized_)
+		{
+			return kcenon::common::error_info{-1, "Not initialized", "mock_database"};
+		}
+		return uint64_t{1};
+	}
+
+	kcenon::common::Result<uint64_t> delete_query(const std::string& /*query_string*/) override
+	{
+		if (!initialized_)
+		{
+			return kcenon::common::error_info{-1, "Not initialized", "mock_database"};
+		}
+		return uint64_t{1};
+	}
+
+	kcenon::common::Result<core::database_result> select_query(
+		const std::string& /*query_string*/) override
+	{
+		if (!initialized_)
+		{
+			return kcenon::common::error_info{-1, "Not initialized", "mock_database"};
+		}
+		core::database_row row;
+		row["result"] = std::string("mock_result");
+		return core::database_result{row};
+	}
+
+	kcenon::common::VoidResult execute_query(const std::string& /*query_string*/) override
+	{
+		if (!initialized_)
+		{
+			return kcenon::common::error_info{-1, "Not initialized", "mock_database"};
+		}
+		return kcenon::common::ok();
+	}
+
+	kcenon::common::VoidResult begin_transaction() override
+	{
+		return kcenon::common::ok();
+	}
+
+	kcenon::common::VoidResult commit_transaction() override
+	{
+		return kcenon::common::ok();
+	}
+
+	kcenon::common::VoidResult rollback_transaction() override
+	{
+		return kcenon::common::ok();
+	}
+
+	bool in_transaction() const override { return false; }
+
+	std::string last_error() const override { return {}; }
+
+	std::map<std::string, std::string> connection_info() const override { return {}; }
 
 private:
-	bool connected_;
+	bool initialized_;
 };
 
-#pragma GCC diagnostic pop
-
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-
-std::unique_ptr<database_base> create_mock_database()
+std::unique_ptr<core::database_backend> create_mock_database()
 {
 	auto db = std::make_unique<mock_database>();
-	db->connect("");
+	(void)db->initialize(core::connection_config{});
 	return db;
 }
 
-#pragma GCC diagnostic pop
-
-std::unique_ptr<database_base> create_failing_database()
+std::unique_ptr<core::database_backend> create_failing_database()
 {
 	return nullptr;
 }
@@ -294,19 +329,16 @@ TEST_F(ConnectionPoolBasicTest, InitializeWithFailingFactoryPartialSuccess)
 	// Factory that fails after 1 success
 	int create_count = 0;
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-	auto factory = [&create_count]() -> std::unique_ptr<database_base>
+	auto factory = [&create_count]() -> std::unique_ptr<core::database_backend>
 	{
 		if (create_count++ == 0)
 		{
 			auto db = std::make_unique<mock_database>();
-			db->connect("");
+			(void)db->initialize(core::connection_config{});
 			return db;
 		}
 		return nullptr;
 	};
-#pragma GCC diagnostic pop
 
 	connection_pool pool(database_types::mysql, config_, factory);
 	bool init_result = pool.initialize();

@@ -38,7 +38,7 @@
 #include <kcenon/common/config/feature_flags.h>
 
 #if KCENON_WITH_CONTAINER_SYSTEM
-#include <container/core/container.h>
+#include <container.h>
 #endif
 
 #include <chrono>
@@ -481,8 +481,12 @@ void gateway_server::send_response(
 	auto container = response.serialize();
 	if (container)
 	{
-		auto data = container->serialize_array();
-		(void)session->send(std::move(data));
+		auto result = container->serialize(
+			container_module::value_container::serialization_format::binary);
+		if (result.is_ok())
+		{
+			(void)session->send(std::move(result.value()));
+		}
 	}
 #else
 	(void)response;

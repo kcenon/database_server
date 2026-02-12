@@ -119,28 +119,28 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 	query_response response;
 
 	// Header
-	if (auto val = container->get_value("version"))
+	if (auto val = container->get("version"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			response.header.version = static_cast<uint32_t>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("message_id"))
+	if (auto val = container->get("message_id"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
 			response.header.message_id = static_cast<uint64_t>(std::get<long long>(val->data));
 		}
 	}
-	if (auto val = container->get_value("timestamp"))
+	if (auto val = container->get("timestamp"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
 			response.header.timestamp = static_cast<uint64_t>(std::get<long long>(val->data));
 		}
 	}
-	if (auto val = container->get_value("correlation_id"))
+	if (auto val = container->get("correlation_id"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
@@ -149,28 +149,28 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 	}
 
 	// Status
-	if (auto val = container->get_value("status"))
+	if (auto val = container->get("status"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
 			response.status = static_cast<status_code>(std::get<int>(val->data));
 		}
 	}
-	if (auto val = container->get_value("error_message"))
+	if (auto val = container->get("error_message"))
 	{
 		if (std::holds_alternative<std::string>(val->data))
 		{
 			response.error_message = std::get<std::string>(val->data);
 		}
 	}
-	if (auto val = container->get_value("affected_rows"))
+	if (auto val = container->get("affected_rows"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
 			response.affected_rows = static_cast<uint64_t>(std::get<long long>(val->data));
 		}
 	}
-	if (auto val = container->get_value("execution_time_us"))
+	if (auto val = container->get("execution_time_us"))
 	{
 		if (std::holds_alternative<long long>(val->data))
 		{
@@ -180,7 +180,7 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 
 	// Column metadata
 	int columns_count = 0;
-	if (auto val = container->get_value("columns_count"))
+	if (auto val = container->get("columns_count"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{
@@ -193,42 +193,42 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 		std::string prefix = "col_" + std::to_string(i) + "_";
 		column_metadata col;
 
-		if (auto val = container->get_value(prefix + "name"))
+		if (auto val = container->get(prefix + "name"))
 		{
 			if (std::holds_alternative<std::string>(val->data))
 			{
 				col.name = std::get<std::string>(val->data);
 			}
 		}
-		if (auto val = container->get_value(prefix + "type_name"))
+		if (auto val = container->get(prefix + "type_name"))
 		{
 			if (std::holds_alternative<std::string>(val->data))
 			{
 				col.type_name = std::get<std::string>(val->data);
 			}
 		}
-		if (auto val = container->get_value(prefix + "type_id"))
+		if (auto val = container->get(prefix + "type_id"))
 		{
 			if (std::holds_alternative<int>(val->data))
 			{
 				col.type_id = static_cast<uint32_t>(std::get<int>(val->data));
 			}
 		}
-		if (auto val = container->get_value(prefix + "nullable"))
+		if (auto val = container->get(prefix + "nullable"))
 		{
 			if (std::holds_alternative<bool>(val->data))
 			{
 				col.nullable = std::get<bool>(val->data);
 			}
 		}
-		if (auto val = container->get_value(prefix + "precision"))
+		if (auto val = container->get(prefix + "precision"))
 		{
 			if (std::holds_alternative<int>(val->data))
 			{
 				col.precision = static_cast<uint32_t>(std::get<int>(val->data));
 			}
 		}
-		if (auto val = container->get_value(prefix + "scale"))
+		if (auto val = container->get(prefix + "scale"))
 		{
 			if (std::holds_alternative<int>(val->data))
 			{
@@ -241,7 +241,7 @@ query_response::deserialize(std::shared_ptr<container_module::value_container> c
 
 	// Rows
 	int rows_count = 0;
-	if (auto val = container->get_value("rows_count"))
+	if (auto val = container->get("rows_count"))
 	{
 		if (std::holds_alternative<int>(val->data))
 		{

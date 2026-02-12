@@ -177,7 +177,15 @@ query_response select_handler::handle_impl(const query_request& request,
 		}
 
 		// Use select_query for SELECT statements
-		auto db_result = db->select_query(request.sql);
+		auto select_result = db->select_query(request.sql);
+		if (select_result.is_err())
+		{
+			pool->release_connection(connection);
+			return query_response(request.header.message_id, status_code::error,
+								  "Query execution error: " +
+									  select_result.error().message);
+		}
+		const auto& db_result = select_result.value();
 
 		query_response response(request.header.message_id);
 
@@ -309,8 +317,15 @@ query_response insert_handler::handle_impl(const query_request& request,
 		}
 
 		query_response response(request.header.message_id);
-		auto affected_rows = db->insert_query(request.sql);
-		response.affected_rows = static_cast<uint64_t>(affected_rows);
+		auto insert_result = db->insert_query(request.sql);
+		if (insert_result.is_err())
+		{
+			pool->release_connection(connection);
+			return query_response(request.header.message_id, status_code::error,
+								  "Query execution error: " +
+									  insert_result.error().message);
+		}
+		response.affected_rows = insert_result.value();
 
 		pool->release_connection(connection);
 
@@ -384,8 +399,15 @@ query_response update_handler::handle_impl(const query_request& request,
 		}
 
 		query_response response(request.header.message_id);
-		auto affected_rows = db->update_query(request.sql);
-		response.affected_rows = static_cast<uint64_t>(affected_rows);
+		auto update_result = db->update_query(request.sql);
+		if (update_result.is_err())
+		{
+			pool->release_connection(connection);
+			return query_response(request.header.message_id, status_code::error,
+								  "Query execution error: " +
+									  update_result.error().message);
+		}
+		response.affected_rows = update_result.value();
 
 		pool->release_connection(connection);
 
@@ -459,8 +481,15 @@ query_response delete_handler::handle_impl(const query_request& request,
 		}
 
 		query_response response(request.header.message_id);
-		auto affected_rows = db->delete_query(request.sql);
-		response.affected_rows = static_cast<uint64_t>(affected_rows);
+		auto delete_result = db->delete_query(request.sql);
+		if (delete_result.is_err())
+		{
+			pool->release_connection(connection);
+			return query_response(request.header.message_id, status_code::error,
+								  "Query execution error: " +
+									  delete_result.error().message);
+		}
+		response.affected_rows = delete_result.value();
 
 		pool->release_connection(connection);
 
