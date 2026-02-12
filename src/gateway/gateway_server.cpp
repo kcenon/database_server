@@ -34,8 +34,6 @@
 #include <kcenon/database_server/gateway/session_id_generator.h>
 
 #include <kcenon/network/facade/tcp_facade.h>
-#include <kcenon/network/interfaces/i_protocol_server.h>
-#include <kcenon/network/session/session.h>
 
 #include <kcenon/common/config/feature_flags.h>
 
