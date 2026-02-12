@@ -37,7 +37,7 @@
  * Handles client connections, message routing, and lifecycle management.
  *
  * Architecture:
- * - Uses messaging_server from kcenon::network for TCP handling
+ * - Uses tcp_facade / i_protocol_server from kcenon::network for TCP handling
  * - Integrates with query_protocol for message serialization
  * - Provides callbacks for request handling
  */
@@ -49,24 +49,22 @@
 #include "query_types.h"
 
 #include <atomic>
+#include <condition_variable>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 
 // Common system integration
 #include <kcenon/common/patterns/result.h>
 
-// Forward declarations - actual classes
-namespace kcenon::network::core
+// Forward declarations - network facade interfaces
+namespace kcenon::network::interfaces
 {
-class messaging_server;
-}
-
-namespace kcenon::network::session
-{
-class messaging_session;
+class i_protocol_server;
+class i_session;
 }
 
 namespace database_server::gateway
@@ -101,7 +99,7 @@ struct client_session
 	uint64_t last_activity = 0; ///< Last activity timestamp
 	uint64_t requests_count = 0; ///< Number of requests processed
 
-	std::weak_ptr<kcenon::network::session::messaging_session> network_session;
+	std::shared_ptr<kcenon::network::interfaces::i_session> network_session;
 };
 
 /**
@@ -265,51 +263,52 @@ private:
 	/**
 	 * @brief Handle new client connection
 	 */
-	void on_connection(std::shared_ptr<kcenon::network::session::messaging_session> session);
+	void on_connection(std::shared_ptr<kcenon::network::interfaces::i_session> session);
 
 	/**
 	 * @brief Handle client disconnection
 	 */
-	void on_disconnection(const std::string& session_id);
+	void on_disconnection(std::string_view network_session_id);
 
 	/**
 	 * @brief Handle incoming message
 	 */
-	void on_message(std::shared_ptr<kcenon::network::session::messaging_session> session,
+	void on_message(std::string_view network_session_id,
 					const std::vector<uint8_t>& data);
 
 	/**
 	 * @brief Handle connection error
 	 */
-	void on_error(std::shared_ptr<kcenon::network::session::messaging_session> session,
-				  std::error_code ec);
+	void on_error(std::string_view network_session_id, std::error_code ec);
 
 	/**
 	 * @brief Process a query request
 	 */
 	void process_request(const std::string& session_id,
-						 std::shared_ptr<kcenon::network::session::messaging_session> network_session,
 						 const query_request& request);
 
 	/**
 	 * @brief Send response to client
 	 */
-	void send_response(std::shared_ptr<kcenon::network::session::messaging_session> session,
+	void send_response(const std::string& session_id,
 					   const query_response& response);
 
 private:
 	gateway_config config_;
-	std::shared_ptr<kcenon::network::core::messaging_server> server_;
+	std::shared_ptr<kcenon::network::interfaces::i_protocol_server> server_;
 	std::unique_ptr<auth_middleware> auth_middleware_;
 
 	mutable std::mutex sessions_mutex_;
 	std::unordered_map<std::string, client_session> sessions_;
+	std::unordered_map<std::string, std::string> network_id_map_;
 
 	request_handler_t request_handler_;
 	std::function<void(const client_session&)> connection_callback_;
 	std::function<void(const std::string&)> disconnection_callback_;
 
 	std::atomic<bool> running_{false};
+	std::mutex stop_mutex_;
+	std::condition_variable stop_cv_;
 };
 
 } // namespace database_server::gateway
