@@ -470,7 +470,7 @@ endif()
 ##################################################
 
 # 1. Link network_system first (it depends on thread_system)
-link_system_dependency(DatabaseServerLib NETWORK_SYSTEM NetworkSystem network_system messaging_system network)
+link_system_dependency(DatabaseServerLib NETWORK_SYSTEM NetworkSystem network_system network)
 
 # 2. Link database_system
 link_system_dependency(DatabaseServerLib DATABASE_SYSTEM DatabaseSystem database_system database)
