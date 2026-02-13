@@ -37,9 +37,7 @@
 
 #include <kcenon/common/config/feature_flags.h>
 
-#if KCENON_WITH_CONTAINER_SYSTEM
-#include <container.h>
-#endif
+#include <kcenon/database_server/gateway/container_compat.h>
 
 #include <chrono>
 

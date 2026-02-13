@@ -43,9 +43,7 @@
 #include <kcenon/common/patterns/result.h>
 #include <kcenon/database_server/gateway/query_protocol.h>
 
-#if KCENON_WITH_CONTAINER_SYSTEM
-#include <container.h>
-#endif
+#include <kcenon/database_server/gateway/container_compat.h>
 
 #include <chrono>
 #include <cstdint>
