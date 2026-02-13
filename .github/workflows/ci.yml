@@ -42,11 +42,21 @@ jobs:
       with:
         submodules: recursive
 
+    - name: Load dependency versions
+      id: deps
+      shell: bash
+      run: |
+        for dep in common_system thread_system logger_system monitoring_system database_system network_system container_system; do
+          sha=$(jq -r ".\"$dep\".commit" deps/kcenon-versions.json)
+          echo "${dep}_ref=$sha" >> $GITHUB_OUTPUT
+        done
+
     - name: Checkout common_system
       uses: actions/checkout@v4
       with:
         repository: kcenon/common_system
         path: common_system
+        ref: ${{ steps.deps.outputs.common_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout thread_system
@@ -54,6 +64,7 @@ jobs:
       with:
         repository: kcenon/thread_system
         path: thread_system
+        ref: ${{ steps.deps.outputs.thread_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout logger_system
@@ -61,6 +72,7 @@ jobs:
       with:
         repository: kcenon/logger_system
         path: logger_system
+        ref: ${{ steps.deps.outputs.logger_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout monitoring_system
@@ -68,6 +80,7 @@ jobs:
       with:
         repository: kcenon/monitoring_system
         path: monitoring_system
+        ref: ${{ steps.deps.outputs.monitoring_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout database_system
@@ -75,6 +88,7 @@ jobs:
       with:
         repository: kcenon/database_system
         path: database_system
+        ref: ${{ steps.deps.outputs.database_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout network_system
@@ -82,6 +96,7 @@ jobs:
       with:
         repository: kcenon/network_system
         path: network_system
+        ref: ${{ steps.deps.outputs.network_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout container_system
@@ -89,6 +104,7 @@ jobs:
       with:
         repository: kcenon/container_system
         path: container_system
+        ref: ${{ steps.deps.outputs.container_system_ref }}
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Install dependencies (Ubuntu)

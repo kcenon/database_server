@@ -1,0 +1,39 @@
+{
+  "_comment": "Pinned dependency versions for kcenon ecosystem. Update with: scripts/update-deps.sh",
+  "_updated": "2026-02-12",
+  "common_system": {
+    "repo": "kcenon/common_system",
+    "commit": "07408eea603fdb40d79283362a2fd3ed72456e80",
+    "verified_date": "2026-02-12"
+  },
+  "thread_system": {
+    "repo": "kcenon/thread_system",
+    "commit": "c974afe9a4631d782f5f9161f29b3c2e0987740a",
+    "verified_date": "2026-02-12"
+  },
+  "logger_system": {
+    "repo": "kcenon/logger_system",
+    "commit": "5033256594b428d27640df1cb92f9d1dd2eb7dbf",
+    "verified_date": "2026-02-12"
+  },
+  "monitoring_system": {
+    "repo": "kcenon/monitoring_system",
+    "commit": "65a3d6fcf7908cf0a6465dbe5d6f0ef680ac2f7f",
+    "verified_date": "2026-02-12"
+  },
+  "database_system": {
+    "repo": "kcenon/database_system",
+    "commit": "49cb644f83a8b6835756ae4bc2f923a070070280",
+    "verified_date": "2026-02-12"
+  },
+  "network_system": {
+    "repo": "kcenon/network_system",
+    "commit": "1876675d7c878181b5de13b11df9a2fbf51da37d",
+    "verified_date": "2026-02-12"
+  },
+  "container_system": {
+    "repo": "kcenon/container_system",
+    "commit": "4bbf1023dfac44e8f2061152925d6204b2a34878",
+    "verified_date": "2026-02-12"
+  }
+}
