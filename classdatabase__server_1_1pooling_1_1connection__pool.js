@@ -1,0 +1,26 @@
+var classdatabase__server_1_1pooling_1_1connection__pool =
+[
+    [ "connection_pool", "classdatabase__server_1_1pooling_1_1connection__pool.html#a9837ce45595cb1e395857e0e33896d02", null ],
+    [ "~connection_pool", "classdatabase__server_1_1pooling_1_1connection__pool.html#aebbdf0c591202a737302b3695074e341", null ],
+    [ "connection_pool", "classdatabase__server_1_1pooling_1_1connection__pool.html#a4e5e9317d3e80b389cf4cd73c6a58316", null ],
+    [ "connection_pool", "classdatabase__server_1_1pooling_1_1connection__pool.html#a0faa36610af8f063ab00137b5affe097", null ],
+    [ "acquire_connection", "classdatabase__server_1_1pooling_1_1connection__pool.html#a1f751177e9118882b21057919ec7e2a7", null ],
+    [ "active_connections", "classdatabase__server_1_1pooling_1_1connection__pool.html#ae40026ce36281d78a94e81dfd240999f", null ],
+    [ "available_connections", "classdatabase__server_1_1pooling_1_1connection__pool.html#a768b6fb58eab793a1dfaeee95597430a", null ],
+    [ "get_aging_stats", "classdatabase__server_1_1pooling_1_1connection__pool.html#af87ffd763b90ed3a87bcec871e724faa", null ],
+    [ "get_average_wait_time", "classdatabase__server_1_1pooling_1_1connection__pool.html#ac0afabf584ea8ef24b2583cc71540343", null ],
+    [ "get_logger", "classdatabase__server_1_1pooling_1_1connection__pool.html#aeebd3d23e034905390d5c661c5ae7ae9", null ],
+    [ "get_max_wait_time", "classdatabase__server_1_1pooling_1_1connection__pool.html#a1480db9e5cbbadd39762a58fdadffd2e", null ],
+    [ "get_metrics", "classdatabase__server_1_1pooling_1_1connection__pool.html#ab5087f70db6b53cb8274b1ffbc3e3cb5", null ],
+    [ "get_stats", "classdatabase__server_1_1pooling_1_1connection__pool.html#a24e3926daadae743e66e35d69b8ba116", null ],
+    [ "get_total_priority_boosts", "classdatabase__server_1_1pooling_1_1connection__pool.html#a6d3d1710a001d065fbdf90a2a3cce442", null ],
+    [ "initialize", "classdatabase__server_1_1pooling_1_1connection__pool.html#abc079970db30498540fba7ad8f820a47", null ],
+    [ "is_shutdown_requested", "classdatabase__server_1_1pooling_1_1connection__pool.html#a80b0efe5161462d38d494a4f397cde6c", null ],
+    [ "operator=", "classdatabase__server_1_1pooling_1_1connection__pool.html#aab8b79501ea0b3496807db74b2c925c6", null ],
+    [ "operator=", "classdatabase__server_1_1pooling_1_1connection__pool.html#a4c3c92c130a31f38652d5ba972f46f3b", null ],
+    [ "release_connection", "classdatabase__server_1_1pooling_1_1connection__pool.html#ab55499ee7e495a2477b019c211a5bf46", null ],
+    [ "request_shutdown", "classdatabase__server_1_1pooling_1_1connection__pool.html#a847bd21d17cc320822fc7afd0bbde3a8", null ],
+    [ "schedule_health_check", "classdatabase__server_1_1pooling_1_1connection__pool.html#a7a5cd46c56d2706a8c6017114f38e9f8", null ],
+    [ "set_logger", "classdatabase__server_1_1pooling_1_1connection__pool.html#a3bf9a646b8a7f17482b63cec05840760", null ],
+    [ "shutdown", "classdatabase__server_1_1pooling_1_1connection__pool.html#ad8912280a03cde10b851a14af8865ec0", null ]
+];

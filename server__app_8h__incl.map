@@ -1,0 +1,24 @@
+<map id="include/kcenon/database_server/server_app.h" name="include/kcenon/database_server/server_app.h">
+<area shape="rect" id="Node000001" title="Database server application interface." alt="" coords="387,5,571,45"/>
+<area shape="rect" id="Node000002" href="$server__config_8h.html" title="Server configuration structures." alt="" coords="121,101,274,126"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="418,48,249,99,247,94,416,43"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="283,181,341,207"/>
+<area shape="poly" id="edge8_Node000001_Node000005" title=" " alt="" coords="411,48,372,67,339,95,329,112,322,131,315,168,310,167,317,129,324,110,335,92,369,63,408,43"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="349,101,416,126"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="459,48,408,93,405,89,456,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="440,101,517,126"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="481,46,481,87,476,87,476,46"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="541,93,739,133"/>
+<area shape="poly" id="edge9_Node000001_Node000009" title=" " alt="" coords="515,43,594,85,592,89,513,48"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="763,93,962,133"/>
+<area shape="poly" id="edge10_Node000001_Node000010" title=" " alt="" coords="564,43,766,88,765,93,562,48"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="986,93,1174,133"/>
+<area shape="poly" id="edge11_Node000001_Node000011" title=" " alt="" coords="571,35,973,90,972,96,570,41"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,181,72,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="175,128,75,178,73,173,173,124"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,181,171,207"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="190,128,154,172,149,169,186,124"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="216,124,285,171,282,176,213,128"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="195,181,258,207"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="204,125,220,167,215,169,199,127"/>
+</map>
