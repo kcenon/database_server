@@ -70,12 +70,12 @@ Database Server는 클라이언트 애플리케이션과 물리적 데이터베�
 
 ```
 server_app
-├── server_config          # 설정 파일 파싱
-├── gateway_server         # TCP 리스너
-├── query_router           # 쿼리 디스패치
-├── connection_pool        # 데이터베이스 커넥션
-├── query_cache            # 선택적 결과 캐시
-└── IExecutor (optional)   # 공유 스레드 풀
+├── server_config          # Configuration file parsing
+├── gateway_server         # TCP listener
+├── query_router           # Query dispatch
+├── connection_pool        # Database connections
+├── query_cache            # Optional result cache
+└── IExecutor (optional)   # Shared thread pool
 ```
 
 **`server_config`**는 네트워크, 풀링, 인증, Rate Limiting, 캐싱 파라미터 섹션이 포함된 `config.conf` 파일을 파싱합니다.
@@ -98,7 +98,7 @@ Gateway 모듈은 모든 네트워크 대면 관심사를 처리합니다:
 
 ```
 protocol/
-├── serialization_helpers.h    # 공통 유틸리티
+├── serialization_helpers.h    # Common utilities
 ├── header_serializer.cpp      # message_header
 ├── auth_serializer.cpp        # auth_token
 ├── param_serializer.cpp       # query_param
@@ -129,7 +129,7 @@ protocol/
 ```cpp
 template <typename Derived>
 class query_collector_base {
-    // 제로 가상 디스패치 - 컴파일 타임에 해결
+    // Zero virtual dispatch - resolved at compile time
     void collect(const query_execution& exec) {
         static_cast<Derived*>(this)->do_collect(exec);
     }
@@ -151,46 +151,46 @@ Client Application
     │
     ▼
 ┌─────────────────┐
-│  gateway_server  │  1. TCP 연결 수락
+│  gateway_server  │  1. Accept TCP connection
 │  (TCP Listener)  │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ auth_middleware  │  2. 토큰 검증, Rate Limit 확인
+│ auth_middleware  │  2. Validate token, check rate limit
 │ (rate_limiter)  │
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  query_router   │  3. 요청 역직렬화, 핸들러 선택
+│  query_router   │  3. Deserialize request, select handler
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  query_cache    │  4. 캐시 확인 (SELECT만 해당)
-│  (if enabled)   │     Hit → 캐시된 결과 반환
+│  query_cache    │  4. Check cache (SELECT only)
+│  (if enabled)   │     Hit → return cached result
 └────────┬────────┘
          │ Miss
          ▼
 ┌─────────────────┐
-│ connection_pool │  5. 커넥션 획득 (우선순위 기반)
+│ connection_pool │  5. Acquire connection (priority-based)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ Physical Database│  6. 쿼리 실행
+│ Physical Database│  6. Execute query
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│ query_cache     │  7. 결과 저장 (SELECT) 또는
-│                 │     무효화 (INSERT/UPDATE/DELETE)
+│ query_cache     │  7. Store result (SELECT) or
+│                 │     invalidate (INSERT/UPDATE/DELETE)
 └────────┬────────┘
          │
          ▼
 ┌─────────────────┐
-│  query_router   │  8. 응답 직렬화, 메트릭 수집
+│  query_router   │  8. Serialize response, collect metrics
 └────────┬────────┘
          │
          ▼
@@ -227,13 +227,13 @@ server_app
     ├── set_executor(executor)
     │       │
     │       ├── query_router.set_executor()
-    │       │       └── 비동기 쿼리 실행
+    │       │       └── Async query execution
     │       │
     │       └── connection_health_monitor(executor)
-    │               └── 백그라운드 헬스 체크
+    │               └── Background health checks
     │
-    └── (executor 없음)
-            └── std::async로 폴백
+    └── (no executor)
+            └── Falls back to std::async
 ```
 
 이를 통해 모든 컴포넌트에서 단일 스레드 풀을 공유하여 효율적인 리소스 활용이 가능합니다.
@@ -295,7 +295,7 @@ server_app
 프로젝트는 컴파일 시간 개선과 캡슐화를 위해 C++20 모듈을 지원합니다:
 
 ```
-kcenon.database_server                    # 주 모듈 인터페이스
+kcenon.database_server                    # Primary module interface
 │
 ├── kcenon.database_server:core           # server_app, server_config
 ├── kcenon.database_server:gateway        # gateway_server, query_router,

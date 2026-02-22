@@ -71,16 +71,16 @@ Database Server는 kcenon 통합 시스템 아키텍처에서 모놀리식 라�
 ### 빌드 단계
 
 ```bash
-# 빌드 디렉터리 생성
+# Create build directory
 mkdir build && cd build
 
-# 설정
+# Configure
 cmake ..
 
-# 빌드
+# Build
 cmake --build .
 
-# 실행 (선택)
+# Run (optional)
 ./bin/database_server --help
 ```
 
@@ -111,14 +111,14 @@ CMake는 해당 `BUILD_WITH_*` 옵션이 활성화될 때 `KCENON_WITH_*=1` 전�
 ### 테스트 실행
 
 ```bash
-# 테스트 활성화하여 빌드 (기본값)
+# Build with tests enabled (default)
 cmake .. -DBUILD_TESTS=ON
 cmake --build .
 
-# 전체 테스트 실행
+# Run all tests
 ctest --output-on-failure
 
-# 또는 특정 테스트 실행 파일 직접 실행
+# Or run specific test executable directly
 ./bin/query_protocol_test
 ./bin/resilience_test
 ./bin/integration_test
@@ -213,12 +213,12 @@ cmake --build .
 **모듈 구조:**
 
 ```
-kcenon.database_server              # 주 모듈 인터페이스
-├── :core                           # 서버 앱 및 설정
-├── :gateway                        # 쿼리 프로토콜 및 라우팅
-├── :pooling                        # 커넥션 풀 관리
-├── :resilience                     # 헬스 모니터링 및 복구
-└── :metrics                        # CRTP 기반 메트릭 수집
+kcenon.database_server              # Primary module interface
+├── :core                           # Server app and configuration
+├── :gateway                        # Query protocol and routing
+├── :pooling                        # Connection pool management
+├── :resilience                     # Health monitoring and recovery
+└── :metrics                        # CRTP-based metrics collection
 ```
 
 **사용법:**
@@ -240,10 +240,10 @@ int main() {
 **파티션 임포트:**
 
 ```cpp
-// 게이트웨이 컴포넌트만 임포트
+// Import only gateway components
 import kcenon.database_server:gateway;
 
-// 게이트웨이 타입 사용
+// Use gateway types
 database_server::gateway::query_request request("SELECT * FROM users",
                                                   database_server::gateway::query_type::select);
 ```
@@ -251,11 +251,11 @@ database_server::gateway::query_request request("SELECT * FROM users",
 ### 벤치마크 실행
 
 ```bash
-# 벤치마크 활성화하여 빌드
+# Build with benchmarks enabled
 cmake .. -DBUILD_BENCHMARKS=ON
 cmake --build .
 
-# 벤치마크 실행
+# Run benchmarks
 ./bin/gateway_benchmarks
 ```
 
@@ -273,27 +273,27 @@ cmake --build .
 서버는 설정 파일(기본: `config.conf`)을 사용하여 구성할 수 있습니다:
 
 ```conf
-# 서버 식별
+# Server identification
 name=my_database_server
 
-# 네트워크 설정
+# Network settings
 network.host=0.0.0.0
 network.port=5432
 network.enable_tls=false
 network.max_connections=100
 network.connection_timeout_ms=30000
 
-# 로깅
+# Logging
 logging.level=info
 logging.enable_console=true
 
-# 커넥션 풀 (Phase 2)
+# Connection pool (Phase 2)
 pool.min_connections=5
 pool.max_connections=50
 pool.idle_timeout_ms=60000
 pool.health_check_interval_ms=30000
 
-# 인증 (Phase 3.4)
+# Authentication (Phase 3.4)
 auth.enabled=true
 auth.validate_on_each_request=false
 auth.token_refresh_window_ms=300000
@@ -305,7 +305,7 @@ rate_limit.burst_size=200
 rate_limit.window_size_ms=1000
 rate_limit.block_duration_ms=60000
 
-# 쿼리 캐시 (Phase 3)
+# Query Cache (Phase 3)
 cache.enabled=true
 cache.max_entries=10000
 cache.ttl_seconds=300
@@ -316,16 +316,16 @@ cache.enable_lru=true
 ## 사용법
 
 ```bash
-# 기본 설정으로 실행
+# Run with default configuration
 ./database_server
 
-# 사용자 정의 설정 파일로 실행
+# Run with custom configuration file
 ./database_server -c /path/to/config.conf
 
-# 도움말 표시
+# Show help
 ./database_server --help
 
-# 버전 표시
+# Show version
 ./database_server --version
 ```
 
@@ -450,19 +450,19 @@ cache.enable_lru=true
 #include <kcenon/thread/adapters/common_executor_adapter.h>
 #include <kcenon/thread/core/thread_pool.h>
 
-// 서버 앱 생성
+// Create server app
 database_server::server_app app;
 app.initialize("config.conf");
 
-// 공유 executor 생성 (선택)
+// Create shared executor (optional)
 auto pool = std::make_shared<kcenon::thread::thread_pool>("shared_executor", 4);
 pool->start();
 auto executor = kcenon::thread::adapters::common_executor_factory::create_from_thread_pool(pool);
 
-// 통합 스레드 관리를 위한 executor 주입
+// Inject executor for unified thread management
 app.set_executor(executor);
 
-// 서버 시작 - 비동기 쿼리와 헬스 모니터링이 공유 executor를 사용
+// Start server - async queries and health monitoring will use shared executor
 app.run();
 ```
 
@@ -497,28 +497,28 @@ Executor가 제공되지 않으면 컴포넌트는 백그라운드 작업을 위
 
 using namespace database_server::metrics;
 
-// 글로벌 수집기 획득
+// Get global collector
 auto& collector = get_query_metrics_collector();
 
-// 설정으로 초기화
+// Initialize with configuration
 collector.initialize({
     {"enabled", "true"},
     {"track_query_types", "true"}
 });
 
-// 쿼리 실행 기록
+// Record query execution
 query_execution exec;
 exec.query_type = "select";
 exec.latency_ns = 1500000;  // 1.5ms
 exec.success = true;
 collector.collect_query_metrics(exec);
 
-// 캐시 동작 기록
+// Record cache operation
 cache_stats cache;
 cache.hit = true;
 collector.collect_cache_metrics(cache);
 
-// 모니터링을 위한 메트릭 획득
+// Get metrics for monitoring
 const auto& metrics = collector.get_metrics();
 double avg_latency = metrics.query_metrics.avg_query_latency_ms();
 double cache_hit_ratio = metrics.cache_metrics.cache_hit_ratio();
@@ -527,21 +527,21 @@ double cache_hit_ratio = metrics.cache_metrics.cache_hit_ratio();
 ### Monitoring System 통합
 
 ```cpp
-// 모니터링 통합 초기화
+// Initialize monitoring integration
 initialize_monitoring_integration("my_database_server");
 
-// 커스텀 모니터링 시스템을 위한 내보내기 콜백 설정
+// Set export callback for custom monitoring systems
 set_metrics_export_callback([](const std::vector<monitoring_metric>& metrics) {
     for (const auto& m : metrics) {
-        // 모니터링 시스템으로 내보내기
+        // Export to your monitoring system
         push_to_prometheus(m.name, m.value, m.tags);
     }
 });
 
-// 현재 메트릭 내보내기
+// Export current metrics
 export_metrics_to_monitoring();
 
-// 헬스 엔드포인트용 메트릭 획득
+// Get metrics for health endpoint
 auto health_metrics = get_metrics_for_health_endpoint();
 ```
 
