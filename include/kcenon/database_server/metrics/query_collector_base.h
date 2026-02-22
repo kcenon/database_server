@@ -37,6 +37,15 @@
  * for database query metrics collection. Following the monitoring_system's
  * collector pattern, it enables efficient, zero-overhead metric collection.
  *
+ * ## Thread Safety
+ * - Collection methods (`collect_query_metrics`, `collect_pool_metrics`, etc.)
+ *   are thread-safe; internal counters use `std::atomic` and the enabled flag
+ *   is checked without locking.
+ * - `get_statistics()` acquires a mutex for consistent statistics snapshot.
+ * - `initialize()` should be called once before concurrent collection begins.
+ * - Thread safety of derived `do_collect_*` methods depends on the derived
+ *   class implementation (e.g., `query_metrics_collector` is thread-safe).
+ *
  * Usage:
  * @code
  * class my_collector : public query_collector_base<my_collector> {

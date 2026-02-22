@@ -43,6 +43,14 @@
  * - Type erasure for runtime handler selection
  * - Query type validation and routing
  *
+ * ## Thread Safety
+ * - `query_handler_base` and CRTP handlers are stateless; `handle()` and
+ *   `can_handle()` are safe to call concurrently on the same instance.
+ * - `i_query_handler` and `query_handler_wrapper` share the same guarantees
+ *   as the wrapped handler (stateless handlers are thread-safe).
+ * - `handler_context` is a shared resource holder; the referenced pool and
+ *   cache must themselves be thread-safe (which they are).
+ *
  * @see https://github.com/kcenon/database_server/issues/48
  */
 
