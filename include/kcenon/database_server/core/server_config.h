@@ -35,6 +35,32 @@
  *
  * Defines configuration structures for the database server.
  * Configuration can be loaded from YAML files or constructed programmatically.
+ *
+ * ## Thread Safety
+ * Configuration structs are plain data structures with no internal
+ * synchronization. They are intended to be created and populated before
+ * server startup, then read concurrently. Concurrent modification is
+ * NOT thread-safe; use external synchronization if runtime changes are needed.
+ *
+ * @code
+ * using namespace database_server;
+ *
+ * // Load from file
+ * auto config = server_config::load_from_file("config.conf");
+ * if (config.has_value()) {
+ *     if (!config->validate()) {
+ *         for (const auto& err : config->validation_errors()) {
+ *             std::cerr << "Config error: " << err << std::endl;
+ *         }
+ *     }
+ * }
+ *
+ * // Or construct programmatically
+ * auto cfg = server_config::default_config();
+ * cfg.network.port = 5433;
+ * cfg.pool.max_connections = 100;
+ * cfg.cache.enabled = true;
+ * @endcode
  */
 
 #pragma once

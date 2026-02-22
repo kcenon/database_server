@@ -42,6 +42,28 @@
  * - Cache performance metrics (hit/miss ratios)
  * - Connection pool metrics (utilization, wait times)
  * - Session management metrics (active sessions, duration)
+ *
+ * ## Thread Safety
+ * All metrics structs use `std::atomic` counters for individual operations.
+ * Single method calls (`record_query`, `record_hit`, etc.) are thread-safe
+ * for concurrent access. However, reading multiple related counters (e.g.,
+ * `success_rate()`) provides a consistent snapshot only if no concurrent
+ * writes are in progress. The `reset()` methods are NOT atomic across all
+ * fields; use external synchronization if reset must be observed atomically.
+ *
+ * @code
+ * using namespace database_server::metrics;
+ *
+ * query_execution_metrics qm;
+ * qm.record_query(1500000, true);  // 1.5ms, success
+ * double avg = qm.avg_query_latency_ms();
+ * double rate = qm.success_rate();
+ *
+ * cache_performance_metrics cm;
+ * cm.record_hit();
+ * cm.record_miss();
+ * double hit_ratio = cm.cache_hit_ratio();
+ * @endcode
  */
 
 #pragma once

@@ -38,6 +38,23 @@
  *
  * Note: Uses kcenon::thread::job_types as the underlying type to ensure
  * compatibility with the thread_system template instantiations.
+ *
+ * ## Thread Safety
+ * All values are inline constexpr constants and a pure function
+ * (`priority_to_string`). Fully thread-safe; no mutable shared state.
+ *
+ * @code
+ * using namespace database_server::pooling;
+ *
+ * // Use priority constants for connection acquisition
+ * auto priority = PRIORITY_NORMAL_QUERY;  // Default for most queries
+ *
+ * // Critical operations get highest priority
+ * auto critical = PRIORITY_CRITICAL;
+ *
+ * // Convert to string for logging
+ * const char* name = priority_to_string(priority);  // "NORMAL_QUERY"
+ * @endcode
  */
 
 #pragma once

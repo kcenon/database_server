@@ -42,6 +42,33 @@
  * - Request/response model for query execution
  * - Support for parameterized queries
  * - Token-based authentication
+ *
+ * ## Thread Safety
+ * All message structs (`message_header`, `auth_token`, `query_request`,
+ * `query_response`, etc.) are plain data structures with no internal
+ * synchronization. Individual instances should not be shared across threads
+ * without external synchronization. Serialization and deserialization create
+ * independent copies and are safe to call concurrently on different instances.
+ *
+ * @code
+ * using namespace database_server::gateway;
+ *
+ * // Create a query request
+ * query_request request("SELECT * FROM users WHERE id = ?",
+ *                       query_type::select);
+ * request.params.emplace_back("id", int64_t{42});
+ * request.options.timeout_ms = 5000;
+ *
+ * // Serialize for transmission
+ * auto container = request.serialize();
+ *
+ * // Deserialize on the receiving end
+ * auto result = query_request::deserialize(container);
+ * if (result) {
+ *     const auto& req = result.value();
+ *     // Process request...
+ * }
+ * @endcode
  */
 
 #pragma once

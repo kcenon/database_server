@@ -39,6 +39,35 @@
  *
  * @note These types are server-side implementations. Client applications
  *       should use ProxyMode to connect through database_server.
+ *
+ * ## Thread Safety
+ * - `connection_pool_config`, `connection_stats`: Plain data, not thread-safe.
+ *   Create before use and protect with external synchronization if shared.
+ * - `connection_wrapper`: Health flag uses `std::atomic<bool>` (thread-safe).
+ *   Metadata access (`last_used`, `is_idle_timeout_exceeded`) is mutex-protected.
+ * - `connection_pool`: All public methods are mutex-protected and thread-safe
+ *   for concurrent `acquire_connection()` and `release_connection()` calls.
+ *   `shutdown()` signals all waiters via condition variable.
+ *
+ * @code
+ * using namespace database;
+ *
+ * connection_pool_config config;
+ * config.max_connections = 20;
+ * config.acquire_timeout = std::chrono::milliseconds{5000};
+ *
+ * connection_pool pool(database_types::PostgreSQL, config, []() {
+ *     return create_backend("postgres://localhost/mydb");
+ * });
+ * pool.initialize();
+ *
+ * auto result = pool.acquire_connection();
+ * if (result) {
+ *     auto conn = result.value();
+ *     // Use connection...
+ *     pool.release_connection(conn);
+ * }
+ * @endcode
  */
 
 #pragma once

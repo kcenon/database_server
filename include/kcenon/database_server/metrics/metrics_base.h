@@ -42,6 +42,26 @@
  * - Average and rate calculations
  *
  * Related to: #58 Extract common base class for metrics structs
+ *
+ * ## Thread Safety
+ * All functions are static and operate on `std::atomic` parameters passed
+ * by the caller. The CAS-based `update_min` / `update_max` functions are
+ * lock-free and safe for concurrent calls. Pure calculation functions
+ * (`average_ns_to_ms`, `calculate_rate`, etc.) are stateless and thread-safe.
+ *
+ * @code
+ * using namespace database_server::metrics;
+ *
+ * std::atomic<uint64_t> min_latency{UINT64_MAX};
+ * std::atomic<uint64_t> max_latency{0};
+ *
+ * // Thread-safe min/max update (CAS loop)
+ * metrics_utils::update_min_max(min_latency, max_latency, 1500);
+ *
+ * // Calculate average (stateless)
+ * double avg_ms = metrics_utils::average_ns_to_ms(total_ns, count);
+ * double rate = metrics_utils::calculate_rate(successes, total);
+ * @endcode
  */
 
 #pragma once
