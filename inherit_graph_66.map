@@ -1,0 +1,7 @@
+<map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
+<area shape="rect" id="Node000000" title=" " alt="" coords="5,37,212,77"/>
+<area shape="rect" id="Node000001" href="$classdatabase__server_1_1gateway_1_1async__query__job.html" title="Job implementation for async query execution." alt="" coords="263,5,458,45"/>
+<area shape="poly" id="edge14_Node000000_Node000001" title=" " alt="" coords="225,40,263,35,263,40,226,45"/>
+<area shape="rect" id="Node000002" href="$classdatabase__server_1_1resilience_1_1health__monitor__job.html" title="Job implementation for health monitoring loop." alt="" coords="260,69,461,109"/>
+<area shape="poly" id="edge15_Node000000_Node000002" title=" " alt="" coords="226,70,260,74,259,79,225,75"/>
+</map>

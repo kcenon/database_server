@@ -1,0 +1,23 @@
+var searchData=
+[
+  ['handle_0',['handle',['../classdatabase__server_1_1gateway_1_1query__handler__base.html#ab3b020ffe0cce774c40a339333b2f461',1,'database_server::gateway::query_handler_base::handle()'],['../classdatabase__server_1_1gateway_1_1i__query__handler.html#a7c6172be377fc2fb562f1d0a278d4d26',1,'database_server::gateway::i_query_handler::handle()'],['../classdatabase__server_1_1gateway_1_1query__handler__wrapper.html#a81ed8b4dee88c222c6968949047c3a4f',1,'database_server::gateway::query_handler_wrapper::handle()']]],
+  ['handler_5fcontext_1',['handler_context',['../structdatabase__server_1_1gateway_1_1handler__context.html',1,'database_server::gateway']]],
+  ['header_2',['header',['../structdatabase__server_1_1gateway_1_1query__request.html#a18ce47459687bae74ba733de637e5575',1,'database_server::gateway::query_request::header'],['../structdatabase__server_1_1gateway_1_1query__response.html#a8d95bd007fcd6c234c50d702b996e8f0',1,'database_server::gateway::query_response::header']]],
+  ['header_5fserializer_2ecpp_3',['header_serializer.cpp',['../header__serializer_8cpp.html',1,'']]],
+  ['health_5fcheck_4',['health_check',['../classdatabase_1_1connection__pool__base.html#ac3c3b9ade51b7f57b20116299a214a8b',1,'database::connection_pool_base::health_check()'],['../classdatabase_1_1connection__pool.html#a03a938b5d09d6a9b47dfb15a69932ab2',1,'database::connection_pool::health_check()']]],
+  ['health_5fcheck_5fconfig_5',['health_check_config',['../structdatabase__server_1_1resilience_1_1health__check__config.html',1,'database_server::resilience']]],
+  ['health_5fcheck_5finterval_6',['health_check_interval',['../structdatabase_1_1connection__pool__config.html#ae7173f611ec7de1f00165c3b90139ecb',1,'database::connection_pool_config']]],
+  ['health_5fcheck_5finterval_5fms_7',['health_check_interval_ms',['../structdatabase__server_1_1pool__config.html#a86e3467b869ffebd467434ab6c195b02',1,'database_server::pool_config']]],
+  ['health_5fchecks_5fperformed_8',['health_checks_performed',['../structdatabase__server_1_1pooling_1_1pool__metrics.html#ae7a9c0ea30daec88ed2ad6165f6c9bff',1,'database_server::pooling::pool_metrics']]],
+  ['health_5fmonitor_5fjob_9',['health_monitor_job',['../classdatabase__server_1_1resilience_1_1health__monitor__job.html',1,'database_server::resilience::health_monitor_job'],['../classdatabase__server_1_1resilience_1_1connection__health__monitor.html#ac27a6beb66d941b6d600172389396dae',1,'database_server::resilience::connection_health_monitor::health_monitor_job'],['../classdatabase__server_1_1resilience_1_1health__monitor__job.html#ae1d2989f040e93f17939cfd9b6b7ebf0',1,'database_server::resilience::health_monitor_job::health_monitor_job()']]],
+  ['health_5fscore_10',['health_score',['../structdatabase__server_1_1resilience_1_1health__status.html#aad33856c6b80599b8fae1faaecb0fa93',1,'database_server::resilience::health_status']]],
+  ['health_5fstatus_11',['health_status',['../structdatabase__server_1_1resilience_1_1health__status.html',1,'database_server::resilience']]],
+  ['heartbeat_5finterval_12',['heartbeat_interval',['../structdatabase__server_1_1resilience_1_1health__check__config.html#af554df47e3ea2d3e04a088e50fa3575d',1,'database_server::resilience::health_check_config']]],
+  ['histogram_5fbuckets_13',['histogram_buckets',['../structdatabase__server_1_1metrics_1_1collector__options.html#a2318542b18c16fe60d5f818be23ab60e',1,'database_server::metrics::collector_options']]],
+  ['hit_14',['hit',['../structdatabase__server_1_1metrics_1_1cache__stats.html#aa36b334e27b516b799b5d1566c333527',1,'database_server::metrics::cache_stats']]],
+  ['hit_5frate_15',['hit_rate',['../structdatabase__server_1_1gateway_1_1cache__metrics.html#ad10b7129a5821c0789b7631b6433924d',1,'database_server::gateway::cache_metrics']]],
+  ['hits_16',['hits',['../structdatabase__server_1_1gateway_1_1cache__metrics.html#ab4974476a678a844dbe8be56f68d0186',1,'database_server::gateway::cache_metrics']]],
+  ['host_17',['host',['../structdatabase__server_1_1network__config.html#ab7028ceb2784fe2f3395a9a2312f9456',1,'database_server::network_config']]],
+  ['href_20https_3a_20github_20com_20kcenon_20database_5fserver_20issues_2050_2050_20a_18',['Phase 4: Foundation System Improvements Integration (&lt;a href=&quot;https://github.com/kcenon/database_server/issues/50&quot; &gt;#50&lt;/a&gt;)',['../index.html#autotoc_md39',1,'']]],
+  ['https_3a_20github_20com_20kcenon_20database_5fserver_20issues_2050_2050_20a_19',['Phase 4: Foundation System Improvements Integration (&lt;a href=&quot;https://github.com/kcenon/database_server/issues/50&quot; &gt;#50&lt;/a&gt;)',['../index.html#autotoc_md39',1,'']]]
+];

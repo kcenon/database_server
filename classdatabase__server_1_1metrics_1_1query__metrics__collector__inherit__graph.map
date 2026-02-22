@@ -1,0 +1,5 @@
+<map id="database_server::metrics::query_metrics_collector" name="database_server::metrics::query_metrics_collector">
+<area shape="rect" id="Node000001" title="CRTP&#45;based collector for database query metrics." alt="" coords="16,108,203,148"/>
+<area shape="rect" id="Node000002" href="$classdatabase__server_1_1metrics_1_1query__collector__base.html" title=" " alt="" coords="5,5,213,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="112,74,112,108,107,108,107,74"/>
+</map>

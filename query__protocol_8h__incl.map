@@ -1,0 +1,25 @@
+<map id="include/kcenon/database_server/gateway/query_protocol.h" name="include/kcenon/database_server/gateway/query_protocol.h">
+<area shape="rect" id="Node000001" title="Query protocol message structures for database gateway." alt="" coords="315,5,499,60"/>
+<area shape="rect" id="Node000002" href="$query__types_8h.html" title="Query protocol type definitions for database gateway." alt="" coords="88,115,203,141"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="334,63,191,113,189,108,332,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,196,72,221"/>
+<area shape="poly" id="edge6_Node000001_Node000003" title=" " alt="" coords="315,47,177,72,117,89,78,110,64,126,55,144,44,183,39,181,50,143,60,123,74,106,115,84,176,67,314,42"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="219,196,277,221"/>
+<area shape="poly" id="edge9_Node000001_Node000004" title=" " alt="" coords="328,62,295,83,267,110,258,127,253,145,249,182,244,182,247,144,253,124,263,106,292,78,326,58"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="277,115,344,141"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="381,62,334,107,331,104,378,58"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="368,115,445,141"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="409,60,409,101,404,101,404,60"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="469,115,544,141"/>
+<area shape="poly" id="edge8_Node000001_Node000008" title=" " alt="" coords="437,58,486,104,482,108,433,62"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="569,115,637,141"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="463,58,568,107,565,112,461,62"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="661,115,723,141"/>
+<area shape="poly" id="edge11_Node000001_Node000010" title=" " alt="" coords="500,57,650,105,656,108,654,113,648,111,498,62"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="747,108,935,148"/>
+<area shape="poly" id="edge12_Node000001_Node000011" title=" " alt="" coords="499,51,741,103,740,108,498,56"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="131,143,67,190,64,186,128,139"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="162,139,223,185,220,189,159,143"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="97,196,194,221"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="148,141,148,182,143,182,143,141"/>
+</map>

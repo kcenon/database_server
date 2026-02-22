@@ -1,0 +1,13 @@
+<map id="src/gateway/session_id_generator.cpp" name="src/gateway/session_id_generator.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="272,5,427,45"/>
+<area shape="rect" id="Node000002" href="$session__id__generator_8h.html" title="Cryptographically secure session ID generation." alt="" coords="5,93,240,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="301,48,186,91,184,86,299,43"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="264,101,339,126"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="341,47,317,90,312,87,336,44"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="363,101,435,126"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="363,44,387,87,383,90,358,47"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="459,101,533,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="383,43,466,91,463,96,380,48"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="93,181,152,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,134,125,167,120,167,120,134"/>
+</map>

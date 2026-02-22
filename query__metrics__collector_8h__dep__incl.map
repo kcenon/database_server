@@ -1,0 +1,7 @@
+<map id="include/kcenon/database_server/metrics/query_metrics_collector.h" name="include/kcenon/database_server/metrics/query_metrics_collector.h">
+<area shape="rect" id="Node000001" title="CRTP&#45;based query metrics collector implementation." alt="" coords="89,5,273,60"/>
+<area shape="rect" id="Node000002" href="$collector__integration_8cpp.html" title="Integration layer between query_metrics_collector and monitoring_system." alt="" coords="5,108,160,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="145,71,104,110,101,106,142,68"/>
+<area shape="rect" id="Node000003" href="$query__metrics__collector_8cpp.html" title=" " alt="" coords="185,108,375,148"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="221,68,262,106,258,110,217,71"/>
+</map>

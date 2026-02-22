@@ -1,0 +1,7 @@
+<map id="database_server::gateway::gateway_config" name="database_server::gateway::gateway_config">
+<area shape="rect" id="Node000001" title="Configuration for the gateway server." alt="" coords="115,108,309,148"/>
+<area shape="rect" id="Node000002" href="$structdatabase__server_1_1gateway_1_1auth__config.html" title="Configuration for authentication middleware." alt="" coords="5,5,200,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,53,193,106,190,110,132,57"/>
+<area shape="rect" id="Node000003" href="$structdatabase__server_1_1gateway_1_1rate__limit__config.html" title="Configuration for rate limiting." alt="" coords="224,5,419,45"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="292,57,234,110,231,106,289,53"/>
+</map>

@@ -1,0 +1,55 @@
+<map id="include/kcenon/database_server/gateway/query_types.h" name="include/kcenon/database_server/gateway/query_types.h">
+<area shape="rect" id="Node000001" title="Query protocol type definitions for database gateway." alt="" coords="1515,5,1699,60"/>
+<area shape="rect" id="Node000002" href="$auth__middleware_8h.html" title="Authentication middleware for database gateway." alt="" coords="264,218,523,258"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="1501,36,1348,39,1154,50,940,73,832,89,728,111,643,134,561,164,433,220,430,215,559,159,642,129,726,105,832,84,940,67,1154,45,1348,34,1501,31"/>
+<area shape="rect" id="Node000003" href="$gateway__server_8h.html" title="Database gateway TCP server." alt="" coords="298,313,489,368"/>
+<area shape="poly" id="edge7_Node000001_Node000003" title=" " alt="" coords="1502,54,1171,117,968,162,765,213,600,265,461,316,460,311,599,260,764,208,967,157,1170,112,1501,49"/>
+<area shape="rect" id="Node000007" href="$query__cache_8h.html" title="Query result cache with LRU eviction and TTL expiration." alt="" coords="1515,211,1699,265"/>
+<area shape="poly" id="edge8_Node000001_Node000007" title=" " alt="" coords="1610,74,1610,210,1604,210,1604,74"/>
+<area shape="rect" id="Node000008" href="$query__handlers_8h.html" title="CRTP&#45;based query handlers for database gateway." alt="" coords="1806,313,1990,368"/>
+<area shape="poly" id="edge19_Node000001_Node000008" title=" " alt="" coords="1713,51,1782,72,1853,105,1888,125,1920,149,1948,177,1972,209,1979,224,1981,238,1972,266,1956,293,1935,315,1931,311,1952,290,1967,264,1975,237,1974,225,1967,212,1944,181,1916,153,1885,130,1851,109,1780,77,1711,56"/>
+<area shape="rect" id="Node000009" href="$query__router_8h.html" title="Query router with load balancing for database gateway." alt="" coords="1806,416,1990,471"/>
+<area shape="poly" id="edge33_Node000001_Node000009" title=" " alt="" coords="1713,41,1761,49,1812,63,1863,81,1910,106,1940,128,1961,150,1995,209,2019,252,2037,289,2041,307,2042,326,2037,347,2027,369,2003,398,1972,418,1969,414,1999,394,2022,367,2032,345,2036,326,2036,308,2032,291,2014,254,1990,212,1956,153,1937,132,1907,110,1860,86,1811,68,1760,55,1712,46"/>
+<area shape="rect" id="Node000013" href="$query__handler__base_8h.html" title="CRTP&#45;based query handler infrastructure for database gateway." alt="" coords="1774,211,1958,265"/>
+<area shape="poly" id="edge16_Node000001_Node000013" title=" " alt="" coords="1653,67,1834,208,1830,212,1650,71"/>
+<area shape="rect" id="Node000014" href="$query__protocol_8h.html" title="Query protocol message structures for database gateway." alt="" coords="1386,108,1570,163"/>
+<area shape="poly" id="edge20_Node000001_Node000014" title=" " alt="" coords="1564,70,1513,110,1510,106,1561,66"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="396,272,396,313,391,313,391,272"/>
+<area shape="rect" id="Node000005" href="$gateway__server_8cpp.html" title=" " alt="" coords="112,423,273,463"/>
+<area shape="poly" id="edge6_Node000002_Node000005" title=" " alt="" coords="251,251,179,261,110,274,53,292,33,303,18,315,10,328,8,340,11,353,18,366,37,388,60,404,113,426,110,431,57,409,33,392,14,370,6,354,3,340,5,326,14,312,30,298,51,287,109,269,178,255,250,246"/>
+<area shape="rect" id="Node000006" href="$auth__middleware_8cpp.html" title=" " alt="" coords="28,328,274,353"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="336,266,180,330,178,325,334,261"/>
+<area shape="rect" id="Node000004" href="$server__app_8cpp.html" title=" " alt="" coords="1258,519,1434,544"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="503,366,951,456,1281,516,1280,521,950,461,502,371"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="330,376,232,425,229,421,328,372"/>
+<area shape="poly" id="edge9_Node000007_Node000008" title=" " alt="" coords="1696,267,1823,311,1821,316,1695,272"/>
+<area shape="poly" id="edge14_Node000007_Node000009" title=" " alt="" coords="1576,277,1561,299,1551,323,1548,346,1557,366,1582,391,1607,405,1633,411,1660,412,1721,408,1756,408,1794,413,1806,416,1805,421,1793,419,1756,413,1722,413,1660,417,1632,416,1605,410,1579,395,1553,370,1543,346,1545,321,1556,297,1571,274"/>
+<area shape="rect" id="Node000012" href="$query__cache_8cpp.html" title=" " alt="" coords="1566,328,1781,353"/>
+<area shape="poly" id="edge15_Node000007_Node000012" title=" " alt="" coords="1634,276,1668,326,1664,329,1630,278"/>
+<area shape="poly" id="edge10_Node000008_Node000009" title=" " alt="" coords="1900,382,1900,416,1895,416,1895,382"/>
+<area shape="rect" id="Node000011" href="$query__handlers_8cpp.html" title=" " alt="" coords="1550,431,1782,456"/>
+<area shape="poly" id="edge13_Node000008_Node000011" title=" " alt="" coords="1826,376,1693,433,1691,428,1824,371"/>
+<area shape="poly" id="edge11_Node000009_Node000004" title=" " alt="" coords="1793,473,1597,504,1434,524,1433,519,1596,499,1792,468"/>
+<area shape="rect" id="Node000010" href="$query__router_8cpp.html" title=" " alt="" coords="1790,519,2005,544"/>
+<area shape="poly" id="edge12_Node000009_Node000010" title=" " alt="" coords="1900,484,1900,518,1895,518,1895,484"/>
+<area shape="poly" id="edge17_Node000013_Node000008" title=" " alt="" coords="1881,278,1892,312,1887,314,1876,279"/>
+<area shape="poly" id="edge18_Node000013_Node000009" title=" " alt="" coords="1959,270,1984,288,2004,312,2011,327,2013,341,2004,369,1983,397,1956,418,1952,414,1979,393,1999,367,2008,340,2006,328,1999,315,1980,292,1956,274"/>
+<area shape="poly" id="edge21_Node000014_Node000002" title=" " alt="" coords="1372,149,524,227,523,222,1372,144"/>
+<area shape="poly" id="edge22_Node000014_Node000003" title=" " alt="" coords="1372,155,1022,213,893,240,765,268,633,291,501,316,490,318,489,313,500,311,632,286,764,263,892,235,1021,208,1371,150"/>
+<area shape="poly" id="edge23_Node000014_Node000007" title=" " alt="" coords="1524,169,1575,208,1571,213,1520,173"/>
+<area shape="poly" id="edge25_Node000014_Node000008" title=" " alt="" coords="1584,155,1649,177,1712,208,1729,222,1739,235,1749,249,1763,263,1802,289,1841,311,1839,316,1799,294,1760,267,1745,252,1735,239,1725,226,1710,213,1647,182,1582,160"/>
+<area shape="poly" id="edge26_Node000014_Node000009" title=" " alt="" coords="1478,176,1480,221,1489,273,1508,324,1522,347,1541,366,1572,388,1601,401,1629,407,1657,408,1719,406,1754,407,1794,413,1806,416,1805,421,1793,419,1754,413,1719,411,1657,414,1628,412,1599,406,1569,393,1537,370,1518,350,1503,326,1484,274,1475,222,1473,176"/>
+<area shape="poly" id="edge24_Node000014_Node000013" title=" " alt="" coords="1584,161,1774,210,1773,216,1583,166"/>
+<area shape="rect" id="Node000015" href="$serialization__helpers_8h.html" title="Common serialization utilities for query protocol." alt="" coords="1034,218,1207,258"/>
+<area shape="poly" id="edge27_Node000014_Node000015" title=" " alt="" coords="1373,169,1188,221,1186,215,1372,163"/>
+<area shape="rect" id="Node000016" href="$auth__serializer_8cpp.html" title="Implementation of auth_token serialization." alt="" coords="513,321,672,361"/>
+<area shape="poly" id="edge28_Node000015_Node000016" title=" " alt="" coords="1020,256,862,281,684,316,655,323,653,318,682,311,861,276,1020,250"/>
+<area shape="rect" id="Node000017" href="$header__serializer_8cpp.html" title="Implementation of message_header serialization." alt="" coords="696,321,860,361"/>
+<area shape="poly" id="edge29_Node000015_Node000017" title=" " alt="" coords="1044,264,843,323,841,318,1043,259"/>
+<area shape="rect" id="Node000018" href="$param__serializer_8cpp.html" title="Implementation of query_param serialization." alt="" coords="884,321,1045,361"/>
+<area shape="poly" id="edge30_Node000015_Node000018" title=" " alt="" coords="1081,268,995,323,992,318,1078,263"/>
+<area shape="rect" id="Node000019" href="$request__serializer_8cpp.html" title="Implementation of query_request serialization." alt="" coords="1070,321,1238,361"/>
+<area shape="poly" id="edge31_Node000015_Node000019" title=" " alt="" coords="1133,270,1150,320,1145,321,1128,272"/>
+<area shape="rect" id="Node000020" href="$response__serializer_8cpp.html" title="Implementation of query_response, column_metadata, result_row serialization." alt="" coords="1262,321,1440,361"/>
+<area shape="poly" id="edge32_Node000015_Node000020" title=" " alt="" coords="1177,261,1309,318,1307,323,1175,266"/>
+</map>

@@ -1,0 +1,5 @@
+<map id="database_server::gateway::batch_handler" name="database_server::gateway::batch_handler">
+<area shape="rect" id="Node000001" title="CRTP handler for batch query execution." alt="" coords="14,108,209,148"/>
+<area shape="rect" id="Node000002" href="$classdatabase__server_1_1gateway_1_1query__handler__base.html" title=" " alt="" coords="5,5,217,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="114,74,114,108,109,108,109,74"/>
+</map>

@@ -1,0 +1,36 @@
+<map id="include/kcenon/database_server/resilience/resilient_database_connection.h" name="include/kcenon/database_server/resilience/resilient_database_connection.h">
+<area shape="rect" id="Node000001" title="Resilient database connection with automatic reconnection." alt="" coords="512,5,707,60"/>
+<area shape="rect" id="Node000002" href="$connection__health__monitor_8h.html" title="Health monitoring for database connections." alt="" coords="336,108,547,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="559,62,477,104,475,99,557,58"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,189,72,214"/>
+<area shape="poly" id="edge12_Node000001_Node000003" title=" " alt="" coords="512,49,378,73,305,90,233,111,144,147,72,184,69,179,142,142,231,105,303,84,377,67,511,44"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,189,163,214"/>
+<area shape="poly" id="edge13_Node000001_Node000004" title=" " alt="" coords="512,51,403,74,344,91,288,110,216,146,158,183,155,179,213,141,286,106,343,86,401,69,511,46"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="187,189,264,214"/>
+<area shape="poly" id="edge15_Node000001_Node000007" title=" " alt="" coords="512,50,419,72,371,89,325,110,280,144,245,180,241,176,276,140,323,106,369,84,417,67,511,44"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="552,189,616,214"/>
+<area shape="poly" id="edge16_Node000001_Node000008" title=" " alt="" coords="608,61,590,176,585,175,603,60"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="640,189,699,214"/>
+<area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="621,59,663,175,658,177,616,61"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="723,181,901,221"/>
+<area shape="poly" id="edge18_Node000001_Node000011" title=" " alt="" coords="638,58,719,131,773,171,770,176,716,135,634,62"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="926,181,1125,221"/>
+<area shape="poly" id="edge20_Node000001_Node000012" title=" " alt="" coords="648,58,710,100,762,131,838,158,913,178,912,183,836,163,760,136,707,105,645,62"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="773,108,824,133"/>
+<area shape="poly" id="edge14_Node000001_Node000013" title=" " alt="" coords="668,58,762,100,760,105,666,62"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="849,108,1050,133"/>
+<area shape="poly" id="edge19_Node000001_Node000014" title=" " alt="" coords="707,56,892,102,891,107,706,61"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="336,136,215,154,85,184,77,186,76,181,83,179,214,149,336,131"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="376,136,280,156,175,184,169,186,167,181,174,179,279,151,375,131"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="288,189,355,214"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="425,136,352,183,349,179,422,131"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="379,189,440,214"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="439,135,422,177,417,175,434,132"/>
+<area shape="poly" id="edge6_Node000002_Node000007" title=" " alt="" coords="410,136,277,184,270,186,268,181,275,179,408,131"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="464,131,552,180,550,184,461,136"/>
+<area shape="poly" id="edge8_Node000002_Node000009" title=" " alt="" coords="483,131,629,179,634,181,632,186,627,184,481,136"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="465,189,527,214"/>
+<area shape="poly" id="edge9_Node000002_Node000010" title=" " alt="" coords="452,132,482,176,478,179,447,135"/>
+<area shape="poly" id="edge10_Node000002_Node000011" title=" " alt="" coords="496,131,711,176,710,181,495,136"/>
+<area shape="poly" id="edge11_Node000002_Node000012" title=" " alt="" coords="541,131,913,179,912,184,541,136"/>
+</map>

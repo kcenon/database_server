@@ -1,0 +1,5 @@
+<map id="database_server::gateway::i_query_handler" name="database_server::gateway::i_query_handler">
+<area shape="rect" id="Node000001" title="Type&#45;erased interface for query handlers." alt="" coords="5,5,200,45"/>
+<area shape="rect" id="Node000002" href="$classdatabase__server_1_1gateway_1_1query__handler__wrapper.html" title="Type erasure wrapper for CRTP handlers." alt="" coords="5,93,200,148"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,59,105,93,100,93,100,59"/>
+</map>

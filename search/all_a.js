@@ -1,0 +1,11 @@
+var searchData=
+[
+  ['failed_0',['failed',['../namespacedatabase__server_1_1resilience.html#aaa5b0c4048671ca1c2459c95bb2d5f93a26934eb377001f66e37289a5c93fe284',1,'database_server::resilience']]],
+  ['failed_5facquisitions_1',['failed_acquisitions',['../structdatabase__server_1_1metrics_1_1pool__performance__metrics.html#a8dfce2e7cbbb3ee8c7b7272cd139a94c',1,'database_server::metrics::pool_performance_metrics::failed_acquisitions'],['../structdatabase_1_1connection__stats.html#a114bf58d70ba021e797dcf5c8652f7ce',1,'database::connection_stats::failed_acquisitions'],['../structdatabase__server_1_1pooling_1_1pool__metrics.html#a01e869b3d2cbfe0982a9990e4c2e35e3',1,'database_server::pooling::pool_metrics::failed_acquisitions']]],
+  ['failed_5fauths_2',['failed_auths',['../structdatabase__server_1_1gateway_1_1auth__metrics.html#a5fbf7065b8031b6478c05cb453f2a558',1,'database_server::gateway::auth_metrics']]],
+  ['failed_5fqueries_3',['failed_queries',['../structdatabase__server_1_1gateway_1_1router__metrics.html#aea8eaae8389f6a9a0eab7af156b4af68',1,'database_server::gateway::router_metrics::failed_queries'],['../structdatabase__server_1_1metrics_1_1query__execution__metrics.html#a48137905c082b782277ea4cc2853f079',1,'database_server::metrics::query_execution_metrics::failed_queries'],['../structdatabase__server_1_1resilience_1_1health__status.html#ae368f967cb855e0fe647ee3cdb0a88ab',1,'database_server::resilience::health_status::failed_queries']]],
+  ['failure_5fthreshold_4',['failure_threshold',['../structdatabase__server_1_1resilience_1_1health__check__config.html#aa08ba0d50109d6f626649ab3e3c53ff6',1,'database_server::resilience::health_check_config']]],
+  ['features_5',['Planned Features',['../index.html#autotoc_md40',1,'']]],
+  ['flush_6',['flush',['../classdatabase__server_1_1logging_1_1console__logger.html#a25fb2f644a0e9df0c33cc60396c7e650',1,'database_server::logging::console_logger']]],
+  ['foundation_20system_20improvements_20integration_20a_20href_20https_3a_20github_20com_20kcenon_20database_5fserver_20issues_2050_2050_20a_7',['Phase 4: Foundation System Improvements Integration (&lt;a href=&quot;https://github.com/kcenon/database_server/issues/50&quot; &gt;#50&lt;/a&gt;)',['../index.html#autotoc_md39',1,'']]]
+];

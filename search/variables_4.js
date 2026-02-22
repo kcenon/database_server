@@ -1,0 +1,22 @@
+var searchData=
+[
+  ['enable_5fauto_5freconnect_0',['enable_auto_reconnect',['../structdatabase__server_1_1resilience_1_1reconnection__config.html#a23fadf4f0fd3a9805e8045baa290d991',1,'database_server::resilience::reconnection_config']]],
+  ['enable_5fconsole_1',['enable_console',['../structdatabase__server_1_1logging__config.html#a56db70f3c70ac7ec237522e15004baff',1,'database_server::logging_config']]],
+  ['enable_5fhealth_5fchecks_2',['enable_health_checks',['../structdatabase_1_1connection__pool__config.html#a6cda1efee09ba4fe28271aae987362ef',1,'database::connection_pool_config']]],
+  ['enable_5fheartbeat_3',['enable_heartbeat',['../structdatabase__server_1_1resilience_1_1health__check__config.html#a26af28897a5b4c03a31d04d52f6bcbc9',1,'database_server::resilience::health_check_config']]],
+  ['enable_5flru_4',['enable_lru',['../structdatabase__server_1_1query__cache__config.html#aa1e005045365cebc04183a69f3e611dd',1,'database_server::query_cache_config::enable_lru'],['../structdatabase__server_1_1gateway_1_1cache__config.html#a34bfd74e8eac7c971b3d68d58d7dc62d',1,'database_server::gateway::cache_config::enable_lru']]],
+  ['enable_5fmetrics_5',['enable_metrics',['../structdatabase__server_1_1gateway_1_1router__config.html#af587d330fccb30a6485178c87645928e',1,'database_server::gateway::router_config']]],
+  ['enable_5ftls_6',['enable_tls',['../structdatabase__server_1_1network__config.html#a7046b48040820b55c1d76ea085227fa7',1,'database_server::network_config']]],
+  ['enabled_7',['enabled',['../structdatabase__server_1_1metrics_1_1collector__options.html#a2c6fb5f13c3f40d8ec30bf6daa22669f',1,'database_server::metrics::collector_options::enabled'],['../structdatabase__server_1_1gateway_1_1cache__config.html#a927c4a3b9571a079916eb166e215c38a',1,'database_server::gateway::cache_config::enabled'],['../structdatabase__server_1_1gateway_1_1rate__limit__config.html#a9105d8013ecde45e735dd0cf874c2824',1,'database_server::gateway::rate_limit_config::enabled'],['../structdatabase__server_1_1gateway_1_1auth__config.html#a33a3cbac4b9674fed97f5d130a9cc1f5',1,'database_server::gateway::auth_config::enabled'],['../structdatabase__server_1_1query__cache__config.html#addaade8af17addf71e21f359973ac809',1,'database_server::query_cache_config::enabled']]],
+  ['enabled_5f_8',['enabled_',['../classdatabase__server_1_1metrics_1_1query__collector__base.html#af4390846e90a28b523fb126c575ea5b6',1,'database_server::metrics::query_collector_base']]],
+  ['entry_5fcount_9',['entry_count',['../structdatabase__server_1_1metrics_1_1cache__stats.html#a9e2cb27bd01e67187ac711ad998ae890',1,'database_server::metrics::cache_stats']]],
+  ['error_5fmessage_10',['error_message',['../structdatabase__server_1_1gateway_1_1query__response.html#ac1b711317c5070273a925a3c900eaed4',1,'database_server::gateway::query_response::error_message'],['../structdatabase__server_1_1metrics_1_1query__execution.html#aa06470e3ed0ba5f603c1a0d45cd8709e',1,'database_server::metrics::query_execution::error_message']]],
+  ['eviction_11',['eviction',['../structdatabase__server_1_1metrics_1_1cache__stats.html#acf1bc8ea90690b80c6aae91bf5524cd5',1,'database_server::metrics::cache_stats']]],
+  ['evictions_12',['evictions',['../structdatabase__server_1_1gateway_1_1cache__metrics.html#a9b0944f0c223c56bdf83bb176f0645bb',1,'database_server::gateway::cache_metrics']]],
+  ['execution_5ftime_5fus_13',['execution_time_us',['../structdatabase__server_1_1gateway_1_1query__response.html#a61f8033bc4535d4f4bfc6d504f85a61f',1,'database_server::gateway::query_response']]],
+  ['expiration_14',['expiration',['../structdatabase__server_1_1metrics_1_1cache__stats.html#ac38eeb1d943a6bf0a9e3448d60cbe42a',1,'database_server::metrics::cache_stats']]],
+  ['expirations_15',['expirations',['../structdatabase__server_1_1gateway_1_1cache__metrics.html#a8d98b78d183809b27f78dc9ac5d411a8',1,'database_server::gateway::cache_metrics']]],
+  ['expired_5ftokens_16',['expired_tokens',['../structdatabase__server_1_1gateway_1_1auth__metrics.html#a90aa27ab9ae18e83e3291574df0ea889',1,'database_server::gateway::auth_metrics']]],
+  ['expires_5fat_17',['expires_at',['../structdatabase__server_1_1gateway_1_1auth__token.html#adf74618245c75755b130797ffa57c192',1,'database_server::gateway::auth_token']]],
+  ['export_5fcallback_18',['export_callback',['../collector__integration_8cpp.html#ab5184c22972589acbbff8803d9b281c1',1,'collector_integration.cpp']]]
+];

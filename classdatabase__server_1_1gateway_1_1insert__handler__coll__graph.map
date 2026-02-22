@@ -1,0 +1,5 @@
+<map id="database_server::gateway::insert_handler" name="database_server::gateway::insert_handler">
+<area shape="rect" id="Node000001" title="CRTP handler for INSERT queries." alt="" coords="15,108,209,148"/>
+<area shape="rect" id="Node000002" href="$classdatabase__server_1_1gateway_1_1query__handler__base.html" title=" " alt="" coords="5,5,219,60"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="115,74,115,108,109,108,109,74"/>
+</map>

@@ -1,0 +1,40 @@
+<map id="src/gateway/protocol/response_serializer.cpp" name="src/gateway/protocol/response_serializer.cpp">
+<area shape="rect" id="Node000001" title="Implementation of query_response, column_metadata, result_row serialization." alt="" coords="829,5,1008,45"/>
+<area shape="rect" id="Node000002" href="$serialization__helpers_8h.html" title="Common serialization utilities for query protocol." alt="" coords="834,93,1003,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="921,46,921,79,916,79,916,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,179,207"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="834,114,551,134,375,149,198,169,193,170,192,165,197,164,374,144,551,128,834,109"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="254,255,442,295"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="857,121,759,142,650,169,520,211,409,252,407,247,519,206,649,164,758,137,856,116"/>
+<area shape="rect" id="Node000005" href="$query__protocol_8h.html" title="Query protocol message structures for database gateway." alt="" coords="661,167,856,207"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="897,121,811,163,809,158,894,116"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="447,343,513,368"/>
+<area shape="poly" id="edge19_Node000002_Node000007" title=" " alt="" coords="834,115,681,129,502,155,416,174,341,197,281,224,259,240,244,256,234,279,240,297,259,312,288,324,361,341,433,349,433,354,360,346,286,329,256,316,236,300,229,278,239,253,256,236,279,220,339,192,415,169,501,150,680,124,833,110"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="743,343,801,368"/>
+<area shape="poly" id="edge21_Node000002_Node000008" title=" " alt="" coords="961,116,1039,143,1082,162,1123,184,1156,208,1177,235,1182,250,1183,265,1178,281,1167,297,1142,314,1106,328,1060,339,1009,346,903,355,815,357,815,352,903,349,1008,341,1059,334,1104,323,1140,310,1163,293,1173,278,1178,264,1177,251,1173,238,1152,212,1120,188,1080,167,1037,148,959,121"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="805,262,872,287"/>
+<area shape="poly" id="edge18_Node000002_Node000010" title=" " alt="" coords="916,120,852,251,848,249,911,118"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="896,262,973,287"/>
+<area shape="poly" id="edge20_Node000002_Node000011" title=" " alt="" coords="922,118,935,248,930,248,917,119"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="998,262,1066,287"/>
+<area shape="poly" id="edge22_Node000002_Node000013" title=" " alt="" coords="929,117,1019,249,1014,252,924,120"/>
+<area shape="rect" id="Node000014" title=" " alt="" coords="1090,262,1153,287"/>
+<area shape="poly" id="edge23_Node000002_Node000014" title=" " alt="" coords="935,117,995,165,1099,251,1096,255,992,169,932,121"/>
+<area shape="rect" id="Node000015" href="$container__compat_8h.html" title="Compatibility header for container_system includes." alt="" coords="1229,167,1443,207"/>
+<area shape="poly" id="edge17_Node000002_Node000015" title=" " alt="" coords="980,116,1223,162,1222,167,979,121"/>
+<area shape="poly" id="edge16_Node000005_Node000004" title=" " alt="" coords="669,209,452,255,450,249,668,204"/>
+<area shape="rect" id="Node000006" href="$query__types_8h.html" title="Query protocol type definitions for database gateway." alt="" coords="616,262,731,287"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="742,209,697,254,693,250,738,205"/>
+<area shape="poly" id="edge10_Node000005_Node000007" title=" " alt="" coords="661,193,621,200,579,212,541,231,507,257,496,273,488,291,482,329,477,328,483,290,491,270,503,253,538,226,578,207,619,195,660,188"/>
+<area shape="poly" id="edge13_Node000005_Node000008" title=" " alt="" coords="763,207,773,329,767,329,758,207"/>
+<area shape="poly" id="edge9_Node000005_Node000010" title=" " alt="" coords="778,205,820,250,816,253,774,209"/>
+<area shape="poly" id="edge11_Node000005_Node000011" title=" " alt="" coords="798,204,900,254,898,258,796,209"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="517,262,592,287"/>
+<area shape="poly" id="edge12_Node000005_Node000012" title=" " alt="" coords="715,209,595,259,593,254,713,204"/>
+<area shape="poly" id="edge14_Node000005_Node000013" title=" " alt="" coords="829,204,986,252,993,255,991,260,984,257,828,209"/>
+<area shape="poly" id="edge15_Node000005_Node000014" title=" " alt="" coords="857,201,964,222,1078,252,1085,254,1083,259,1077,257,963,227,856,206"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="646,290,522,340,520,335,644,285"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="690,285,748,332,745,336,686,290"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="621,343,718,368"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="675,288,673,329,668,329,670,287"/>
+</map>
