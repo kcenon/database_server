@@ -35,6 +35,26 @@
  *
  * Defines enumerations for query types and status codes used in the
  * gateway protocol for communication between clients and the database server.
+ *
+ * ## Thread Safety
+ * All types are enumerations and constexpr/inline functions operating on
+ * immutable data. Fully thread-safe for concurrent reads; no mutable
+ * shared state exists.
+ *
+ * @code
+ * using namespace database_server::gateway;
+ *
+ * // Convert between enum and string
+ * auto type = query_type::select;
+ * std::string_view name = to_string(type);  // "SELECT"
+ *
+ * // Parse from string
+ * auto parsed = parse_query_type("INSERT");  // query_type::insert
+ *
+ * // Check status codes
+ * auto code = status_code::ok;
+ * std::string_view status = to_string(code);  // "OK"
+ * @endcode
  */
 
 #pragma once

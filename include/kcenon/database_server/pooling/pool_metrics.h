@@ -35,6 +35,23 @@
  *
  * Provides tracking of connection pool performance including acquisition
  * latency, success rates, and priority-based statistics.
+ *
+ * ## Thread Safety
+ * `pool_metrics` uses `std::atomic` counters; individual method calls are
+ * thread-safe. `priority_metrics` additionally uses a `std::mutex` to protect
+ * the per-priority maps. The `reset()` / `reset_all()` methods are NOT atomic
+ * across all fields; use external synchronization if needed.
+ *
+ * @code
+ * using namespace database_server::pooling;
+ *
+ * pool_metrics metrics;
+ * metrics.record_acquisition(150, true);  // 150us, success
+ * metrics.update_active(+1);  // Connection acquired
+ * metrics.update_active(-1);  // Connection released
+ * double avg = metrics.average_wait_time_us();
+ * double rate = metrics.success_rate();
+ * @endcode
  */
 
 #pragma once

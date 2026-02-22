@@ -15,6 +15,10 @@
  * - v3.0: Legacy paths removed — only this file needs updating
  *
  * When v3.0 lands, update the include path and forward declaration below.
+ *
+ * ## Thread Safety
+ * This is a header-only include shim with no runtime state.
+ * Thread safety depends on the included container_system headers.
  */
 
 #pragma once

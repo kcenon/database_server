@@ -44,6 +44,28 @@
  * - execute_handler: Handles stored procedure execution
  * - ping_handler: Handles health check pings
  *
+ * @code
+ * using namespace database_server::gateway;
+ *
+ * // Create handlers via factory function (type-erased)
+ * auto select = make_handler<select_handler>();
+ * auto insert = make_handler<insert_handler>();
+ * auto ping   = make_handler<ping_handler>();
+ *
+ * // Check handler capabilities
+ * assert(select->can_handle(query_type::select));
+ * assert(!select->can_handle(query_type::insert));
+ *
+ * // Execute a query through the handler
+ * handler_context ctx{pool, cache};
+ * query_request request("SELECT * FROM users", query_type::select);
+ * query_response response = select->handle(request, ctx);
+ *
+ * if (response.is_success()) {
+ *     // Process response.rows
+ * }
+ * @endcode
+ *
  * @see https://github.com/kcenon/database_server/issues/48
  */
 
