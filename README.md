@@ -1,3 +1,5 @@
+> 🇰🇷 [한국어 버전](README.kr.md)
+
 # Database Server
 
 A high-performance database gateway middleware server that provides connection pooling, query routing, and caching capabilities.
