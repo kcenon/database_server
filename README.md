@@ -66,9 +66,34 @@ The Database Server is part of the kcenon unified system architecture evolution 
 
 - CMake 3.16 or higher
 - C++20 compatible compiler (GCC 10+, Clang 12+, MSVC 2019+)
-- Required system dependencies built and available
+- [vcpkg](https://vcpkg.io/) installed with `VCPKG_ROOT` environment variable set (recommended)
 
-### Build Steps
+### Quick Start (vcpkg)
+
+The recommended way to build uses CMake presets with vcpkg for dependency management:
+
+```bash
+# Configure and build with default preset
+cmake --preset default
+cmake --build --preset default
+```
+
+### Available Presets
+
+| Preset | Description |
+|--------|-------------|
+| `default` | Release build with vcpkg dependency management |
+| `debug` | Debug build with tests enabled |
+| `release` | Optimized release build |
+| `dev-local` | Local development without vcpkg (uses `FindSystemDependency`) |
+| `ci` | CI build with tests and benchmarks |
+| `asan` | AddressSanitizer for memory error detection |
+| `tsan` | ThreadSanitizer for data race detection |
+| `ubsan` | UndefinedBehaviorSanitizer |
+
+> **Note**: The `dev-local` preset does not use vcpkg and relies on workspace-relative sibling directories via the `FindSystemDependency` CMake module. Use this preset for existing workspace layouts.
+
+### Manual Build (without presets)
 
 ```bash
 # Create build directory

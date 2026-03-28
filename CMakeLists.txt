@@ -5,6 +5,13 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 NEW)
 endif()
 
+# vcpkg toolchain auto-detection
+if(DEFINED ENV{VCPKG_ROOT} AND NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake"
+        CACHE STRING "vcpkg toolchain file")
+    message(STATUS "Using vcpkg from: $ENV{VCPKG_ROOT}")
+endif()
+
 ##################################################
 # Database Server CMakeLists.txt
 #

@@ -1,5 +1,6 @@
 {
   "_comment": "Pinned dependency versions for kcenon ecosystem. Update with: scripts/update-deps.sh",
+  "_deprecated": "This file is superseded by vcpkg.json + vcpkg-configuration.json. Use vcpkg for dependency management. This file is kept for backward compatibility with workspace-relative builds.",
   "_updated": "2026-02-12",
   "common_system": {
     "repo": "kcenon/common_system",
