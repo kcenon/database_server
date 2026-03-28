@@ -1,0 +1,45 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "kcenon-database-server",
+  "version": "0.1.0",
+  "port-version": 0,
+  "description": "Database Gateway Middleware Server",
+  "homepage": "https://github.com/kcenon/database_server",
+  "license": "BSD-3-Clause",
+  "supports": "!(uwp | xbox)",
+  "dependencies": [
+    "fmt",
+    "spdlog",
+    "nlohmann-json"
+  ],
+  "features": {
+    "ecosystem": {
+      "description": "Enable kcenon ecosystem dependencies (requires vcpkg registry)",
+      "dependencies": [
+        "kcenon-common-system",
+        "kcenon-thread-system",
+        "kcenon-container-system",
+        "kcenon-database-system",
+        "kcenon-network-system"
+      ]
+    },
+    "monitoring": {
+      "description": "Enable runtime monitoring integration",
+      "dependencies": [
+        "kcenon-monitoring-system"
+      ]
+    },
+    "testing": {
+      "description": "Build unit tests and benchmarks",
+      "dependencies": [
+        "gtest",
+        "benchmark"
+      ]
+    }
+  },
+  "overrides": [
+    { "name": "gtest", "version": "1.17.0" },
+    { "name": "benchmark", "version": "1.9.5" },
+    { "name": "spdlog", "version": "1.15.3" }
+  ]
+}
