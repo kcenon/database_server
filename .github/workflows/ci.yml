@@ -121,8 +121,11 @@ jobs:
     - name: Install dependencies (Windows)
       if: runner.os == 'Windows'
       shell: pwsh
+      env:
+        VCPKG_MANIFEST_MODE: 'OFF'
       run: |
-        # Install asio using vcpkg (header-only library)
+        # Install asio using vcpkg classic mode (manifest mode disabled
+        # because vcpkg.json exists in repo root for local development)
         vcpkg install asio:x64-windows
         # Add vcpkg include path to deps_install
         $prefix = "$env:GITHUB_WORKSPACE/deps_install"
