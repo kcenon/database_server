@@ -1,0 +1,33 @@
+<map id="include/kcenon/database_server/metrics/query_metrics_collector.h" name="include/kcenon/database_server/metrics/query_metrics_collector.h">
+<area shape="rect" id="Node000001" title="CRTP&#45;based query metrics collector implementation." alt="" coords="395,5,579,60"/>
+<area shape="rect" id="Node000002" href="$query__collector__base_8h.html" title="CRTP base class for query metrics collectors." alt="" coords="277,108,449,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="450,62,393,102,390,98,447,58"/>
+<area shape="rect" id="Node000003" href="$query__metrics_8h.html" title="Metrics structures for query server performance monitoring." alt="" coords="18,181,145,207"/>
+<area shape="poly" id="edge15_Node000001_Node000003" title=" " alt="" coords="402,63,266,110,118,177,116,173,264,106,400,58"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="503,181,567,207"/>
+<area shape="poly" id="edge17_Node000001_Node000009" title=" " alt="" coords="495,60,515,133,527,168,522,169,509,134,490,61"/>
+<area shape="rect" id="Node000012" title=" " alt="" coords="524,108,601,133"/>
+<area shape="poly" id="edge16_Node000001_Node000012" title=" " alt="" coords="512,58,545,96,541,99,508,62"/>
+<area shape="rect" id="Node000013" title=" " alt="" coords="625,108,740,133"/>
+<area shape="poly" id="edge18_Node000001_Node000013" title=" " alt="" coords="548,58,645,100,643,105,545,63"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="318,136,141,180,139,175,317,131"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="196,328,263,353"/>
+<area shape="poly" id="edge10_Node000002_Node000005" title=" " alt="" coords="377,132,396,153,411,181,413,208,409,239,396,281,369,304,339,320,307,331,277,337,276,332,305,326,337,315,366,300,391,279,404,238,408,207,405,182,391,156,373,135"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="315,255,381,280"/>
+<area shape="poly" id="edge11_Node000002_Node000008" title=" " alt="" coords="373,132,390,166,394,186,392,207,382,228,370,246,366,243,378,225,387,206,389,187,385,167,368,135"/>
+<area shape="poly" id="edge12_Node000002_Node000009" title=" " alt="" coords="391,131,495,174,493,178,389,136"/>
+<area shape="rect" id="Node000010" title=" " alt="" coords="169,181,228,207"/>
+<area shape="poly" id="edge13_Node000002_Node000010" title=" " alt="" coords="337,136,239,178,237,173,335,131"/>
+<area shape="rect" id="Node000011" title=" " alt="" coords="253,181,377,207"/>
+<area shape="poly" id="edge14_Node000002_Node000011" title=" " alt="" coords="357,135,332,172,328,169,353,132"/>
+<area shape="rect" id="Node000004" href="$metrics__base_8h.html" title="Common utilities for atomic metrics operations." alt="" coords="70,255,191,280"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="92,205,117,242,113,245,87,209"/>
+<area shape="poly" id="edge7_Node000003_Node000005" title=" " alt="" coords="125,204,167,223,187,236,205,253,221,283,229,313,224,315,216,285,201,256,184,240,164,227,123,209"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="5,328,72,353"/>
+<area shape="poly" id="edge9_Node000003_Node000006" title=" " alt="" coords="78,208,60,255,46,315,40,314,55,254,73,206"/>
+<area shape="poly" id="edge8_Node000003_Node000008" title=" " alt="" coords="125,204,302,251,301,256,123,209"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="148,278,204,318,201,322,145,282"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="118,282,66,322,63,317,114,278"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="101,328,160,353"/>
+<area shape="poly" id="edge6_Node000004_Node000007" title=" " alt="" coords="133,280,133,314,128,314,128,280"/>
+</map>

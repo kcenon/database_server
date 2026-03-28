@@ -1,0 +1,32 @@
+<map id="include/kcenon/database_server/metrics/metrics_base.h" name="include/kcenon/database_server/metrics/metrics_base.h">
+<area shape="rect" id="Node000001" title="Common utilities for atomic metrics operations." alt="" coords="360,5,544,60"/>
+<area shape="rect" id="Node000002" href="$query__metrics_8h.html" title="Metrics structures for query server performance monitoring." alt="" coords="247,108,431,163"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="414,71,370,110,366,106,410,67"/>
+<area shape="rect" id="Node000007" href="$pool__metrics_8h.html" title="Performance metrics for connection pools." alt="" coords="455,115,678,155"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="494,67,547,113,543,117,491,71"/>
+<area shape="rect" id="Node000003" href="$query__collector__base_8h.html" title="CRTP base class for query metrics collectors." alt="" coords="164,211,348,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="310,175,280,212,276,209,306,172"/>
+<area shape="rect" id="Node000004" href="$query__metrics__collector_8h.html" title="CRTP&#45;based query metrics collector implementation." alt="" coords="165,313,349,368"/>
+<area shape="poly" id="edge6_Node000002_Node000004" title=" " alt="" coords="360,175,370,220,370,244,362,267,341,294,314,315,311,311,337,291,358,264,364,243,365,220,354,176"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="259,279,260,313,254,313,254,279"/>
+<area shape="rect" id="Node000005" href="$collector__integration_8cpp.html" title="Integration layer between query_metrics_collector and monitoring_system." alt="" coords="5,423,160,463"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="202,377,117,425,114,421,199,372"/>
+<area shape="rect" id="Node000006" href="$query__metrics__collector_8cpp.html" title=" " alt="" coords="185,423,375,463"/>
+<area shape="poly" id="edge5_Node000004_Node000006" title=" " alt="" coords="269,381,278,422,273,423,264,382"/>
+<area shape="rect" id="Node000008" href="$connection__pool_8h.html" title="High&#45;performance connection pool with priority aging and scheduling." alt="" coords="468,211,665,265"/>
+<area shape="poly" id="edge8_Node000007_Node000008" title=" " alt="" coords="569,169,569,210,564,210,564,169"/>
+<area shape="rect" id="Node000009" href="$query__handlers_8h.html" title="CRTP&#45;based query handlers for database gateway." alt="" coords="468,313,652,368"/>
+<area shape="poly" id="edge9_Node000008_Node000009" title=" " alt="" coords="567,279,564,313,559,313,561,279"/>
+<area shape="rect" id="Node000011" href="$server__app_8cpp.html" title=" " alt="" coords="401,519,577,544"/>
+<area shape="poly" id="edge14_Node000008_Node000011" title=" " alt="" coords="497,275,475,293,458,315,440,355,436,390,441,426,453,470,465,496,481,517,477,520,461,499,448,472,436,427,430,390,435,353,454,312,471,289,494,271"/>
+<area shape="rect" id="Node000012" href="$query__router_8cpp.html" title=" " alt="" coords="717,519,931,544"/>
+<area shape="poly" id="edge15_Node000008_Node000012" title=" " alt="" coords="679,245,724,253,771,267,816,286,858,311,897,346,923,383,930,403,931,425,927,448,917,472,905,488,890,502,857,521,854,516,887,498,901,485,912,469,922,446,926,425,925,404,919,386,893,350,854,315,814,290,769,272,723,258,678,250"/>
+<area shape="rect" id="Node000014" href="$connection__pool_8cpp.html" title=" " alt="" coords="676,321,844,361"/>
+<area shape="poly" id="edge16_Node000008_Node000014" title=" " alt="" coords="630,269,725,318,722,323,628,274"/>
+<area shape="rect" id="Node000010" href="$query__router_8h.html" title="Query router with load balancing for database gateway." alt="" coords="463,416,647,471"/>
+<area shape="poly" id="edge10_Node000009_Node000010" title=" " alt="" coords="561,382,559,416,553,416,555,382"/>
+<area shape="rect" id="Node000013" href="$query__handlers_8cpp.html" title=" " alt="" coords="671,431,903,456"/>
+<area shape="poly" id="edge13_Node000009_Node000013" title=" " alt="" coords="633,371,762,428,760,433,631,376"/>
+<area shape="poly" id="edge11_Node000010_Node000011" title=" " alt="" coords="529,483,500,520,496,517,524,480"/>
+<area shape="poly" id="edge12_Node000010_Node000012" title=" " alt="" coords="651,472,789,516,787,521,649,477"/>
+</map>

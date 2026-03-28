@@ -1,0 +1,19 @@
+<map id="src/core/server_config.cpp" name="src/core/server_config.cpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="297,5,487,31"/>
+<area shape="rect" id="Node000002" href="$server__config_8h.html" title="Server configuration structures." alt="" coords="88,79,269,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="362,33,244,76,242,71,360,28"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="293,86,384,111"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="386,32,357,76,352,73,382,29"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="409,86,482,111"/>
+<area shape="poly" id="edge7_Node000001_Node000008" title=" " alt="" coords="402,29,432,73,427,76,398,32"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="507,86,581,111"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="416,28,511,77,508,82,413,33"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,167,72,192"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="146,121,73,162,70,157,144,116"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="96,167,171,192"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="170,120,149,156,145,153,165,118"/>
+<area shape="rect" id="Node000005" title=" " alt="" coords="195,167,253,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="192,118,213,153,208,156,187,120"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="278,167,341,192"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="212,117,280,157,277,162,209,121"/>
+</map>
