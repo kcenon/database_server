@@ -279,6 +279,17 @@ This allows sharing a single thread pool across all components for efficient res
      Optional: monitoring_system (Tier 3) for metrics export
 ```
 
+### Dependency Management
+
+The project supports two approaches for resolving dependencies:
+
+| Approach | Preset | Description |
+|----------|--------|-------------|
+| **vcpkg manifest** (recommended) | `default`, `debug`, `release`, `ci` | Dependencies declared in `vcpkg.json` with a custom kcenon registry (`vcpkg-configuration.json`). Requires `VCPKG_ROOT` environment variable. |
+| **FindSystemDependency** (legacy) | `dev-local` | Resolves dependencies from workspace-relative sibling directories. No vcpkg required. |
+
+The `CMakeLists.txt` auto-detects `VCPKG_ROOT` and configures the vcpkg toolchain automatically when the environment variable is set.
+
 ### Dependency Roles
 
 | Dependency | Tier | Role in database_server |

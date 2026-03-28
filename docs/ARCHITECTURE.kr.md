@@ -279,6 +279,17 @@ server_app
      Optional: monitoring_system (Tier 3) for metrics export
 ```
 
+### 의존성 관리
+
+프로젝트는 의존성 해결을 위해 두 가지 접근 방식을 지원합니다:
+
+| 접근 방식 | 프리셋 | 설명 |
+|-----------|--------|------|
+| **vcpkg manifest** (권장) | `default`, `debug`, `release`, `ci` | `vcpkg.json`에 선언된 의존성과 kcenon 커스텀 레지스트리(`vcpkg-configuration.json`) 사용. `VCPKG_ROOT` 환경 변수 필요. |
+| **FindSystemDependency** (레거시) | `dev-local` | 워크스페이스 상대 경로의 형제 디렉터리에서 의존성 해결. vcpkg 불필요. |
+
+`CMakeLists.txt`는 환경 변수가 설정되면 `VCPKG_ROOT`를 자동 감지하고 vcpkg 툴체인을 자동으로 구성합니다.
+
 ### 의존성 역할
 
 | 의존성 | Tier | database_server에서의 역할 |
