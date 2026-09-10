@@ -1,3 +1,7 @@
+> Status: archived 2026-09. No further maintenance; kept for reference.
+>
+> Performance figures and feature claims in this README were written during active development and have not been re-verified.
+
 > 🇰🇷 [한국어 버전](README.kr.md)
 
 # Database Server
